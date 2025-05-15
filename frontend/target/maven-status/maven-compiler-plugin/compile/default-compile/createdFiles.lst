@@ -21,6 +21,7 @@ com\game\DroppedItem.class
 com\game\ui\LoginFrame$1.class
 com\game\ui\MapSelectScreen$2.class
 com\game\MapData.class
+com\game\ui\SkillTreeDialog.class
 com\game\ui\GamePanel$1.class
 com\game\model\GameMap.class
 com\game\ui\MapSelectScreen$9.class
@@ -29,6 +30,7 @@ com\game\model\GameMonsterDrop.class
 com\game\SkillEffect.class
 com\game\ui\MapSelectScreen$7.class
 com\game\ui\StatsDialog$1.class
+com\game\ui\SkillTreeDialog$1.class
 com\game\ui\MapSelectScreen.class
 com\game\model\GameItem.class
 com\game\ui\InventoryPanel$InventoryItem.class

@@ -9,6 +9,8 @@ public class GameCharacter {
     private Long userId;
     private String name;
     private int level;
+    private int skillPoint;
+    private int gold;
     private int exp;
     private String className;
 }

@@ -12,17 +12,29 @@ import com.game.*;
 import com.game.data.GameData;
 import com.game.model.*;
 import java.util.List;
+import com.game.ui.SkillTreeDialog;
+import javax.swing.*;
 
-public class Player {
+public class Player extends JComponent {
     int x, y;
     int speed = 2;
 
     int skillX, skillY; // Tọa độ của vùng sát thương kỹ năng
 
-    public int maxHealth = 10000;
-    public int health = 10000;
-    public int maxmana = 5000;
-    public int mana = 5000;
+    public int basemaxHealth = 500;
+    public Long maxHealth;
+    public Long health;
+    public int basemaxmana = 50;
+    public Long maxmana;
+    public Long mana;
+    public int baseatk = 20;
+    public Long atk;
+    public int basedef = 2;
+    public Long def;
+    public double basecritRate = 0.0001;
+    public double critRate;
+    public double basecritDmg = 1.2;
+    public double critDmg;
 
     BufferedImage collisionImage;
 
@@ -68,7 +80,8 @@ public class Player {
         this.collisionImage = collisionImage;
         this.characterId = characterId;            
 
-        System.out.println("Collision image size: " + collisionImage.getWidth() + "x" + collisionImage.getHeight());
+        ChisoGoc(); // Khởi tạo chỉ số gốc
+        ChiSoTB(); // Cập nhật chỉ số dựa trên trang bị
     }
 
     public void update() {
@@ -223,11 +236,19 @@ public class Player {
             case KeyEvent.VK_A -> left = pressed;
             case KeyEvent.VK_D -> right = pressed;
             case KeyEvent.VK_SHIFT -> speed = pressed ? 3 : 2; // Tăng tốc độ khi nhấn Shift
-            case KeyEvent.VK_1 -> {
+            case KeyEvent.VK_N -> {
                 gameWindow.getInstance().showSettings("Game");  
             }
-            case KeyEvent.VK_2 -> {
+            case KeyEvent.VK_B -> {
                 gameWindow.getInstance().showInventory("Game");
+            }
+            case KeyEvent.VK_K -> {
+                // Mở cửa sổ kỹ năng khi nhấn K
+                SkillTreeDialog dialog = new SkillTreeDialog(
+                    (JFrame) SwingUtilities.getWindowAncestor(this),
+                    characterId
+                );
+                dialog.setVisible(true);
             }
         }
     }
@@ -243,6 +264,8 @@ public class Player {
         skillEffectDuration = 30;
     
         String direction = "right";
+
+        System.out.println("Skill index: " + skillIndex);
 
         BufferedImage frame = skill.frames[0];
         int skillWidth = frame.getWidth();
@@ -286,12 +309,46 @@ public class Player {
         for (Enemy enemy : enemies) {
             Rectangle enemyBox = new Rectangle(enemy.x, enemy.y, enemy.width, enemy.height);
             if (skillBox.intersects(enemyBox)) {
-                enemy.takeDamage(skill.damage);
+                // Tính DEF_Reduction
+                double defReduction = Math.min(0.5, enemy.def / (enemy.def + 10000.0));
+                
+                // Tính xem có crit không
+                boolean isCrit = Math.random() < critRate;
+                
+                // Tính sát thương:
+                // - Nếu là đánh thường (skillIndex == 0)
+                // - Nếu là skill (skillIndex > 0)
+                Long damage;
+                if (skillIndex == 0) {
+                    if (isCrit) {
+                        damage = (long) (atk * critDmg * (1 - defReduction));
+                    } else {
+                        damage = (long) (atk * (1 - defReduction));
+                    }
+                } else {
+                    if (isCrit) {
+                        damage = (long) (atk * skill.damage * critDmg * (1 - defReduction));
+                    } else {
+                        damage = (long) (atk * skill.damage * (1 - defReduction));
+                    }
+                }
+
+                // Áp dụng sát thương và in thông tin
+                enemy.takeDamage(damage);
+                
+                // In thông tin combat để debug
+                System.out.printf("Hit: %s | ATK: %d | DEF_Reduction: %.2f | Crit: %b | Damage: %d%n",
+                    skillIndex == 0 ? "Normal" : "Skill",
+                    atk,
+                    defReduction,
+                    isCrit,
+                    damage
+                );
             }
         }
                 
     
-        return new SkillEffect(damageBoxX, damageBoxY, 30, skill.damage, skill.frames, direction, skillBox, skill.debugColor);
+        return new SkillEffect(damageBoxX, damageBoxY, 30, skill.frames, direction, skillBox, skill.debugColor);
     }
 
     public boolean isBlocked(int x, int y) {
@@ -322,18 +379,59 @@ public class Player {
         skillList.add(skill);
     }
 
-    public void takeDamage(int damage) {
+    public void takeDamage(Long damage) {
         health -= damage;
-        if (health < 0) health = 0;
+        if (health < 0) health = 0L;
+    }
+
+    public void ChisoGoc() {
+        GameCharacter character = GameData.character.stream()
+            .filter(c -> c.getId().equals(characterId))
+            .findFirst()
+            .orElse(null);
+
+        if (character == null) {
+            System.out.println("Character not found: " + characterId);
+            return;
+        }
+
+        int level = character.getLevel();
+        double levelMultiplier = Math.pow(1.1, level); // tăng 10% mỗi cấp
+        maxHealth = (long)(basemaxHealth * levelMultiplier);
+        maxmana = (long)(basemaxmana * levelMultiplier);
+        health = maxHealth;
+        mana = maxmana;
+        atk = (long)(baseatk * levelMultiplier);
+        def = (long)(basedef * levelMultiplier);
+        // Giới hạn Crit Rate và Crit Dmg
+        critRate = Math.min(1.0, basecritRate * levelMultiplier); 
+        critDmg = Math.min(12.0, basecritDmg + 0.1 * level); 
+    }
+
+    public void ChiSoTB() {
+        for (GameInventory item : GameData.inventory) {
+            if (item.isEquipped()) {
+                GameItemInstance instance = GameData.itemInstance.stream()
+                    .filter(i -> i.getId().equals(item.getItemInstanceId()))
+                    .findFirst()
+                    .orElse(null);
+                if (instance != null) {
+                    maxHealth += instance.getHp();
+                    maxmana += instance.getMp();
+                    health += instance.getHp();
+                    mana += instance.getMp();
+                    atk += instance.getAtk();
+                    def += instance.getDef();
+                    critRate += instance.getCritRate();
+                    critDmg += instance.getCritDmg();
+                }
+            }
+        }
     }
 
     public void useMana(int amount) {
         mana -= amount;
-        if (mana < 0) mana = 0;
-    }
-
-    public void setHp(int hp) {
-        health = hp;
+        if (mana < 0) mana = 0L;
     }
 
     public int getX() {

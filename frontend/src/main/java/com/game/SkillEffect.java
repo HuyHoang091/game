@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 public class SkillEffect {
     int x, y; // Vị trí của hiệu ứng
     int duration; // Thời gian tồn tại của hiệu ứng
-    int damage; // Sát thương gây ra
     BufferedImage[] frames; // Các khung hình của hiệu ứng
     int frameIndex = 0; // Khung hình hiện tại
     int frameDelay = 5; // Độ trễ giữa các khung hình
@@ -16,11 +15,10 @@ public class SkillEffect {
     Color debugColor;
     Rectangle skillBox;
 
-    public SkillEffect(int x, int y, int duration, int damage, BufferedImage[] frames, String direction,  Rectangle box, Color debugColor) {
+    public SkillEffect(int x, int y, int duration, BufferedImage[] frames, String direction,  Rectangle box, Color debugColor) {
         this.x = x;
         this.y = y;
         this.duration = duration;
-        this.damage = damage;
         this.frames = frames;
         this.direction = direction; // Lưu hướng của hiệu ứng
         this.skillBox = box;

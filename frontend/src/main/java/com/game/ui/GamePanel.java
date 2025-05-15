@@ -8,6 +8,9 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import com.game.*;
 import java.net.URL;
 import java.net.URISyntaxException;
@@ -18,54 +21,95 @@ import com.game.model.*;
 import java.util.ConcurrentModificationException;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener {
-    ArrayList<SkillEffect> skills = new ArrayList<>();
-    ArrayList<Enemy> enemies = new ArrayList<>();
-    Rectangle skillButton1Bounds;
-    Rectangle skillButton2Bounds;
+    // Các hằng số cấu hình chung
+    private static final int WIDTH = 1200;
+    private static final int HEIGHT = 700;
+    
+    // Cấu hình nút kỹ năng
+    private static final int SKILL_BUTTON_SIZE = 70;
+    private static final int NORMAL_ATTACK_SIZE = 80;
+    private static final int SKILL_PADDING = 10;
 
-    private Inventory inventory = new Inventory();
-    private boolean inventoryVisible = false;
-    private List<Item> inventoryItems = new ArrayList<>();
-    private static final int INVENTORY_ROWS = 5;    // 5 hàng
-    private static final int INVENTORY_COLS = 10;   // 10 cột
-    private static final int SLOT_SIZE = 50;        // Kích thước mỗi ô (50x50)
-    private static final int INVENTORY_WIDTH = INVENTORY_COLS * SLOT_SIZE;  // Chiều rộng kho đồ
-    private static final int INVENTORY_HEIGHT = INVENTORY_ROWS * SLOT_SIZE;
-
-    private MapData currentMapData;
-
-    final int WIDTH = 1200, HEIGHT = 700;
-    Thread gameThread;
-    BufferedImage mapImage,imgUp, imgDown, imgLeft, imgRight, hudImage, danhthuong;
-    BufferedImage[] up, down, left, right;
-    public static Player player;
-    private ArrayList<Rectangle> collisionObjects = new ArrayList<>();
-    private volatile boolean isRunning = false;
+    // Quản lý đối tượng game
+    private Player player;
     private Long playerId;
+    private ArrayList<Enemy> enemies = new ArrayList<>();
+    private ArrayList<SkillEffect> skills = new ArrayList<>();
+    private ArrayList<Rectangle> collisionObjects = new ArrayList<>();
+    private MapData currentMapData;
+    
+    // Quản lý kỹ năng
+    private Rectangle normalAttackBounds;
+    private Rectangle[] skillButtonBounds;
+    private BufferedImage[] skillIcons;
+    private boolean[] skillUnlocked;
+    private Map<Long, SkillData> skillDataMap = new HashMap<>();
+    
+    // Tài nguyên hình ảnh
+    private BufferedImage mapImage;
+    private BufferedImage hudImage;
+    private BufferedImage danhthuong;
+    private BufferedImage[] up, down, left, right;
+    
+    // Quản lý game thread
+    private Thread gameThread;
+    private volatile boolean isRunning = false;
 
+    private static GamePanel currentInstance;
+
+    // Constructor và khởi tạo
     public GamePanel() {
+        currentInstance = this;
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         this.setFocusable(true);
         this.addKeyListener(this);
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int mouseX = e.getX();
-                int mouseY = e.getY();
+                Point click = e.getPoint();
 
-                if (skillButton1Bounds != null && skillButton1Bounds.contains(mouseX, mouseY)) {
-                    SkillEffect skill = player.castSkill(0, enemies, -50); // Skill 1
+                if (normalAttackBounds.contains(click)) {
+                    SkillEffect skill = player.castSkill(0, enemies, -50); // Normal attack
                     if (skill != null) skills.add(skill);
                 }
 
-                if (skillButton2Bounds != null && skillButton2Bounds.contains(mouseX, mouseY)) {
-                    SkillEffect skill = player.castSkill(1, enemies, 20); // Skill 2
-                    if (skill != null) skills.add(skill);
+                for (int i = 0; i < 4; i++) {
+                    final int index = i;
+                    if (skillButtonBounds[i].contains(click) && skillUnlocked[i]) {
+                        GameCharacterSkill charSkill = GameData.characterSkills.stream()
+                            .filter(cs -> cs.getCharacterId().equals(playerId) && cs.getSlot() == index + 1)
+                            .findFirst()
+                            .orElse(null);
+
+                        if (charSkill != null) {
+                            SkillData skillData = skillDataMap.get(charSkill.getSkillId());
+                            if (skillData != null) {
+                                SkillEffect effect = player.castSkill(index + 1, enemies, -50);
+                                if (effect != null) {
+                                    skills.add(effect);
+                                    System.out.println("Sử dụng skill slot " + (i + 1));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         });
+
+        skillButtonBounds = new Rectangle[4];
+        skillIcons = new BufferedImage[4];
+        skillUnlocked = new boolean[4];
+
+        for (int i = 0; i < 4; i++) {
+            skillButtonBounds[i] = new Rectangle();
+        }
     }
 
+    public static GamePanel getInstance() {
+        return currentInstance;
+    }
+
+    // region Quản lý tài nguyên
     public void loadResources(MapData mapData) {
         this.currentMapData = mapData;
         try {
@@ -127,9 +171,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
             BufferedImage[] skill1Frames = loadFrames("assets/Skill/Cat_nuoc", 10, 250, 250);
 
-            // Tạo kỹ năng
             SkillData fireSkill = new SkillData(skill1Frames, 30, 10, Color.RED);
-
 
             BufferedImage[] skillEffectFrames = {
                 ImageIO.read(getClass().getClassLoader().getResource("assets/Player/Attack_1.png")),
@@ -144,9 +186,11 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     
             player = new Player(300, 250, up, down, left, right, skillEffectFrames, collisionImage, playerId);
 
-            // Thêm kỹ năng vào player
+            loadSkills();
+            loadSkillIcons();
+
             player.addSkill(fireSkill);
-            // Thêm quái vật
+
             enemies.clear();
             for (MapData.EnemyData enemyData : mapData.enemies) {
                 enemies.add(new Enemy(
@@ -163,226 +207,89 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         }
     }      
 
-    public void loadMap(MapData mapData) {
-        loadResources(mapData);
-        try {
-            int dem = 1;
-            for(GameInventory inventory1 : GameData.inventory) {
-                if (inventory1.getCharacterId() == playerId) {
-                    for(GameItem item : GameData.item) {
-                        if (item.getId() == inventory1.getItemId()) {
-                            BufferedImage itemIcon = ImageIO.read(getClass().getClassLoader().getResource(item.getIcon()));
-                            Item gameItem = new Item(dem, item.getName(), itemIcon);
-                            inventory.addItem(gameItem);
+    public void loadSkills() {
+        if (GameData.characterSkills != null) {
+            for (GameCharacterSkill charSkill : GameData.characterSkills) {
+                if (charSkill.getCharacterId().equals(playerId)) {
+                    // Lấy thông tin skill từ GameData
+                    GameSkill skillInfo = GameData.skills.stream()
+                        .filter(s -> s.getId().equals(charSkill.getSkillId()))
+                        .findFirst()
+                        .orElse(null);
 
-                            dem++;
+                    if (skillInfo != null) {
+                        try {
+                            // Lấy cấu hình trực tiếp từ skillInfo.getCauhinh()
+                            String[] config = skillInfo.getCauhinh().split(",");
+                            String animationPath = config[0].trim();          // "assets/Skill/Cat_nuoc"
+                            int frameCount = Integer.parseInt(config[1].trim()); // 10
+                            int width = Integer.parseInt(config[2].trim());      // 250
+                            int height = Integer.parseInt(config[3].trim());     // 250
+
+                            // Load animation frames với cấu hình từ DB
+                            BufferedImage[] skillFrames = loadFrames(
+                                animationPath, 
+                                frameCount,
+                                width,
+                                height
+                            );
+
+                            // Tạo SkillData với thông số từ DB
+                            SkillData skillData = new SkillData(
+                                skillFrames,
+                                skillInfo.getDamage(),
+                                skillInfo.getManaCost(),
+                                Color.RED // Chuyển mã màu hex thành Color
+                            );
+
+                            // Lưu vào map và thêm vào player
+                            skillDataMap.put(skillInfo.getId(), skillData);
+                            player.addSkill(skillData);
+
+                            System.out.println("Đã tải skill: " + skillInfo.getName() + 
+                                            " với cấu hình: " + animationPath + ", " + frameCount + "," + width + "," + height);
+
+                        } catch (IOException | NumberFormatException e) {
+                            System.err.println("Lỗi tải animation cho skill " + 
+                                            skillInfo.getName() + ": " + e.getMessage());
                         }
                     }
                 }
             }
-
-            // Initialize dropped items list if null
-            if (GameData.droppedItems == null) {
-                GameData.droppedItems = new ArrayList<>();
-            }
-        } catch (IOException e) {
-            e.printStackTrace(); // In lỗi ra để debug
         }
     }
 
-    public void startGameThread() {
-        isRunning = true;
-        gameThread = new Thread(this);
-        gameThread.start();
-    }
+    public void loadSkillIcons() {
+        Arrays.fill(skillIcons, null);
+        Arrays.fill(skillUnlocked, false);
 
-    public void run() {
-        while (isRunning) {
-            update();
-            repaint();
-            try {
-                Thread.sleep(16); // ~60 FPS
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // Đánh dấu thread bị ngắt
-                break;
-            }
-        }
-    }
-
-    public void stopGameThread() {
-        isRunning = false;
-        if (gameThread != null) {
-            try {
-                gameThread.join();
-                skills.clear();
-                enemies.clear();
-                collisionObjects.clear();
-                if (GameData.droppedItems != null) {
-                    GameData.droppedItems.clear(); // Clear dropped items when stopping game
-                }
-                mapImage = null;
-                hudImage = null;
-                imgUp = imgDown = imgLeft = imgRight = null;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            gameThread = null;
-        }
-    }
-
-    public void update() {
-        if (player != null) {
-            player.update();
-    
-                // Cập nhật quái vật
-            for (Enemy enemy : enemies) {
-                enemy.update(player);
-                enemy.attack(player); // Quái vật tấn công người chơi
-            }
-    
-            // Xóa quái vật đã chết
-            enemies.removeIf(Enemy::isDead);
-            
-            // Cập nhật hiệu ứng kỹ năng
-            for (SkillEffect skill : skills) {
-                if (skill != null) {
-                    skill.update();
-                }
-            }
-            skills.removeIf(SkillEffect::isExpired);
-        }
-    }
-
-    @Override
-    public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2d = (Graphics2D) g;
-
-        double scale = 1.8;
-        g2d.scale(scale, scale);
-
-        if (player != null) {
-            int camX = player.getX() - (int) (WIDTH / (2 * scale));
-            int camY = player.getY() - (int) (HEIGHT / (2 * scale));
-
-            camX = Math.max(0, Math.min(camX, mapImage.getWidth() - (int) (WIDTH / scale)));
-            camY = Math.max(0, Math.min(camY, mapImage.getHeight() - (int) (HEIGHT / scale)));
-
-            g2d.drawImage(mapImage, -camX, -camY, null);
-            // tileMap.draw(g2d, camX, camY);
-            player.draw(g2d, camX, camY);
-
-            // Vẽ quái vật
-            for (Enemy enemy : enemies) {
-                enemy.draw(g2d, camX, camY);
-            }
-
-            // Vẽ các item rơi trên bản đồ nếu chưa nhặt
-            try {
-                if (GameData.droppedItems != null) {
-                    for (DroppedItem item : GameData.droppedItems) {
-                        if (item != null) {
-                            item.draw(g2d, camX, camY);
+        if (GameData.characterSkills != null) {
+            for (GameCharacterSkill charSkill : GameData.characterSkills) {
+                if (charSkill.getCharacterId().equals(playerId)) {
+                    int slot = charSkill.getSlot() - 1;
+                    if (slot >= 0 && slot < 4) {
+                        GameSkill skill = GameData.skills.stream()
+                            .filter(s -> s.getId().equals(charSkill.getSkillId()))
+                            .findFirst()
+                            .orElse(null);
+                            
+                        if (skill != null) {
+                            try {
+                                skillIcons[slot] = ImageIO.read(
+                                    getClass().getClassLoader().getResource(skill.getIcon())
+                                );
+                                skillUnlocked[slot] = true;
+                            } catch (IOException e) {
+                                System.err.println("Error loading skill icon: " + e.getMessage());
+                            }
                         }
                     }
                 }
-            } catch (ConcurrentModificationException e) {
-                System.out.println("Bug tránh được tạm thời: " + e.getMessage());
             }
-
-            g2d.scale(1 / scale, 1 / scale);
-
-            // Vẽ hiệu ứng kỹ năng
-            for (SkillEffect skill : skills) {
-                if (skill != null) {
-                    skill.draw(g2d, camX, camY);
-                }
-            }
-
-            // Vẽ khung HUD
-            int hudWidth = 200; // Chiều rộng khung HUD
-            int hudHeight = 100; // Chiều cao khung HUD
-            g.drawImage(hudImage, 0, 0, hudWidth, hudHeight, null);
-
-            // Vẽ thanh máu và mana
-            int maxHealthBarWidth = 110; // cố định
-            int healthBarHeight = 10;
-
-            // Tính phần trăm máu hiện tại
-            double healthPercent = (double) player.health / player.maxHealth;
-
-            // Tính chiều dài thực tế của thanh máu theo %
-            int currentHealthWidth = (int) (healthPercent * maxHealthBarWidth);
-
-            // Vẽ thanh máu
-            g.setColor(Color.RED);
-            g.fillRect(50, 30, currentHealthWidth, healthBarHeight);
-
-            // Vẽ khung viền
-            g.setColor(Color.BLACK);
-            g.drawRect(50, 30, maxHealthBarWidth, healthBarHeight);
-
-            // (Tuỳ chọn) Vẽ số %
-            g.setColor(Color.WHITE);
-            g.drawString((int)(player.health) + "HP", 55, 39);
-
-            int maxmanaBarWidth = 110; // cố định
-            int manaBarHeight = 10;
-
-            double manaPercent = (double) player.mana / player.maxmana;
-
-            int currentmanaWidth = (int) (manaPercent * maxmanaBarWidth);
-
-            g.setColor(Color.BLUE);
-            g.fillRect(50, 50, currentmanaWidth, manaBarHeight);
-
-            g.setColor(Color.BLACK);
-            g.drawRect(50, 50, maxmanaBarWidth, manaBarHeight);
-
-            g.setColor(Color.WHITE);
-            g.drawString((int)(player.mana) + "MP", 55, 59);
-
-            // Vẽ các nút kỹ năng
-            int skillButtonSize = 70; // Kích thước nút kỹ năng
-            int padding = 10; // Khoảng cách giữa các nút và cạnh màn hình
-            int panelWidth = getWidth(); // Lấy chiều rộng thực tế của JPanel
-            int panelHeight = getHeight(); // Lấy chiều cao thực tế của JPanel
-
-            // Nút kỹ năng 1
-            // g.drawImage(danhthuong, panelWidth - skillButtonSize - padding, panelHeight - skillButtonSize - padding, skillButtonSize, skillButtonSize, null);
-            int skill1X = panelWidth - skillButtonSize - padding;
-            int skill1Y = panelHeight - skillButtonSize - padding;
-            g.drawImage(danhthuong, skill1X, skill1Y, skillButtonSize, skillButtonSize, null);
-            skillButton1Bounds = new Rectangle(skill1X, skill1Y, skillButtonSize, skillButtonSize);
-            if (inventoryVisible) {
-                int startX = 100; // vị trí bắt đầu vẽ kho đồ
-                int startY = 100;
-            
-                g2d.setColor(new Color(0, 0, 0, 150));
-                g2d.fillRect(startX - 10, startY - 10, INVENTORY_WIDTH + 20, INVENTORY_HEIGHT + 20);
-            
-                List<Item> items = inventory.getItems();  // lấy danh sách item từ Inventory
-                for (int i = 0; i < items.size(); i++) {
-                    int row = i / INVENTORY_COLS;
-                    int col = i % INVENTORY_COLS;
-                    int x = startX + col * SLOT_SIZE;
-                    int y = startY + row * SLOT_SIZE;
-            
-                    g2d.setColor(Color.GRAY);
-                    g2d.fillRect(x, y, SLOT_SIZE, SLOT_SIZE);
-                    g2d.setColor(Color.BLACK);
-                    g2d.drawRect(x, y, SLOT_SIZE, SLOT_SIZE);
-            
-                    Item item = items.get(i);
-                    if (item.getIcon() != null) {
-                        g2d.drawImage(item.getIcon(), x + 5, y + 5, SLOT_SIZE - 10, SLOT_SIZE - 10, null);
-                    }
-                }
-            } 
         }
     }
 
-    public BufferedImage[] loadFrames(String folderPath, int count, int newWidth, int newHeight) throws IOException {
+    private BufferedImage[] loadFrames(String folderPath, int count, int width, int height) throws IOException {
         BufferedImage[] frames = new BufferedImage[count];
         for (int i = 0; i < count; i++) {
             String filePath = folderPath + "/" + (i + 1) + ".png";
@@ -404,9 +311,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     
             BufferedImage original = ImageIO.read(file);
     
-            // Tạo ảnh mới với kích thước mong muốn
-            Image scaled = original.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-            BufferedImage resized = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+            Image scaled = original.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            BufferedImage resized = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     
             Graphics2D g2d = resized.createGraphics();
             g2d.drawImage(scaled, 0, 0, null);
@@ -416,59 +322,251 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         }
         return frames;
     }
+    // endregion
+
+    // region Quản lý game loop
+    public void startGameThread() {
+        isRunning = true;
+        gameThread = new Thread(this);
+        gameThread.start();
+    }
     
-    private void drawInventory(Graphics2D g2d) {
-        int screenWidth = getWidth();
-        int screenHeight = getHeight();
-        
-        // Tính toán tọa độ x, y để căn giữa kho đồ
-        int inventoryX = (screenWidth - INVENTORY_WIDTH) / 2;
-        int inventoryY = (screenHeight - INVENTORY_HEIGHT) / 2;
-    
-        // Vẽ nền kho đồ (một hình chữ nhật với nền màu xám)
-        g2d.setColor(Color.DARK_GRAY);
-        g2d.fillRect(inventoryX, inventoryY, INVENTORY_WIDTH, INVENTORY_HEIGHT);
-    
-        // Vẽ khung kho đồ
-        g2d.setColor(Color.BLACK);
-        g2d.drawRect(inventoryX, inventoryY, INVENTORY_WIDTH, INVENTORY_HEIGHT);
-    
-        // Vẽ các ô trống trong kho đồ
-        for (int row = 0; row < INVENTORY_ROWS; row++) {
-            for (int col = 0; col < INVENTORY_COLS; col++) {
-                int slotX = inventoryX + col * SLOT_SIZE;
-                int slotY = inventoryY + row * SLOT_SIZE;
-    
-                // Vẽ nền cho ô trống
-                g2d.setColor(Color.LIGHT_GRAY);
-                g2d.fillRect(slotX, slotY, SLOT_SIZE, SLOT_SIZE);
-                g2d.setColor(Color.BLACK);
-                g2d.drawRect(slotX, slotY, SLOT_SIZE, SLOT_SIZE);
-    
-                // Vẽ các item nếu có
-                // Nếu item có trong ô này, vẽ nó
-                Item item = getItemInSlot(row, col); // Giả sử có phương thức getItemInSlot để lấy item tại ô
-                if (item != null) {
-                    BufferedImage itemIcon = item.getIcon();
-                    if (itemIcon != null) {
-                        g2d.drawImage(itemIcon, slotX, slotY, SLOT_SIZE, SLOT_SIZE, null);
-                    }
+    public void stopGameThread() {
+        isRunning = false;
+        if (gameThread != null) {
+            try {
+                gameThread.join();
+                skills.clear();
+                enemies.clear();
+                collisionObjects.clear();
+                if (GameData.droppedItems != null) {
+                    GameData.droppedItems.clear();
                 }
+                mapImage = null;
+                hudImage = null;
+                up = down = left = right = null;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            gameThread = null;
+        }
+    }
+    
+    public void run() {
+        while (isRunning) {
+            update();
+            repaint();
+            try {
+                Thread.sleep(16);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
             }
         }
     }
     
-    // Phương thức giả lập lấy item trong kho đồ
-    private Item getItemInSlot(int row, int col) {
-        // Trả về item tại vị trí ô (row, col)
-        // Giả sử kho đồ của bạn là một danh sách các item
-        int index = row * INVENTORY_COLS + col;
-        if (index < inventoryItems.size()) {
-            return inventoryItems.get(index);  // Giả sử bạn có danh sách items trong kho
+    public void update() {
+        if (player != null) {
+            player.update();
+    
+            for (Enemy enemy : enemies) {
+                enemy.update(player);
+                enemy.attack(player);
+            }
+    
+            enemies.removeIf(Enemy::isDead);
+            
+            for (SkillEffect skill : skills) {
+                if (skill != null) {
+                    skill.update();
+                }
+            }
+            skills.removeIf(SkillEffect::isExpired);
         }
-        return null;  // Nếu không có item thì trả về null
+    }
+    // endregion
+
+    // region Vẽ giao diện
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        double scale = 1.8;
+        g2d.scale(scale, scale);
+
+        if (player != null) {
+            int camX = player.getX() - (int) (WIDTH / (2 * scale));
+            int camY = player.getY() - (int) (HEIGHT / (2 * scale));
+
+            camX = Math.max(0, Math.min(camX, mapImage.getWidth() - (int) (WIDTH / scale)));
+            camY = Math.max(0, Math.min(camY, mapImage.getHeight() - (int) (HEIGHT / scale)));
+
+            g2d.drawImage(mapImage, -camX, -camY, null);
+            player.draw(g2d, camX, camY);
+
+            for (Enemy enemy : enemies) {
+                enemy.draw(g2d, camX, camY);
+            }
+
+            try {
+                if (GameData.droppedItems != null) {
+                    for (DroppedItem item : GameData.droppedItems) {
+                        if (item != null) {
+                            item.draw(g2d, camX, camY);
+                        }
+                    }
+                }
+            } catch (ConcurrentModificationException e) {
+                System.out.println("Bug tránh được tạm thời: " + e.getMessage());
+            }
+
+            g2d.scale(1 / scale, 1 / scale);
+
+            for (SkillEffect skill : skills) {
+                if (skill != null) {
+                    skill.draw(g2d, camX, camY);
+                }
+            }
+
+            int hudWidth = 200;
+            int hudHeight = 100;
+            g.drawImage(hudImage, 0, 0, hudWidth, hudHeight, null);
+
+            int maxHealthBarWidth = 110;
+            int healthBarHeight = 10;
+
+            double healthPercent = (double) player.health / player.maxHealth;
+
+            int currentHealthWidth = (int) (healthPercent * maxHealthBarWidth);
+
+            g.setColor(Color.RED);
+            g.fillRect(50, 30, currentHealthWidth, healthBarHeight);
+
+            g.setColor(Color.BLACK);
+            g.drawRect(50, 30, maxHealthBarWidth, healthBarHeight);
+
+            g.setColor(Color.WHITE);
+            g.drawString((long)(player.health) + "HP", 55, 39);
+
+            int maxmanaBarWidth = 110;
+            int manaBarHeight = 10;
+
+            double manaPercent = (double) player.mana / player.maxmana;
+
+            int currentmanaWidth = (int) (manaPercent * maxmanaBarWidth);
+
+            g.setColor(Color.BLUE);
+            g.fillRect(50, 50, currentmanaWidth, manaBarHeight);
+
+            g.setColor(Color.BLACK);
+            g.drawRect(50, 50, maxmanaBarWidth, manaBarHeight);
+
+            g.setColor(Color.WHITE);
+            g.drawString((long)(player.mana) + "MP", 55, 59);
+
+            drawSkillButtons(g2d);
+        }
     }
     
+    private void drawSkillButtons(Graphics2D g) {
+        int screenWidth = getWidth();
+        int screenHeight = getHeight();
+        
+        int normalX = screenWidth - NORMAL_ATTACK_SIZE - SKILL_PADDING;
+        int normalY = screenHeight - NORMAL_ATTACK_SIZE - SKILL_PADDING;
+        normalAttackBounds = new Rectangle(normalX, normalY, NORMAL_ATTACK_SIZE, NORMAL_ATTACK_SIZE);
+        
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillOval(normalX, normalY, NORMAL_ATTACK_SIZE, NORMAL_ATTACK_SIZE);
+        g.drawImage(danhthuong, normalX, normalY, NORMAL_ATTACK_SIZE, NORMAL_ATTACK_SIZE, null);
+        
+        double radius = NORMAL_ATTACK_SIZE + SKILL_PADDING;
+        for (int i = 0; i < 4; i++) {
+            double angle = Math.PI / 2 + (i * Math.PI / 6);
+            int skillX = normalX + NORMAL_ATTACK_SIZE/2 - SKILL_BUTTON_SIZE/2 
+                        + (int)(radius * Math.cos(angle));
+            int skillY = normalY + NORMAL_ATTACK_SIZE/2 - SKILL_BUTTON_SIZE/2 
+                        - (int)(radius * Math.sin(angle));
+            
+            skillButtonBounds[i] = new Rectangle(skillX, skillY, SKILL_BUTTON_SIZE, SKILL_BUTTON_SIZE);
+            
+            g.setColor(new Color(0, 0, 0, 150));
+            g.fillOval(skillX, skillY, SKILL_BUTTON_SIZE, SKILL_BUTTON_SIZE);
+            
+            if (skillUnlocked[i] && skillIcons[i] != null) {
+                g.drawImage(skillIcons[i], skillX, skillY, SKILL_BUTTON_SIZE, SKILL_BUTTON_SIZE, null);
+            }
+            
+            g.setColor(Color.GRAY);
+            g.drawOval(skillX, skillY, SKILL_BUTTON_SIZE, SKILL_BUTTON_SIZE);
+            
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 16));
+            String slotNum = String.valueOf(i + 1);
+            FontMetrics fm = g.getFontMetrics();
+            g.drawString(slotNum, 
+                skillX + (SKILL_BUTTON_SIZE - fm.stringWidth(slotNum))/2,
+                skillY + SKILL_BUTTON_SIZE - 5);
+        }
+    }
+    // endregion
+
+    // region Xử lý input
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            SkillEffect skill = player.castSkill(0, enemies, -50);
+            if (skill != null) skills.add(skill);
+        } else if (e.getKeyCode() == KeyEvent.VK_Q || e.getKeyCode() == KeyEvent.VK_E || e.getKeyCode() == KeyEvent.VK_R || e.getKeyCode() == KeyEvent.VK_T) {
+            
+            int slot = 0;
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_Q:
+                    slot = 1;
+                    break;
+                case KeyEvent.VK_E:
+                    slot = 2;
+                    break;
+                case KeyEvent.VK_R:
+                    slot = 3;
+                    break;
+                case KeyEvent.VK_T:
+                    slot = 4;
+                    break;
+            }
+            final int selectedSlot = slot;
+
+            GameCharacterSkill charSkill = GameData.characterSkills.stream()
+                .filter(cs -> cs.getCharacterId().equals(playerId) && cs.getSlot() == selectedSlot)
+                .findFirst()
+                .orElse(null);
+
+            if (charSkill != null) {
+                SkillData skillData = skillDataMap.get(charSkill.getSkillId());
+                if (skillData != null) {
+                    SkillEffect effect = player.castSkill(slot, enemies, -50);
+                    if (effect != null) {
+                        skills.add(effect);
+                        System.out.println("Sử dụng skill slot " + slot);
+                    }
+                }
+            }
+        } else {
+            player.setDirection(e.getKeyCode(), true);
+        }
+    }
+    
+    @Override
+    public void keyReleased(KeyEvent e) {
+        player.setDirection(e.getKeyCode(), false);
+    }
+    
+    @Override
+    public void keyTyped(KeyEvent e) {}
+    // endregion
+
+    // region Tiện ích
     private BufferedImage loadImage(String path) {
         try {
             return ImageIO.read(getClass().getClassLoader().getResource(path));
@@ -477,24 +575,5 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         }
         return null;
     }
-
-    public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            // Sử dụng kỹ năng
-            SkillEffect skill = player.castSkill(0, enemies, -50); // Skill 1
-                    if (skill != null) skills.add(skill);
-        } else if (e.getKeyCode() == KeyEvent.VK_B) {
-            // Sử dụng kỹ năng
-            inventoryVisible = !inventoryVisible;  // Đổi trạng thái hiển thị kho đồ
-                repaint();
-        } else {
-            player.setDirection(e.getKeyCode(), true);
-        }
-    }
-
-    public void keyReleased(KeyEvent e) {
-        player.setDirection(e.getKeyCode(), false);
-    }
-
-    public void keyTyped(KeyEvent e) {}
+    // endregion
 }

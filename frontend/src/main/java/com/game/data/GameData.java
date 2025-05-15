@@ -9,7 +9,7 @@ import com.game.DroppedItem;
 public class GameData {
     public static GameUser user;
     public static List<GameCharacter> character;
-    public static List<GameCharacterSkill> characterSkills;
+    public static List<GameCharacterSkill> characterSkills = new ArrayList<>();
     public static List<GameInventory> inventory;
     public static List<GameItem> item;
     public static List<GameItemInstance> itemInstance = new ArrayList<>();
@@ -23,6 +23,10 @@ public class GameData {
 
     public static void loadItemInstances(List<GameItemInstance> apiInstances) {
         itemInstance = new ArrayList<>(apiInstances); // Create new ArrayList from API data
+    }
+
+    public static void loadCharacterSkills(List<GameCharacterSkill> apiCharacterSkill) {
+        characterSkills = new ArrayList<>(apiCharacterSkill); // Create new ArrayList from API data
     }
 
     // Thêm một item vào kho
@@ -74,8 +78,8 @@ public class GameData {
                 instance.setDef(0);
                 instance.setHp((int)((rand.nextInt(20)) * levelMultiplier));  // 0-20 base HP
                 instance.setMp((int)((rand.nextInt(15)) * levelMultiplier));  // 0-15 base MP
-                instance.setCritRate(rand.nextDouble() * 0.03 * levelMultiplier);  // 0-30% base crit rate
-                instance.setCritDmg((rand.nextDouble() * 0.05 + 0.1) * levelMultiplier); // 100-150% base crit damage
+                instance.setCritRate(rand.nextDouble() * 0.03 * levelMultiplier);
+                instance.setCritDmg((rand.nextDouble() * 0.05 + 0.1) * levelMultiplier);
                 break;
 
             case "mũ giáp":
@@ -94,8 +98,8 @@ public class GameData {
                 instance.setDef((int)((rand.nextInt(10)) * levelMultiplier));  // 0-10 base DEF
                 instance.setHp((int)((rand.nextInt(30)) * levelMultiplier));  // 0-30 base HP
                 instance.setMp((int)((rand.nextInt(30)) * levelMultiplier));  // 0-30 base MP
-                instance.setCritRate(rand.nextDouble() * 0.15 * levelMultiplier);  // 0-15% base crit rate
-                instance.setCritDmg(rand.nextDouble() * 0.3 * levelMultiplier); // 0-30% crit damage boost
+                instance.setCritRate(rand.nextDouble() * 0.015 * levelMultiplier);
+                instance.setCritDmg(rand.nextDouble() * 0.03 * levelMultiplier);
                 break;
 
             case "giày giáp":
@@ -104,8 +108,8 @@ public class GameData {
                 instance.setDef((int)((rand.nextInt(10)) * levelMultiplier));  // 0-10 base DEF
                 instance.setHp((int)((rand.nextInt(20)) * levelMultiplier));  // 0-20 base HP
                 instance.setMp((int)((rand.nextInt(40) + 20) * levelMultiplier));  // 20-60 base MP
-                instance.setCritRate(rand.nextDouble() * 0.2 * levelMultiplier);  // 0-20% base crit rate
-                instance.setCritDmg(rand.nextDouble() * 0.4 * levelMultiplier); // 0-40% crit damage boost
+                instance.setCritRate(rand.nextDouble() * 0.02 * levelMultiplier);
+                instance.setCritDmg(rand.nextDouble() * 0.04 * levelMultiplier);
                 break;
 
             default:
@@ -114,8 +118,8 @@ public class GameData {
                 instance.setDef((int)((rand.nextInt(20)) * levelMultiplier));
                 instance.setHp((int)((rand.nextInt(30)) * levelMultiplier));
                 instance.setMp((int)((rand.nextInt(20)) * levelMultiplier));
-                instance.setCritRate(rand.nextDouble() * 0.1 * levelMultiplier);
-                instance.setCritDmg(rand.nextDouble() * 0.2 * levelMultiplier);
+                instance.setCritRate(rand.nextDouble() * 0.01 * levelMultiplier);
+                instance.setCritDmg(rand.nextDouble() * 0.02 * levelMultiplier);
                 break;
         }
         Long nextId = itemInstance.stream()
@@ -128,5 +132,12 @@ public class GameData {
 
         itemInstance.add(instance);
         return instance;
+    }
+
+    public static GameCharacter getCharacterById(Long id) {
+        return character.stream()
+            .filter(c -> c.getId().equals(id))
+            .findFirst()
+            .orElse(null);
     }
 }

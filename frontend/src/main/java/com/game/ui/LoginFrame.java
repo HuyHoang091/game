@@ -270,7 +270,11 @@ public class LoginFrame extends JFrame {
         String csUrl = "http://localhost:8080/api/character_skills/" + characterId;
         HttpRequest request3 = HttpRequest.newBuilder().uri(URI.create(csUrl)).GET().build();
         HttpResponse<String> response3 = client.send(request3, HttpResponse.BodyHandlers.ofString());
-        GameData.characterSkills = Arrays.asList(mapper.readValue(response3.body(), GameCharacterSkill[].class));
+        List<GameCharacterSkill> apiCharacterSkill = Arrays.asList(mapper.readValue(response3.body(), GameCharacterSkill[].class));
+        GameData.loadCharacterSkills(apiCharacterSkill);
+        // GameData.characterSkills = Arrays.asList(mapper.readValue(response3.body(), GameCharacterSkill[].class));
+        // List<GameItemInstance> apiInstances = Arrays.asList(mapper.readValue(response6.body(), GameItemInstance[].class));
+        // GameData.loadItemInstances(apiInstances);
 
         // Lấy inventory
         String invUrl = "http://localhost:8080/api/inventory/" + characterId;
@@ -290,6 +294,7 @@ public class LoginFrame extends JFrame {
         HttpResponse<String> response6 = client.send(request6, HttpResponse.BodyHandlers.ofString());
         List<GameItemInstance> apiInstances = Arrays.asList(mapper.readValue(response6.body(), GameItemInstance[].class));
         GameData.loadItemInstances(apiInstances);
+
         // Lấy map
         String mapUrl = "http://localhost:8080/api/map/";
         HttpRequest request7 = HttpRequest.newBuilder().uri(URI.create(mapUrl)).GET().build();

@@ -52,7 +52,7 @@ public class GameWindow extends JFrame {
     }
 
     public void startGame(MapData mapData) {
-        gamePanel.loadMap(mapData);
+        gamePanel.loadResources(mapData);
         cardLayout.show(contentPane, "Game");
         gamePanel.requestFocus();
         gamePanel.startGameThread();

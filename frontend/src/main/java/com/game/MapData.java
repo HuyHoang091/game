@@ -18,10 +18,10 @@ public class MapData {
     public static class EnemyData {
         public int x, y;
         public int width, height;
-        public int health;
+        public Long health;
         public Long monsterId;
 
-        public EnemyData(int x, int y, int width, int height, int health, Long monsterId) {
+        public EnemyData(int x, int y, int width, int height, Long health, Long monsterId) {
             this.x = x;
             this.y = y;
             this.width = width;

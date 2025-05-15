@@ -10,15 +10,16 @@ import java.util.ArrayList;
 
 public class Enemy {
     int x, y;
-    int health;
-    int maxHealth;
+    Long health;
+    Long maxHealth;
     int speed = 1;
     int width, height;
     int attackCooldown = 0; // Thời gian giữa các đợt tấn công
-    int attackDamage = 5;
+    Long attackDamage = 5L;
     Long monsterId;
+    int def = 100; // Base defense value
 
-    public Enemy(int x, int y, int width, int height, int health, Long monsterId) {
+    public Enemy(int x, int y, int width, int height, Long health, Long monsterId) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -26,6 +27,17 @@ public class Enemy {
         this.health = health;
         this.monsterId = monsterId;
         this.maxHealth = health; // Lưu lại máu tối đa
+
+        // Set defense based on monster level from GameData
+        GameMonster monster = GameData.monster.stream()
+            .filter(m -> m.getId().equals(monsterId))
+            .findFirst()
+            .orElse(null);
+            
+        if (monster != null) {
+            // Scale defense with monster level
+            this.def = 100 + (monster.getLevel() * 10);
+        }
     }
 
     public void update(Player player) {
@@ -108,10 +120,10 @@ public class Enemy {
         g.drawString(health + "/" + maxHealth, x - camX, y - camY - 15);
     }
 
-    public void takeDamage(int damage) {
+    public void takeDamage(Long damage) {
         health -= damage;
         if (health <= 0) {
-            health = 0;
+            health = 0L;
             
             // Initialize the list only if it's null
             if (GameData.droppedItems == null) {

@@ -9,7 +9,7 @@ public class GameMonster {
     private String name;
     private int level;
     private Long skillId;
-    private int hp;
+    private Long hp;
     private String cauhinh;
     private Long mapId;
     private int expReward;

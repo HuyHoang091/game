@@ -7,6 +7,7 @@ import com.game.DroppedItem;
 import com.game.data.GameData;
 import com.game.model.*;
 import java.util.ArrayList;
+import com.game.DamageEffect;
 
 public class Enemy {
     int x, y;
@@ -18,6 +19,8 @@ public class Enemy {
     Long attackDamage = 5L;
     Long monsterId;
     int def = 100; // Base defense value
+
+    private ArrayList<DamageEffect> damageEffects = new ArrayList<>();
 
     public Enemy(int x, int y, int width, int height, Long health, Long monsterId) {
         this.x = x;
@@ -74,6 +77,15 @@ public class Enemy {
         } else {
             // moveSmartly(player);
         }
+
+        // Cập nhật hiệu ứng damage
+        for (int i = damageEffects.size() - 1; i >= 0; i--) {
+            DamageEffect effect = damageEffects.get(i);
+            effect.update();
+            if (effect.isExpired()) {
+                damageEffects.remove(i);
+            }
+        }
     }
 
     // Di chuyển thông minh: quái có thể tránh tường hoặc người chơi
@@ -118,18 +130,31 @@ public class Enemy {
         // Vẽ chỉ số máu
         g.setColor(Color.WHITE);
         g.drawString(health + "/" + maxHealth, x - camX, y - camY - 15);
+
+        // Vẽ hiệu ứng damage
+        for (DamageEffect effect : damageEffects) {
+            effect.draw(g, camX, camY);
+        }
     }
 
-    public void takeDamage(Long damage) {
+    public void takeDamage(Long damage, boolean isCrit) {
         health -= damage;
+
+        // Thêm hiệu ứng damage mới
+        damageEffects.add(new DamageEffect(
+            x + width/2, 
+            y - 10,
+            damage,
+            isCrit
+        ));
+
         if (health <= 0) {
             health = 0L;
-            
             // Initialize the list only if it's null
             if (GameData.droppedItems == null) {
                 GameData.droppedItems = new ArrayList<>();
             }
-            
+            // Drop item when monster dies
             drop(x, y, monsterId);
         }
     }

@@ -24,7 +24,7 @@ public class Player extends JComponent {
     public int basemaxHealth = 500;
     public Long maxHealth;
     public Long health;
-    public int basemaxmana = 50;
+    public int basemaxmana = 5000;
     public Long maxmana;
     public Long mana;
     public int baseatk = 20;
@@ -255,48 +255,84 @@ public class Player extends JComponent {
 
     public SkillEffect castSkill(int skillIndex, ArrayList<Enemy> enemies, int offset) {
         if (skillIndex < 0 || skillIndex >= skillList.size()) return null;
-    
+        if (enemies.isEmpty()) return null;
+
         SkillData skill = skillList.get(skillIndex);
         if (mana < skill.manaCost || skill.frames == null) return null;
-    
+
         useMana(skill.manaCost);
         isUsingSkill = true;
         skillEffectDuration = 30;
-    
-        String direction = "right";
 
-        System.out.println("Skill index: " + skillIndex);
+        // Tìm enemy gần nhất
+        Enemy nearestEnemy = null;
+        double minDistance = Double.MAX_VALUE;
+        int playerCenterX = x + currentImage.getWidth() / 2;
+        int playerCenterY = y + currentImage.getHeight() / 2;
 
+        for (Enemy enemy : new ArrayList<>(enemies)) {
+            int enemyCenterX = enemy.x + enemy.width / 2;
+            int enemyCenterY = enemy.y + enemy.height / 2;
+            double distance = Math.sqrt(
+                Math.pow(enemyCenterX - playerCenterX, 2) + 
+                Math.pow(enemyCenterY - playerCenterY, 2)
+            );
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestEnemy = enemy;
+            }
+        }
+
+        if (nearestEnemy == null) return null;
+
+        // Tính góc giữa player và enemy
+        int enemyCenterX = nearestEnemy.x + nearestEnemy.width / 2;
+        int enemyCenterY = nearestEnemy.y + nearestEnemy.height / 2;
+        double angle = Math.atan2(enemyCenterY - playerCenterY, enemyCenterX - playerCenterX);
+
+        // Chuyển góc thành hướng
+        String direction;
+        if (angle >= -Math.PI/4 && angle < Math.PI/4) direction = "right";
+        else if (angle >= Math.PI/4 && angle < 3*Math.PI/4) direction = "down";
+        else if (angle >= -3*Math.PI/4 && angle < -Math.PI/4) direction = "up";
+        else direction = "left";
+
+        // Tạo vùng sát thương theo hướng quái
         BufferedImage frame = skill.frames[0];
         int skillWidth = frame.getWidth();
         int skillHeight = frame.getHeight();
-
+        
+        // Đặt vùng sát thương gần player hơn
         int centerX = x + currentImage.getWidth() / 2;
         int centerY = y + currentImage.getHeight() / 2;
 
-        int damageBoxX = centerX + offset;
-        int damageBoxY = centerY - skillHeight / 2;
+        int skillX = centerX + offset;
+        int skillY = centerY - skillHeight / 2;
 
-        if (right) {
-            direction = "right";
-            damageBoxX = centerX + offset;
-            damageBoxY = centerY - skillHeight / 2;
-        } else if (left) {
-            direction = "left";
-            damageBoxX = centerX - skillWidth - offset;
-            damageBoxY = centerY - skillHeight / 2;
-        } else if (up) {
-            direction = "up";
-            damageBoxX = centerX - skillWidth / 2;
-            damageBoxY = centerY - skillHeight - offset;
-        } else if (down) {
-            direction = "down";
-            damageBoxX = centerX - skillWidth / 2;
-            damageBoxY = centerY + offset;
+        switch (direction) {
+            case "right" -> {
+                skillX = centerX + offset;
+                skillY = centerY - skillHeight / 2;
+            }
+            case "left" -> {
+                skillX = centerX - skillWidth - offset;
+                skillY = centerY - skillHeight / 2;
+            }
+            case "up" -> {
+                skillX = centerX - skillWidth / 2;
+                skillY = centerY - skillHeight - offset;
+            }
+            case "down" -> {
+                skillX = centerX - skillWidth / 2;
+                skillY = centerY + offset;
+            }
+            default -> {
+                skillX = centerX + offset;
+                skillY = centerY - skillHeight / 2;
+            }
         }
 
-
-        Rectangle skillBox = new Rectangle(damageBoxX, damageBoxY, skillWidth, skillHeight);
+        Rectangle skillBox = new Rectangle(skillX, skillY, skillWidth, skillHeight);
 
         switch (direction) {
             case "right" -> skillBox = new Rectangle(centerX + 20, centerY - skillHeight / 2, skillWidth * 2 / 3, skillHeight);
@@ -305,8 +341,9 @@ public class Player extends JComponent {
             case "down"  -> skillBox = new Rectangle(centerX - skillWidth / 2, centerY + 20, skillWidth, skillHeight * 2 / 3);
             default      -> skillBox = new Rectangle(centerX + 20, centerY - skillHeight / 2, skillWidth, skillHeight); // fallback
         }
-    
-        for (Enemy enemy : enemies) {
+
+        // Xử lý sát thương cho tất cả quái trong vùng sát thương
+        for (Enemy enemy : new ArrayList<>(enemies)) {
             Rectangle enemyBox = new Rectangle(enemy.x, enemy.y, enemy.width, enemy.height);
             if (skillBox.intersects(enemyBox)) {
                 // Tính DEF_Reduction
@@ -333,8 +370,11 @@ public class Player extends JComponent {
                     }
                 }
 
+                // Gửi thêm thông tin crit
+                enemy.takeDamage(damage, isCrit);
+
                 // Áp dụng sát thương và in thông tin
-                enemy.takeDamage(damage);
+                // enemy.takeDamage(damage);
                 
                 // In thông tin combat để debug
                 System.out.printf("Hit: %s | ATK: %d | DEF_Reduction: %.2f | Crit: %b | Damage: %d%n",
@@ -348,7 +388,7 @@ public class Player extends JComponent {
         }
                 
     
-        return new SkillEffect(damageBoxX, damageBoxY, 30, skill.frames, direction, skillBox, skill.debugColor);
+        return new SkillEffect(skillX, skillY, 30, skill.frames, direction, skillBox, skill.debugColor);
     }
 
     public boolean isBlocked(int x, int y) {

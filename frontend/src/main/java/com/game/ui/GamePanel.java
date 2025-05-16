@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import com.game.data.GameData;
 import com.game.model.*;
 import java.util.ConcurrentModificationException;
+import java.awt.geom.Arc2D;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener {
     // Các hằng số cấu hình chung
@@ -57,6 +58,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
     private static GamePanel currentInstance;
 
+    // Cooldown management
+    private long lastNormalAttackTime = 0;
+    private double attackSpeed = 5.0; // Attacks per second
+    private Map<Integer, Long> skillLastUsedTime = new HashMap<>(); // Slot -> last used time
+    private Map<Integer, Integer> skillCooldowns = new HashMap<>(); // Slot -> cooldown in milliseconds
+
     // Constructor và khởi tạo
     public GamePanel() {
         currentInstance = this;
@@ -69,8 +76,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
                 Point click = e.getPoint();
 
                 if (normalAttackBounds.contains(click)) {
-                    SkillEffect skill = player.castSkill(0, enemies, -50); // Normal attack
-                    if (skill != null) skills.add(skill);
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastNormalAttackTime >= (1000 / attackSpeed)) {
+                        SkillEffect skill = player.castSkill(0, enemies, -50);
+                        if (skill != null) {
+                            skills.add(skill);
+                            lastNormalAttackTime = currentTime;
+                        }
+                    }
                 }
 
                 for (int i = 0; i < 4; i++) {
@@ -84,10 +97,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
                         if (charSkill != null) {
                             SkillData skillData = skillDataMap.get(charSkill.getSkillId());
                             if (skillData != null) {
-                                SkillEffect effect = player.castSkill(index + 1, enemies, -50);
-                                if (effect != null) {
-                                    skills.add(effect);
-                                    System.out.println("Sử dụng skill slot " + (i + 1));
+                                long currentTime = System.currentTimeMillis();
+                                if (currentTime - skillLastUsedTime.get(i) >= skillCooldowns.get(i)) {
+                                    SkillEffect effect = player.castSkill(index + 1, enemies, -50);
+                                    if (effect != null) {
+                                        skills.add(effect);
+                                        skillLastUsedTime.put(i, currentTime);
+                                        System.out.println("Sử dụng skill slot " + (i + 1));
+                                    }
                                 }
                             }
                         }
@@ -102,6 +119,11 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
         for (int i = 0; i < 4; i++) {
             skillButtonBounds[i] = new Rectangle();
+        }
+        // Initialize cooldown maps
+        for (int i = 0; i < 4; i++) {
+            skillLastUsedTime.put(i, 0L);
+            skillCooldowns.put(i, 0);
         }
     }
 
@@ -248,6 +270,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
                             System.out.println("Đã tải skill: " + skillInfo.getName() + 
                                             " với cấu hình: " + animationPath + ", " + frameCount + "," + width + "," + height);
+
+                            // Lưu cooldown cho slot
+                            if (charSkill.getSlot() > 0) {
+                                skillCooldowns.put(charSkill.getSlot() - 1, 
+                                    (int)(skillInfo.getCooldown() * 1000)); // Convert to milliseconds
+                            }
 
                         } catch (IOException | NumberFormatException e) {
                             System.err.println("Lỗi tải animation cho skill " + 
@@ -509,6 +537,46 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
                 skillX + (SKILL_BUTTON_SIZE - fm.stringWidth(slotNum))/2,
                 skillY + SKILL_BUTTON_SIZE - 5);
         }
+
+        long currentTime = System.currentTimeMillis();
+    
+        // Draw normal attack cooldown
+        if (currentTime - lastNormalAttackTime < (1000 / attackSpeed)) {
+            double progress = 1 - ((currentTime - lastNormalAttackTime) / (1000.0 / attackSpeed));
+            drawCooldownOverlay(g, normalAttackBounds, progress);
+        }
+
+        // Draw skill cooldowns
+        for (int i = 0; i < 4; i++) {
+            if (skillUnlocked[i]) {
+                long timeSinceLastUse = currentTime - skillLastUsedTime.get(i);
+                int cooldown = skillCooldowns.get(i);
+                
+                if (timeSinceLastUse < cooldown) {
+                    double progress = 1 - (timeSinceLastUse / (double)cooldown);
+                    drawCooldownOverlay(g, skillButtonBounds[i], progress);
+                    
+                    // Draw cooldown text
+                    int secondsLeft = (int)Math.ceil((cooldown - timeSinceLastUse) / 1000.0);
+                    g.setColor(Color.WHITE);
+                    g.setFont(new Font("Arial", Font.BOLD, 16));
+                    String cooldownText = String.valueOf(secondsLeft);
+                    FontMetrics fm = g.getFontMetrics();
+                    g.drawString(cooldownText,
+                        skillButtonBounds[i].x + (SKILL_BUTTON_SIZE - fm.stringWidth(cooldownText))/2,
+                        skillButtonBounds[i].y + SKILL_BUTTON_SIZE/2 + fm.getHeight()/2);
+                }
+            }
+        }
+    }
+
+    private void drawCooldownOverlay(Graphics2D g, Rectangle bounds, double progress) {
+        g.setColor(new Color(0, 0, 0, 150));
+        Arc2D.Double arc = new Arc2D.Double(
+            bounds.x, bounds.y, bounds.width, bounds.height,
+            90, progress * 360, Arc2D.PIE
+        );
+        g.fill(arc);
     }
     // endregion
 
@@ -516,39 +584,46 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            SkillEffect skill = player.castSkill(0, enemies, -50);
-            if (skill != null) skills.add(skill);
-        } else if (e.getKeyCode() == KeyEvent.VK_Q || e.getKeyCode() == KeyEvent.VK_E || e.getKeyCode() == KeyEvent.VK_R || e.getKeyCode() == KeyEvent.VK_T) {
-            
-            int slot = 0;
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_Q:
-                    slot = 1;
-                    break;
-                case KeyEvent.VK_E:
-                    slot = 2;
-                    break;
-                case KeyEvent.VK_R:
-                    slot = 3;
-                    break;
-                case KeyEvent.VK_T:
-                    slot = 4;
-                    break;
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastNormalAttackTime >= (1000 / attackSpeed)) {
+                SkillEffect skill = player.castSkill(0, enemies, -50);
+                if (skill != null) {
+                    skills.add(skill);
+                    lastNormalAttackTime = currentTime;
+                }
             }
-            final int selectedSlot = slot;
+        } else if (e.getKeyCode() == KeyEvent.VK_Q || 
+               e.getKeyCode() == KeyEvent.VK_E || 
+               e.getKeyCode() == KeyEvent.VK_R || 
+               e.getKeyCode() == KeyEvent.VK_T) {
+        
+            int slot = switch (e.getKeyCode()) {
+                case KeyEvent.VK_Q -> 0;
+                case KeyEvent.VK_E -> 1;
+                case KeyEvent.VK_R -> 2;
+                case KeyEvent.VK_T -> 3;
+                default -> -1;
+            };
 
-            GameCharacterSkill charSkill = GameData.characterSkills.stream()
-                .filter(cs -> cs.getCharacterId().equals(playerId) && cs.getSlot() == selectedSlot)
-                .findFirst()
-                .orElse(null);
+            if (slot >= 0 && skillUnlocked[slot]) {
+                GameCharacterSkill charSkill = GameData.characterSkills.stream()
+                    .filter(cs -> cs.getCharacterId().equals(playerId) && 
+                                cs.getSlot() == slot + 1)
+                    .findFirst()
+                    .orElse(null);
 
-            if (charSkill != null) {
-                SkillData skillData = skillDataMap.get(charSkill.getSkillId());
-                if (skillData != null) {
-                    SkillEffect effect = player.castSkill(slot, enemies, -50);
-                    if (effect != null) {
-                        skills.add(effect);
-                        System.out.println("Sử dụng skill slot " + slot);
+                if (charSkill != null) {
+                    SkillData skillData = skillDataMap.get(charSkill.getSkillId());
+                    if (skillData != null) {
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime - skillLastUsedTime.get(slot) >= skillCooldowns.get(slot)) {
+                            SkillEffect effect = player.castSkill(slot + 1, enemies, -50);
+                            if (effect != null) {
+                                skills.add(effect);
+                                skillLastUsedTime.put(slot, currentTime);
+                                System.out.println("Sử dụng skill slot " + (slot + 1));
+                            }
+                        }
                     }
                 }
             }

@@ -51,9 +51,10 @@ public class SkillEffect {
             // Tạo AffineTransform để xoay ảnh
             AffineTransform transform = new AffineTransform();
             double scale = 1.8;
+
             transform.scale(scale, scale);
             transform.translate(drawX, drawY);
-
+            
             // Xoay ảnh dựa trên hướng
             switch (direction) {
                 case "right" -> transform.rotate(Math.toRadians(0), frame.getWidth() / 2.0, frame.getHeight() / 2.0);

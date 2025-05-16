@@ -1,6 +1,7 @@
 package com.game;
 
-import javax.swing.*;
+import javax.swing.SwingUtilities;
+
 import com.game.ui.LoginFrame;
 
 public class Main {

@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run Main with Maven",
+      "request": "launch",
+      "mainClass": "com.game.Main",
+      "preLaunchTask": "maven: clean install"
+    }
+  ]
+}

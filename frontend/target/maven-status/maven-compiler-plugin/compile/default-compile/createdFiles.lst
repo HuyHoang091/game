@@ -26,6 +26,7 @@ com\game\ui\GamePanel$1.class
 com\game\model\GameMap.class
 com\game\ui\MapSelectScreen$9.class
 com\game\ui\LoginFrame$2.class
+com\game\DamageEffect.class
 com\game\model\GameMonsterDrop.class
 com\game\SkillEffect.class
 com\game\ui\MapSelectScreen$7.class

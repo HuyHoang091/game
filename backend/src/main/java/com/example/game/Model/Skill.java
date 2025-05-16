@@ -18,6 +18,7 @@ public class Skill {
     private int manaCost;
     private String mota;
     private int damage;
+    private double cooldown;
     private String cauhinh;
     private String icon;
 }

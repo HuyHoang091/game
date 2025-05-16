@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "maven: clean install",
+      "type": "shell",
+      "command": "mvn clean install",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$maven"]
+    },
+    {
+      "label": "maven: exec",
+      "type": "shell",
+      "command": "mvn exec:java -Dexec.mainClass=com.game.Main",
+      "problemMatcher": []
+    }
+  ]
+}

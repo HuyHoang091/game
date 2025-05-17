@@ -28,6 +28,7 @@ public class Enemy {
     private int frameIndex = 0;
     private int normalFrameCount = 6;  // For movement animations
     private int attackFrameCount = 11; // For attack animation
+    private int buffFrameCount = 6;
     private int frameDelay = 3, frameTick = 0;
     private String direction = "down";
     private boolean isAttacking = false;
@@ -39,10 +40,28 @@ public class Enemy {
 
     private ArrayList<DamageEffect> damageEffects = new ArrayList<>();
 
+    private BufferedImage[] idleFrames;
+    private boolean isIdle = false;
+    private int idleFrameCount = 9;
+
+    private BufferedImage[] buffSkill;
+    private BufferedImage[] targetSkill;
+    private BufferedImage[] explosion;
+
+    private boolean isUsingBuffSkill = false;
+    private int buffCooldown = 300;
+    private int buffDuration = 180;
+    private boolean buffActive = false;
+    private boolean isBuffAnimationComplete = false;
+
     public Enemy(int x, int y, int width, int height, Long health, Long monsterId,
                 BufferedImage[] up, BufferedImage[] down, 
                 BufferedImage[] left, BufferedImage[] right,
-                BufferedImage[] attack) {
+                BufferedImage[] attack, 
+                BufferedImage[] buffSkill,
+                BufferedImage[] targetSkill,
+                BufferedImage[] explosion,
+                BufferedImage[] idle) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -57,6 +76,12 @@ public class Enemy {
         this.rightFrames = right;
         this.attackFrames = attack;
         this.currentImage = down[0];
+
+        this.buffSkill = buffSkill;
+        this.targetSkill = targetSkill;
+        this.explosion = explosion;
+
+        this.idleFrames = idle;
 
         // Set defense based on monster level from GameData
         GameMonster monster = GameData.monster.stream()
@@ -74,7 +99,20 @@ public class Enemy {
         frameTick++;
         if (frameTick >= frameDelay) {
             frameTick = 0;
-            int maxFrames = (frames == attackFrames) ? attackFrameCount : normalFrameCount;
+            // Safety check for null or empty frames array
+            if (frames == null || frames.length == 0) {
+                return;
+            }
+            int maxFrames;
+            if (frames == attackFrames) {
+                maxFrames = Math.min(attackFrameCount, frames.length);
+            } else if (frames == buffSkill || frames == targetSkill || frames == explosion) {
+                maxFrames = Math.min(buffFrameCount, frames.length);
+            } else if (frames == idleFrames) {  // Add idle animation handling
+                maxFrames = Math.min(idleFrameCount, frames.length);
+            } else {
+                maxFrames = Math.min(normalFrameCount, frames.length);
+            }
             
             if (frames == attackFrames) {
                 if (frameIndex < attackFrameCount - 1) {
@@ -83,11 +121,26 @@ public class Enemy {
                     isAttackAnimationComplete = true;
                     frameIndex = 0;
                 }
+            } else if (frames == buffSkill) {
+                if (frameIndex < buffFrameCount - 1) {
+                    frameIndex++;
+                } else {
+                    isBuffAnimationComplete = true;
+                    frameIndex = 0;
+                    isUsingBuffSkill = false;
+                }
+            } else if (frames == idleFrames) {  // Add idle animation logic
+                frameIndex = (frameIndex + 1) % maxFrames;
             } else {
                 frameIndex = (frameIndex + 1) % maxFrames;
             }
+
+            // Safety check before accessing frame
+            if (frameIndex >= 0 && frameIndex < frames.length) {
+                currentImage = frames[frameIndex];
+            }
         }
-        currentImage = frames[frameIndex];
+        // currentImage = frames[frameIndex];
     }
 
     public void update(Player player) {
@@ -148,6 +201,12 @@ public class Enemy {
         // Xử lý animation tấn công
         if (isAttacking) {
             animate(attackFrames);
+            // if(direction == "right"){
+            //     animate(attackFrames);
+            // } else if (direction == "left"){
+            //     animate(leftFrames);
+            // }
+            
             attackAnimationTick--;
 
             // Kiểm tra va chạm và gây sát thương khi animation kết thúc
@@ -167,6 +226,18 @@ public class Enemy {
                 frameIndex = 0;
                 attackArea = null;
             }
+        } else if (isUsingBuffSkill) {
+            animate(buffSkill);
+            
+            if (isBuffAnimationComplete) {
+                isUsingBuffSkill = false;
+                buffActive = true;
+                buffDuration = 180;
+                buffCooldown = 300;
+                frameIndex = 0;
+                attackDamage *= 2;
+                heal();
+            }
         } else if (distanceX < 150 && distanceY < 150) {
             moveTowardPlayerSmartly(player);
         }
@@ -178,6 +249,37 @@ public class Enemy {
             if (effect.isExpired()) {
                 damageEffects.remove(i);
             }
+        }
+
+        // Update buff cooldown
+        if (buffCooldown > 0) {
+            buffCooldown--;
+        }
+
+        // Update buff duration
+        if (buffActive && buffDuration > 0) {
+            buffDuration--;
+            if (buffDuration <= 0) {
+                buffActive = false;
+                attackDamage = attackDamage / 2; // Reset damage buff
+            }
+        }
+
+        // Check for buff skill activation
+        if (health < maxHealth / 3 && !isUsingBuffSkill && !isAttacking && buffCooldown <= 0) {
+            isUsingBuffSkill = true;
+            isBuffAnimationComplete = false;
+            frameIndex = 0;
+            frameTick = 0;
+        }
+
+        if (!isAttacking && !isUsingBuffSkill 
+            && Math.abs(x - newX) < 0.1 && Math.abs(y - newY) < 0.1) {
+            // If not doing anything and not moving, play idle animation
+            isIdle = true;
+            animate(idleFrames);
+        } else {
+            isIdle = false;
         }
     }
 
@@ -286,6 +388,14 @@ public class Enemy {
         g.fillRect(x - camX, y - camY, 50, 70/3);
 
         drawCollisionBox(g2d, x - camX, y - camY);
+
+        // Draw buff active effect
+        if (buffActive) {
+            g.setColor(new Color(255, 215, 0, 100)); // Golden glow
+            int glowX = x - width/2 - camX - 5;
+            int glowY = y - height/2 - camY - 5;
+            g.fillOval(glowX, glowY, width + 10, height + 10);
+        }
     }
 
     public void drawCollisionBox(Graphics2D g, int x, int y) {

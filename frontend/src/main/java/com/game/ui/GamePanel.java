@@ -237,9 +237,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             BufferedImage[] leftFrames = new BufferedImage[6];
             BufferedImage[] rightFrames = new BufferedImage[6];
             BufferedImage[] attackFrames = new BufferedImage[11];
-            BufferedImage[] buffSkill = new BufferedImage[10];
+            BufferedImage[] buffSkill = new BufferedImage[6];
             BufferedImage[] targetSkill = new BufferedImage[10];
             BufferedImage[] explosion = new BufferedImage[10];
+            BufferedImage[] idle = new BufferedImage[9];
 
             // Load từng frame animation (thay đường dẫn phù hợp)
             for (int i = 0; i < 6; i++) {
@@ -247,6 +248,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
                 downFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Right/" + (i+1) + ".png"));
                 leftFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Left/" + (i+1) + ".png"));
                 rightFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Right/" + (i+1) + ".png"));
+                buffSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Buff/" + (i+1) + ".png"));
             }
 
             for (int i = 0; i < 11; i++) {
@@ -254,13 +256,17 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             }
 
             for (int i = 0; i < 10; i++) {
-                buffSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Chem_nuoc/" + (i+1) + ".png"));
+                
                 targetSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Cat_nuoc/" + (i+1) + ".png"));
                 explosion[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Cat_nuoc/" + (i+1) + ".png"));
             }
 
+            for (int i = 0; i < 9; i++){
+                idle[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Idle/" + (i+1) + ".png"));
+            }
+
             return new Enemy(x, y, width, height, health, monsterId,
-                            upFrames, downFrames, leftFrames, rightFrames, attackFrames);
+                            upFrames, downFrames, leftFrames, rightFrames, attackFrames, buffSkill, targetSkill, explosion, idle);
         } catch (IOException e) {
             e.printStackTrace();
             return null;

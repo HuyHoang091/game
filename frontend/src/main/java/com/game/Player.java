@@ -36,7 +36,7 @@ public class Player extends JComponent {
     public double basecritDmg = 1.2;
     public double critDmg;
 
-    BufferedImage collisionImage;
+    public BufferedImage collisionImage;
 
     BufferedImage[] upFrames, downFrames, leftFrames, rightFrames, skillFrames;
     BufferedImage currentImage;
@@ -137,10 +137,10 @@ public class Player extends JComponent {
             }
         }
 
-        if (!isBlocked(newX, y)) {
+        if (!isBlocked(newX, y, currentImage.getWidth(), currentImage.getHeight())) {
             x = newX;
         }
-        if (!isBlocked(x, newY)) {
+        if (!isBlocked(x, newY , currentImage.getWidth(), currentImage.getHeight())) {
             y = newY;
         }
 
@@ -227,6 +227,21 @@ public class Player extends JComponent {
             // Vẽ hình ảnh hiện tại của Player
             g.drawImage(currentImage, x - camX, y - camY, null);
         }
+
+        // Vẽ hitbox người chơi để debug
+        // g.setColor(new Color(0, 255, 0, 100));
+        // g.fillRect(x - camX, y - camY, 50, 70);
+
+        g.setColor(new Color(0, 255, 0, 100));
+        g.fillRect(x - camX, y - camY, currentImage.getWidth(), currentImage.getHeight()/3);
+
+        // Vẽ vùng sát thương kỹ năng
+        if (isUsingSkill && skillEffectDuration > 0) {
+            g.setColor(Color.RED);
+            g.fillRect(skillX - camX, skillY - camY, skillEffectFrames[0].getWidth(), skillEffectFrames[0].getHeight());
+        }
+
+        drawCollisionBox(g2d, x - camX, y - camY); // Vẽ hitbox
     }    
 
     public void setDirection(int keyCode, boolean pressed) {
@@ -391,11 +406,11 @@ public class Player extends JComponent {
         return new SkillEffect(skillX, skillY, 30, skill.frames, direction, skillBox, skill.debugColor);
     }
 
-    public boolean isBlocked(int x, int y) {
-        int width = currentImage.getWidth();
-        int height = currentImage.getHeight();
+    public boolean isBlocked(int x, int y, int width, int height) {
+        // int width = currentImage.getWidth();
+        // int height = currentImage.getHeight();
 
-        int footHeight = height / 3;
+        int footHeight = height / 10;
     
         for (int dx = 0; dx <= width; dx += tileSize / 2) {
             for (int dy = height - footHeight; dy < height; dy += tileSize / 2) {
@@ -413,6 +428,15 @@ public class Player extends JComponent {
         }
     
         return false;
+    }
+
+    public void drawCollisionBox(Graphics2D g, int x, int y) {
+        int width = currentImage.getWidth();
+        int height = currentImage.getHeight();
+        int footHeight = height / 10;
+
+        g.setColor(new Color(255, 0, 0, 100)); // Đỏ trong suốt
+        g.drawRect(x, y + height - footHeight, width, footHeight);
     }
     
     public void addSkill(SkillData skill) {
@@ -481,6 +505,16 @@ public class Player extends JComponent {
     public int getY() {
         return y;
     }    
+
+    @Override
+    public int getWidth() {
+        return currentImage.getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return currentImage.getHeight();
+    }
 
     public BufferedImage getCurrentImage() {
         return currentImage;

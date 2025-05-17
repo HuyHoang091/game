@@ -215,11 +215,11 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
             enemies.clear();
             for (MapData.EnemyData enemyData : mapData.enemies) {
-                enemies.add(new Enemy(
+                enemies.add(createEnemy(
                     enemyData.x,
                     enemyData.y,
-                    enemyData.width,
-                    enemyData.height,
+                    150,
+                    150,
                     enemyData.health,
                     enemyData.monsterId
                 ));
@@ -228,6 +228,44 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             System.out.println("Error loading images: " + e.getMessage());
         }
     }      
+
+    private Enemy createEnemy(int x, int y, int width, int height, Long health, Long monsterId) {
+        try {
+            // Load enemy sprites
+            BufferedImage[] upFrames = new BufferedImage[6];
+            BufferedImage[] downFrames = new BufferedImage[6];
+            BufferedImage[] leftFrames = new BufferedImage[6];
+            BufferedImage[] rightFrames = new BufferedImage[6];
+            BufferedImage[] attackFrames = new BufferedImage[11];
+            BufferedImage[] buffSkill = new BufferedImage[10];
+            BufferedImage[] targetSkill = new BufferedImage[10];
+            BufferedImage[] explosion = new BufferedImage[10];
+
+            // Load từng frame animation (thay đường dẫn phù hợp)
+            for (int i = 0; i < 6; i++) {
+                upFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Right/" + (i+1) + ".png"));
+                downFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Right/" + (i+1) + ".png"));
+                leftFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Left/" + (i+1) + ".png"));
+                rightFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Right/" + (i+1) + ".png"));
+            }
+
+            for (int i = 0; i < 11; i++) {
+                attackFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Attack/" + (i+1) + ".png"));
+            }
+
+            for (int i = 0; i < 10; i++) {
+                buffSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Chem_nuoc/" + (i+1) + ".png"));
+                targetSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Cat_nuoc/" + (i+1) + ".png"));
+                explosion[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Cat_nuoc/" + (i+1) + ".png"));
+            }
+
+            return new Enemy(x, y, width, height, health, monsterId,
+                            upFrames, downFrames, leftFrames, rightFrames, attackFrames);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public void loadSkills() {
         if (GameData.characterSkills != null) {
@@ -399,7 +437,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     
             for (Enemy enemy : enemies) {
                 enemy.update(player);
-                enemy.attack(player);
+                // enemy.attack(player);
             }
     
             enemies.removeIf(Enemy::isDead);

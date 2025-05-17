@@ -8,6 +8,9 @@ import com.game.data.GameData;
 import com.game.model.*;
 import java.util.ArrayList;
 import com.game.DamageEffect;
+import java.awt.image.BufferedImage;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 
 public class Enemy {
     int x, y;
@@ -15,14 +18,31 @@ public class Enemy {
     Long maxHealth;
     int speed = 1;
     int width, height;
-    int attackCooldown = 0; // Thời gian giữa các đợt tấn công
+    int attackCooldown = 3; // Thời gian giữa các đợt tấn công
     Long attackDamage = 5L;
     Long monsterId;
     int def = 100; // Base defense value
 
+    private BufferedImage[] upFrames, downFrames, leftFrames, rightFrames, attackFrames;
+    private BufferedImage currentImage;
+    private int frameIndex = 0;
+    private int normalFrameCount = 6;  // For movement animations
+    private int attackFrameCount = 11; // For attack animation
+    private int frameDelay = 3, frameTick = 0;
+    private String direction = "down";
+    private boolean isAttacking = false;
+    private boolean isAttackAnimationComplete = false;
+    private boolean hasDealDamage = false; // Thêm biến để kiểm tra đã gây damage chưa
+    private int attackAnimationDuration = 30;
+    private int attackAnimationTick = 0;
+    private Rectangle attackArea;
+
     private ArrayList<DamageEffect> damageEffects = new ArrayList<>();
 
-    public Enemy(int x, int y, int width, int height, Long health, Long monsterId) {
+    public Enemy(int x, int y, int width, int height, Long health, Long monsterId,
+                BufferedImage[] up, BufferedImage[] down, 
+                BufferedImage[] left, BufferedImage[] right,
+                BufferedImage[] attack) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -30,6 +50,13 @@ public class Enemy {
         this.health = health;
         this.monsterId = monsterId;
         this.maxHealth = health; // Lưu lại máu tối đa
+
+        this.upFrames = up;
+        this.downFrames = down;
+        this.leftFrames = left;
+        this.rightFrames = right;
+        this.attackFrames = attack;
+        this.currentImage = down[0];
 
         // Set defense based on monster level from GameData
         GameMonster monster = GameData.monster.stream()
@@ -43,6 +70,26 @@ public class Enemy {
         }
     }
 
+    private void animate(BufferedImage[] frames) {
+        frameTick++;
+        if (frameTick >= frameDelay) {
+            frameTick = 0;
+            int maxFrames = (frames == attackFrames) ? attackFrameCount : normalFrameCount;
+            
+            if (frames == attackFrames) {
+                if (frameIndex < attackFrameCount - 1) {
+                    frameIndex++;
+                } else {
+                    isAttackAnimationComplete = true;
+                    frameIndex = 0;
+                }
+            } else {
+                frameIndex = (frameIndex + 1) % maxFrames;
+            }
+        }
+        currentImage = frames[frameIndex];
+    }
+
     public void update(Player player) {
         int newX = x;
         int newY = y;
@@ -51,31 +98,77 @@ public class Enemy {
             attackCooldown--; // Đếm ngược thời gian hồi chiêu tấn công
         }
 
+        // Tính tọa độ tâm của Enemy và Player
+        int enemyCenterX = x;
+        int enemyCenterY = y;
+        int playerCenterX = player.getX() + player.getWidth()/2;
+        int playerCenterY = player.getY() + player.getHeight()/2;
+
         // Quái sẽ có hành động dựa trên khoảng cách với người chơi
-        int distanceX = Math.abs(player.getX() - x);
-        int distanceY = Math.abs(player.getY() - y);
+        int distanceX = Math.abs(playerCenterX - enemyCenterX);
+        int distanceY = Math.abs(playerCenterY - enemyCenterY);
 
         newX = Math.max(0, Math.min(newX, player.collisionImage.getWidth() * 64 - width));
         newY = Math.max(0, Math.min(newY, player.collisionImage.getHeight() * 64 - height));
 
-        if (!player.isBlocked(newX, y)) x = newX;
-        if (!player.isBlocked(x, newY)) y = newY;
+        if (!player.isBlocked(newX, y, 20, 50)) x = newX;
+        if (!player.isBlocked(x, newY, 20, 50)) y = newY;
 
         if (distanceX < 150 && distanceY < 150) {
+            // Xác định hướng di chuyển dựa vào tâm
+            if (Math.abs(distanceX) > Math.abs(distanceY)) {
+                direction = playerCenterX > enemyCenterX ? "right" : "left";
+            } else {
+                direction = playerCenterY > enemyCenterY ? "down" : "up";
+            }
+
             // Nếu đủ gần để tấn công
             if (distanceX < 30 && distanceY < 30 && attackCooldown == 0) {
-                attack(player);
-                attackCooldown = 100;
-            } else {
-                // Đuổi theo người chơi
-                if (player.getX() > x && !player.isBlocked(x + speed, y)) x += speed;
-                else if (player.getX() < x && !player.isBlocked(x - speed, y)) x -= speed;
-    
-                if (player.getY() > y && !player.isBlocked(x, y + speed)) y += speed;
-                else if (player.getY() < y && !player.isBlocked(x, y - speed)) y -= speed;
+                isAttacking = true;
+                hasDealDamage = false;
+                attackAnimationTick = attackAnimationDuration;
+                attackCooldown = 3;
+                
+                // Xác định vùng gây sát thương từ tâm sprite
+                int attackRange = 140;
+                int centerX = x; // Tâm sprite
+                int centerY = y; // Điều chỉnh theo chiều cao thực của sprite
+                switch (direction) {
+                    case "right" -> attackArea = new Rectangle(centerX, centerY - height/2, 
+                                                            attackRange, height);
+                    case "left" -> attackArea = new Rectangle(centerX - attackRange, centerY - height/2, 
+                                                            attackRange, height);
+                    case "down" -> attackArea = new Rectangle(centerX - width/2, centerY, 
+                                                            width, attackRange);
+                    case "up" -> attackArea = new Rectangle(centerX - width/2, centerY - attackRange, 
+                                                        width, attackRange);
+                }
             }
-        } else {
-            // moveSmartly(player);
+        }
+        // Xử lý animation tấn công
+        if (isAttacking) {
+            animate(attackFrames);
+            attackAnimationTick--;
+
+            // Kiểm tra va chạm và gây sát thương khi animation kết thúc
+            if (!hasDealDamage && isAttackAnimationComplete) {
+                Rectangle playerBox = new Rectangle(player.getX(), player.getY(), 
+                                                 player.getWidth(), player.getHeight());
+                if (attackArea != null && attackArea.intersects(playerBox)) {
+                    player.takeDamage(attackDamage);
+                    hasDealDamage = true;
+                }
+            }
+            
+            // Kết thúc animation tấn công
+            if (isAttackAnimationComplete) {
+                isAttacking = false;
+                isAttackAnimationComplete = false;
+                frameIndex = 0;
+                attackArea = null;
+            }
+        } else if (distanceX < 150 && distanceY < 150) {
+            moveTowardPlayerSmartly(player);
         }
 
         // Cập nhật hiệu ứng damage
@@ -88,53 +181,121 @@ public class Enemy {
         }
     }
 
-    // Di chuyển thông minh: quái có thể tránh tường hoặc người chơi
-    private void moveSmartly(Player player) {
-        Random rand = new Random();
-        int dir = rand.nextInt(4); // 0: lên, 1: xuống, 2: trái, 3: phải
-    
-        switch (dir) {
-            case 0: // lên
-                if (!player.isBlocked(x, y - speed)) y -= speed;
-                break;
-            case 1: // xuống
-                if (!player.isBlocked(x, y + speed)) y += speed;
-                break;
-            case 2: // trái
-                if (!player.isBlocked(x - speed, y)) x -= speed;
-                break;
-            case 3: // phải
-                if (!player.isBlocked(x + speed, y)) x += speed;
-                break;
-        }
-    }
-    
-    public void attack(Player player) {
-        // Kiểm tra va chạm giữa quái vật và người chơi
-        int distanceX = Math.abs(player.getX() - x);
-        int distanceY = Math.abs(player.getY() - y);
+    private void moveTowardPlayerSmartly(Player player) {
+        int offset = 2;
 
-        if (distanceX < 30 && distanceY < 30) { // Nếu khoảng cách nhỏ hơn kích thước quái vật
-            player.takeDamage(attackDamage); // Gây sát thương cho người chơi
+        int playerX = player.getX() + player.getWidth() / 2;
+        int playerY = player.getY() + player.getHeight() / 2;
+
+        int dx = playerX - x;
+        int dy = playerY - y;
+
+        boolean moved = false;
+
+        // Ưu tiên trục có khoảng cách lớn hơn
+        if (Math.abs(dx) > Math.abs(dy)) {
+            // Ưu tiên di chuyển theo X
+            if (dx > 0 && !player.isBlocked(x + speed, y, 20, 50)) {
+                x += speed;
+                direction = "right";
+                animate(rightFrames);
+                moved = true;
+            } else if (dx < 0 && !player.isBlocked(x - speed, y, 20, 50)) {
+                x -= speed;
+                direction = "left";
+                animate(leftFrames);
+                moved = true;
+            }
+            // Nếu bị chặn, thử đi dọc để "men theo tường"
+            else if (dy > 0 && !player.isBlocked(x, y + offset, 20, 50)) {
+                y += offset;
+            } else if (dy < 0 && !player.isBlocked(x, y - offset, 20, 50)) {
+                y -= offset;
+            }
+        } else {
+            // Ưu tiên di chuyển theo Y
+            if (dy > 0 && !player.isBlocked(x, y + speed, 20, 50)) {
+                y += speed;
+                direction = "down";
+                animate(downFrames);
+                moved = true;
+            } else if (dy < 0 && !player.isBlocked(x, y - speed, 20, 50)) {
+                y -= speed;
+                direction = "up";
+                animate(upFrames);
+                moved = true;
+            }
+            // Nếu bị chặn, thử đi ngang để "men theo tường"
+            else if (dx > 0 && !player.isBlocked(x + offset, y, 20, 50)) {
+                x += offset;
+            } else if (dx < 0 && !player.isBlocked(x - offset, y, 20, 50)) {
+                x -= offset;
+            }
+        }
+
+        // Nếu vẫn không di chuyển được
+        if (!moved) {
+            // moveSmartly(player); // fallback
         }
     }
+
 
     public void draw(Graphics g, int camX, int camY) {
-        g.setColor(Color.GREEN);
-        g.fillRect(x - camX, y - camY, 30, 30);
+        Graphics2D g2d = (Graphics2D) g;
 
-        // Vẽ thanh máu
-        g.setColor(Color.RED);
-        g.fillRect(x - camX, y - camY - 10, (int) (health * 0.5), 5); // Thanh máu phụ thuộc vào tỉ lệ máu hiện tại
+        // Vẽ sprite của quái - căn giữa theo chiều ngang, chân ở dưới
+        if (currentImage != null) {
+            int drawX = x - width / 2 - camX;
+            int drawY = y - height / 2 - camY;
 
-        // Vẽ chỉ số máu
-        g.setColor(Color.WHITE);
-        g.drawString(health + "/" + maxHealth, x - camX, y - camY - 15);
+            g2d.drawImage(currentImage, drawX, drawY, width, height, null);
+
+            // Debug: vẽ vị trí chân đứng của quái
+            g2d.setColor(Color.RED);
+            g2d.fillOval(x - camX - 2, y - camY - 2, 4, 4);
+            // Vẽ thanh máu - căn giữa theo sprite mới
+            g.setColor(Color.RED);
+            int healthBarWidth = (int)(health * 0.5);
+            int healthBarX = drawX + (width - healthBarWidth) / 2;
+            int healthBarY = drawY - 10; // Đặt thanh máu phía trên sprite
+            g.fillRect(healthBarX, healthBarY, healthBarWidth, 5);
+
+            // Vẽ chỉ số máu - căn giữa theo sprite mới
+            g.setColor(Color.WHITE);
+            String healthText = health + "/" + maxHealth;
+            java.awt.FontMetrics fm = g.getFontMetrics();
+            int textWidth = fm.stringWidth(healthText);
+            int textX = drawX + (width - textWidth) / 2;
+            int textY = healthBarY - 5;
+            g.drawString(healthText, textX, textY);
+        }
 
         // Vẽ hiệu ứng damage
         for (DamageEffect effect : damageEffects) {
             effect.draw(g, camX, camY);
         }
+
+        // Debug: Vẽ vùng tấn công
+        if (isAttacking && attackArea != null) {
+            g.setColor(new Color(255, 0, 0, 100));
+            g.fillRect(attackArea.x - camX, attackArea.y - camY, 
+                      attackArea.width, attackArea.height);
+        }
+
+        g.setColor(new Color(0, 255, 0, 100));
+        g.fillRect(x - camX, y - camY, 50, 70/3);
+
+        drawCollisionBox(g2d, x - camX, y - camY);
+    }
+
+    public void drawCollisionBox(Graphics2D g, int x, int y) {
+        int width = 20;
+        int height = 50; //quái lớn(150px)
+        // int height = 20; //quái nhỏ
+        int footHeight = height / 10;
+
+        g.setColor(new Color(255, 0, 0, 100)); // Đỏ trong suốt
+        g.drawRect(x, y + height - footHeight, width, footHeight);
     }
 
     public void takeDamage(Long damage, boolean isCrit) {

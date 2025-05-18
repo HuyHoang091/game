@@ -5,6 +5,7 @@ import java.awt.*;
 import com.game.model.*;
 import com.game.data.GameData;
 import java.awt.event.KeyEvent;
+import com.game.*;
 
 public class StatsDialog extends JDialog {
     // Các thông số giao diện
@@ -17,6 +18,7 @@ public class StatsDialog extends JDialog {
     private JPanel contentPanel;
     private JButton equipButton;
     private GameInventory currentInventory;
+    GamePanel gamePanel;
     
     public StatsDialog(JFrame parent, GameItemInstance instance, GameItem item, String type) {
         super(parent, "Item Stats", true);
@@ -208,6 +210,12 @@ public class StatsDialog extends JDialog {
         } else {
             // Gỡ trang bị hiện tại
             unequipItem();
+        }
+        // Tính lại chỉ số
+        Player player = gamePanel.getInstance().getPlayer();
+        if (player != null) {
+            player.ChisoGoc();    // Tính lại chỉ số gốc
+            player.ChiSoTB();     // Tính lại chỉ số từ trang bị
         }
     }
     

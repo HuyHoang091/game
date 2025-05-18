@@ -48,7 +48,7 @@ public class Player extends JComponent {
 
     private ArrayList<SkillData> skillList = new ArrayList<>();
 
-    boolean up, down, left, right;
+    boolean up, down, left, right, tocbien;
     BufferedImage[] skillEffectFrames; // Các khung hình chuyển động khi dùng kỹ năng
     int skillEffectFrameIndex = 0; // Chỉ số khung hình hiện tại
     int skillEffectFrameDelay = 5; // Độ trễ giữa các khung hình
@@ -57,16 +57,23 @@ public class Player extends JComponent {
     int skillEffectDuration = 0; // Thời gian tồn tại của hiệu ứng kỹ năng
     BufferedImage skillEffectImage; // Hình ảnh hiệu ứng kỹ năng
 
+    private BufferedImage[] idleFrames;
+    private boolean isIdle = false;
+    private int idleFrameCount = 6;
+
     ArrayList<Enemy> enemies = new ArrayList<>();
 
     GameWindow gameWindow;
 
     Long characterId;
 
+    private boolean wasMoving = false;
+
     public Player(int x, int y,
                   BufferedImage[] up, BufferedImage[] down,
                   BufferedImage[] left, BufferedImage[] right,
                   BufferedImage[] skillEffectFrames,
+                  BufferedImage[] idle,
                   BufferedImage collisionImage, Long characterId) {
         this.x = x;
         this.y = y;
@@ -78,7 +85,8 @@ public class Player extends JComponent {
         this.skillEffectFrames = skillEffectFrames; 
         this.currentImage = down[0];
         this.collisionImage = collisionImage;
-        this.characterId = characterId;            
+        this.characterId = characterId;     
+        this.idleFrames = idle;       
 
         ChisoGoc(); // Khởi tạo chỉ số gốc
         ChiSoTB(); // Cập nhật chỉ số dựa trên trang bị
@@ -93,26 +101,48 @@ public class Player extends JComponent {
             newY -= speed;
             animate(upFrames);
             moving = true;
+            if (tocbien) {
+                newY -= 10;
+            }
         }
         if (down) {
             newY += speed;
             animate(downFrames);
             moving = true;
+            if (tocbien) {
+                newY += 10;
+            }
         }
         if (left) {
             newX -= speed;
             animate(leftFrames);
             moving = true;
+            if (tocbien) {
+                newX -= 10;
+            }
         }
         if (right) {
             newX += speed;
             animate(rightFrames);
             moving = true;
+            if (tocbien) {
+                newX += 10;
+            }
+        }
+        if (tocbien && !up && !down && !left && !right) {
+            newX += 10;
         }
     
         if (!moving) {
-            frameIndex = 0;
-            frameTick = 0;
+            if (wasMoving) {
+                // chỉ reset khi vừa chuyển từ đang đi sang đứng yên
+                frameIndex = 0;
+                frameTick = 0;
+            }
+            // isIdle = true;
+            // animate(idleFrames);
+        } else {
+            isIdle = false;
         }
 
         newX = Math.max(0, Math.min(newX, collisionImage.getWidth() * 64 - currentImage.getWidth()));
@@ -152,6 +182,16 @@ public class Player extends JComponent {
                 }
             }
         }
+
+        // Check for idle state
+        if (!moving && !isUsingSkill) {
+            isIdle = true;
+            animate(idleFrames);
+        } else {
+            isIdle = false;
+        }
+
+        wasMoving = moving;
     }
 
     private void pickUpItem(DroppedItem item) {
@@ -203,9 +243,25 @@ public class Player extends JComponent {
         frameTick++;
         if (frameTick >= frameDelay) {
             frameTick = 0;
-            frameIndex = (frameIndex + 1) % frameCount;
+            // Safety check for null or empty frames array
+            if (frames == null || frames.length == 0) {
+                return;
+            }
+            int maxFrames;
+            if (frames == idleFrames) {  // Add idle animation handling
+                maxFrames = Math.min(idleFrameCount, frames.length);
+            } else {
+                maxFrames = Math.min(frameCount, frames.length);
+            }
+            
+            frameIndex = (frameIndex + 1) % maxFrames;
+
+            // Safety check before accessing frame
+            if (frameIndex >= 0 && frameIndex < frames.length) {
+                currentImage = frames[frameIndex];
+            }
         }
-        currentImage = frames[frameIndex];
+        // currentImage = frames[frameIndex];
     }
 
     public void draw(Graphics g, int camX, int camY) {
@@ -265,6 +321,7 @@ public class Player extends JComponent {
                 );
                 dialog.setVisible(true);
             }
+            case KeyEvent.VK_F -> tocbien = pressed;
         }
     }
 

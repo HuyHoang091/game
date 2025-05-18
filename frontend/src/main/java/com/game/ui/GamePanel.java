@@ -205,8 +205,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
                 ImageIO.read(getClass().getClassLoader().getResource("assets/Player/Attack_7.png")),
                 ImageIO.read(getClass().getClassLoader().getResource("assets/Player/Attack_8.png"))
             };
+
+            BufferedImage[] idle = new BufferedImage[6];
+
+            for (int i = 0; i < 6; i++){
+                idle[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Run/LangKhach/Idle/" + (i+1) + ".png"));
+            }
     
-            player = new Player(300, 250, up, down, left, right, skillEffectFrames, collisionImage, playerId);
+            player = new Player(300, 250, up, down, left, right, skillEffectFrames, idle, collisionImage, playerId);
 
             loadSkills();
             loadSkillIcons();
@@ -237,10 +243,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             BufferedImage[] leftFrames = new BufferedImage[6];
             BufferedImage[] rightFrames = new BufferedImage[6];
             BufferedImage[] attackFrames = new BufferedImage[11];
-            BufferedImage[] buffSkill = new BufferedImage[6];
-            BufferedImage[] targetSkill = new BufferedImage[10];
+            BufferedImage[] buffSkill = new BufferedImage[10];
+            BufferedImage[] buffEffect = new BufferedImage[10];
+            BufferedImage[] targetSkill = new BufferedImage[16];
             BufferedImage[] explosion = new BufferedImage[10];
             BufferedImage[] idle = new BufferedImage[9];
+            BufferedImage[] die = new BufferedImage[23];
 
             // Load từng frame animation (thay đường dẫn phù hợp)
             for (int i = 0; i < 6; i++) {
@@ -248,7 +256,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
                 downFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Right/" + (i+1) + ".png"));
                 leftFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Left/" + (i+1) + ".png"));
                 rightFrames[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Right/" + (i+1) + ".png"));
-                buffSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Buff/" + (i+1) + ".png"));
+                
             }
 
             for (int i = 0; i < 11; i++) {
@@ -256,17 +264,26 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             }
 
             for (int i = 0; i < 10; i++) {
+                buffSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Buff/" + (i+1) + ".png"));
+                buffEffect[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Cat_nuoc/" + (i+1) + ".png"));
                 
-                targetSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Cat_nuoc/" + (i+1) + ".png"));
                 explosion[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/Cat_nuoc/" + (i+1) + ".png"));
+            }
+
+            for (int i = 0; i < 16; i++){
+                targetSkill[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Skill/" + (i+1) + ".png"));
             }
 
             for (int i = 0; i < 9; i++){
                 idle[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Idle/" + (i+1) + ".png"));
             }
 
+            for (int i = 0; i < 23; i++) {
+                die[i] = ImageIO.read(getClass().getClassLoader().getResource("assets/Enemy/NightBorne/Die/" + (i+1) + ".png"));
+            }
+
             return new Enemy(x, y, width, height, health, monsterId,
-                            upFrames, downFrames, leftFrames, rightFrames, attackFrames, buffSkill, targetSkill, explosion, idle);
+                            upFrames, downFrames, leftFrames, rightFrames, attackFrames, buffSkill, buffEffect, targetSkill, explosion, idle, die);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -693,6 +710,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    public Player getPlayer() {
+        return player;
     }
     // endregion
 }

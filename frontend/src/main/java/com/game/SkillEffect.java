@@ -67,24 +67,24 @@ public class SkillEffect {
             g2d.drawImage(frame, transform, null);
         }
         // Vẽ vùng sát thương debug
-        if (debugColor != null) {
-            Graphics2D g2d = (Graphics2D) g;
-            double scale = 1.8;
-            g2d.scale(scale, scale);
+        // if (debugColor != null) {
+        //     Graphics2D g2d = (Graphics2D) g;
+        //     double scale = 1.8;
+        //     g2d.scale(scale, scale);
 
-            Rectangle debugBox = new Rectangle(
-                skillBox.x - camX,            // Dùng x từ SkillEffect (damageBoxX từ Player)
-                skillBox.y - camY,            // Dùng y từ SkillEffect (damageBoxY từ Player)
-                skillBox.width,
-                skillBox.height
-            );
+        //     Rectangle debugBox = new Rectangle(
+        //         skillBox.x - camX,            // Dùng x từ SkillEffect (damageBoxX từ Player)
+        //         skillBox.y - camY,            // Dùng y từ SkillEffect (damageBoxY từ Player)
+        //         skillBox.width,
+        //         skillBox.height
+        //     );
             
-            g2d.setColor(new Color(debugColor.getRed(), debugColor.getGreen(), debugColor.getBlue(), 100));
-            g2d.fill(debugBox);
+        //     g2d.setColor(new Color(debugColor.getRed(), debugColor.getGreen(), debugColor.getBlue(), 100));
+        //     g2d.fill(debugBox);
             
-            g2d.setColor(debugColor);
-            g2d.draw(debugBox);
-        }
+        //     g2d.setColor(debugColor);
+        //     g2d.draw(debugBox);
+        // }
     }
 
     public boolean isExpired() {

@@ -10,7 +10,6 @@ import java.awt.event.*;
 import com.game.GameWindow;
 import com.game.MapData;
 import javax.swing.plaf.basic.BasicScrollBarUI;
-
 import com.game.data.GameData;
 import com.game.model.*;
 
@@ -71,7 +70,7 @@ public class MapSelectScreen extends JPanel {
                 int width = Integer.parseInt(cauhinhParts[2].trim());
                 int height = Integer.parseInt(cauhinhParts[3].trim());
                 if (monster.getMapId() == map.getId()) {
-                    forestMap.enemies.add(new MapData.EnemyData(x, y, width, height, monster.getHp(), monster.getId()));
+                    forestMap.enemies.add(new MapData.EnemyData(x, y, width, height, monster.getHp(), monster.getId(), monster.getName()));
                 }
             }
             String mapKey = "map" + mapIndex;

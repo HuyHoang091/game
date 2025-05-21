@@ -20,14 +20,17 @@ public class MapData {
         public int width, height;
         public Long health;
         public Long monsterId;
+        public boolean isBoss = false;
+        public String name;
 
-        public EnemyData(int x, int y, int width, int height, Long health, Long monsterId) {
+        public EnemyData(int x, int y, int width, int height, Long health, Long monsterId, String name) {
             this.x = x;
             this.y = y;
             this.width = width;
             this.height = height;
             this.health = health;
             this.monsterId = monsterId;
+            this.name = name;
         }
     }
 }

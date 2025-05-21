@@ -2,33 +2,36 @@ package com.game;
 
 import java.awt.Graphics;
 import java.awt.Color;
-import java.util.Random;
-import com.game.DroppedItem;
+import com.game.*;
 import com.game.data.GameData;
 import com.game.model.*;
-import java.util.ArrayList;
-import com.game.DamageEffect;
+
 import java.awt.image.BufferedImage;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.util.*;
+import com.game.ui.GamePanel;
 
 public class Enemy {
     int x, y;
-    Long health;
-    Long maxHealth;
-    int speed = 1;
+    public Long basemaxHealth;
+    public Long maxHealth;
+    public Long health;
+    public int baseatk = 5;
+    public Long atk;
+    public int basedef = 2;
+    public Long def;
+    int speed = 2;
     int width, height;
-    int attackCooldown = 3; // Thời gian giữa các đợt tấn công
-    Long attackDamage = 5L;
+    int attackCooldown = 60; // Thời gian giữa các đợt tấn công
     Long monsterId;
-    int def = 100; // Base defense value
     private BufferedImage[] deathFrames;  // Add this to constructor parameters
     private boolean isDying = false;
     private boolean isReadyToDie = false;
     private int deathFrameCount = 23; 
     private boolean isDieAnimationComplete = false;
 
-    private BufferedImage[] upFrames, downFrames, leftFrames, rightFrames, attackFrames;
+    private BufferedImage[] upFrames, downFrames, leftFrames, rightFrames, attackFramesR, attackFramesL;
     private BufferedImage currentImage;
     private int frameIndex = 0;
     private int normalFrameCount = 6;  // For movement animations
@@ -41,10 +44,11 @@ public class Enemy {
     private boolean isAttackAnimationComplete = false;
     private boolean hasDealDamage = false; // Thêm biến để kiểm tra đã gây damage chưa
     private int attackAnimationDuration = 30;
-    private int attackAnimationTick = 0;
     private Rectangle attackArea;
 
     private ArrayList<DamageEffect> damageEffects = new ArrayList<>();
+    private List<Enemy> pendingEnemies = new ArrayList<>();
+    private Random random = new Random();
 
     private BufferedImage[] idleFrames;
     private boolean isIdle = false;
@@ -78,10 +82,20 @@ public class Enemy {
     private boolean hasDealtExplosionDamage = false;
     //
 
+    private int explosionDamageDelay = 24; // 0.4 seconds at 60fps
+    private int explosionDamageTimer = 0;
+
+    private int level;
+    private String name, type;
+    private boolean SkillTH = false, SkillTX = false, SkillBuff = false;
+
+    GamePanel gamePanel;
+
     public Enemy(int x, int y, int width, int height, Long health, Long monsterId,
                 BufferedImage[] up, BufferedImage[] down, 
                 BufferedImage[] left, BufferedImage[] right,
-                BufferedImage[] attack, 
+                BufferedImage[] attackL,
+                BufferedImage[] attackR, 
                 BufferedImage[] buffSkill,
                 BufferedImage[] buffEffect,
                 BufferedImage[] targetSkill,
@@ -92,7 +106,7 @@ public class Enemy {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.health = health;
+        this.basemaxHealth = health;
         this.monsterId = monsterId;
         this.maxHealth = health; // Lưu lại máu tối đa
 
@@ -100,7 +114,8 @@ public class Enemy {
         this.downFrames = down;
         this.leftFrames = left;
         this.rightFrames = right;
-        this.attackFrames = attack;
+        this.attackFramesL = attackL;
+        this.attackFramesR = attackR;
         this.currentImage = down[0];
 
         this.buffSkill = buffSkill;
@@ -112,16 +127,15 @@ public class Enemy {
 
         this.deathFrames = die;
 
-        // Set defense based on monster level from GameData
-        GameMonster monster = GameData.monster.stream()
-            .filter(m -> m.getId().equals(monsterId))
-            .findFirst()
-            .orElse(null);
-            
-        if (monster != null) {
-            // Scale defense with monster level
-            this.health = (long)(1000 + (monster.getLevel() * 10));
-        }
+        ChisoGoc();
+
+        for(GameMonster monster : GameData.monster) {
+            if(monster.getId().equals(monsterId)){
+                this.level = monster.getLevel();
+                this.name = monster.getName();
+                this.type = monster.getBehavior();
+            }
+        } 
     }
 
     public void update(Player player) {
@@ -157,8 +171,7 @@ public class Enemy {
             if (distanceX < 100 && distanceY < 100 && attackCooldown == 0) {
                 isAttacking = true;
                 hasDealDamage = false;
-                attackAnimationTick = attackAnimationDuration;
-                attackCooldown = 3;
+                attackCooldown = 60;
                 
                 // Xác định vùng gây sát thương từ tâm sprite
                 int attackRange = 140;
@@ -178,21 +191,24 @@ public class Enemy {
         }
         // Xử lý animation tấn công
         if (isAttacking && !isDying && !isUsingTargetSkill) {
-            animate(attackFrames);
-            // if(direction == "right"){
-            //     animate(attackFrames);
-            // } else if (direction == "left"){
-            //     animate(leftFrames);
-            // }
-            
-            attackAnimationTick--;
+            // animate(attackFrames);
+            if(direction.equals("right")){
+                animate(attackFramesR);
+            } else if (direction.equals("left")){
+                animate(attackFramesL);
+            } else if (direction.equals("up")) {
+                animate(attackFramesR);
+            } else if (direction.equals("down")) {
+                animate(attackFramesR);
+            }
 
             // Kiểm tra va chạm và gây sát thương khi animation kết thúc
             if (!hasDealDamage && isAttackAnimationComplete) {
                 Rectangle playerBox = new Rectangle(player.getX(), player.getY(), 
                                                  player.getWidth(), player.getHeight());
                 if (attackArea != null && attackArea.intersects(playerBox)) {
-                    player.takeDamage(attackDamage);
+                    Long damage = calculateLimitedDamage(player, "đánh thường");
+                    player.takeDamage(damage);
                     hasDealDamage = true;
                 }
             }
@@ -208,16 +224,61 @@ public class Enemy {
             animate(buffSkill);
             
             if (isBuffAnimationComplete) {
+                if(level < 50) {
+                    buffDuration = 3100;
+                    buffCooldown = 3000;
+                    heal();
+                } else if (level < 90) {
+                    buffDuration = 9000;
+                    buffCooldown = 12000;
+                    heal();
+                    if (type.equals("cận chiến")) {
+                        speed = 3;
+                    } else if (type.equals("tầm xa")) {
+                        speed = 2;
+                    }
+                } else if (level <= 100) {
+                    buffDuration = 9000;
+                    buffCooldown = 12000;
+                    atk *= 2;
+                    heal();
+                    if (type.equals("cận chiến")) {
+                        speed = 3;
+                        // skillTamXa = true;
+                    } else if (type.equals("tầm xa")) {
+                        speed = 2;
+                        // Hutmau = true;
+                    }
+                }
                 isUsingBuffSkill = false;
                 buffActive = true;
-                buffDuration = 1800;
-                buffCooldown = 300;
                 frameIndex = 0;
-                attackDamage *= 2;
-                heal();
+                
             }
-        } else if (distanceX < 150 && distanceY < 150 && !isDying && !isUsingTargetSkill) {
+        } else if (distanceX < 550 && distanceY < 550 && !isDying && !isUsingTargetSkill) {
             moveTowardPlayerSmartly(player);
+        }
+
+        // Kỹ năng triệu hồi
+        if (type.equals("tầm xa") && level >= 50 && !SkillTH && health <= (maxHealth*30/100)) {
+            animate(buffSkill);
+            int sl = 0;
+            if (level <= 60) sl = 1;
+            else if (level <= 70) sl = 2;
+            else if (level <= 80) sl = 3;
+            else if (level <= 90) sl = 4;
+            else sl = 5;
+            for (int i = 0; i < sl; i++) {
+                Enemy newEnemy = gamePanel.getInstance().createEnemy(
+                    x,
+                    y,
+                    70, 70, 10L, monsterId, name
+                );
+                if (newEnemy != null) {
+                    pendingEnemies.add(newEnemy);
+                }
+            }
+            SkillTH = true;
         }
 
         // Cập nhật hiệu ứng damage
@@ -239,12 +300,22 @@ public class Enemy {
             buffDuration--;
             if (buffDuration <= 0) {
                 buffActive = false;
-                attackDamage = attackDamage / 2; // Reset damage buff
+                atk = atk / 2; // Reset damage buff
             }
         }
+        boolean buff = false;
+
+        if (level >= 10 && level < 20){ if(health < maxHealth*20/100) buff = true;}
+        else if (level < 30){ if(health < maxHealth*30/100) buff = true;}
+        else if (level < 40){ if(health < maxHealth*40/100) buff = true;}
+        else if (level < 50){ if(health < maxHealth*50/100) buff = true;}
+        else if (level < 60){ if(health < maxHealth*60/100) buff = true;}
+        else if (level < 70){ if(health < maxHealth*70/100) buff = true;}
+        else if (level < 80){ if(health < maxHealth*80/100) buff = true;}
+        else if (level <= 100){ if(health < maxHealth*80/100) buff = true;}
 
         // Check for buff skill activation
-        if (health < maxHealth / 3 && !isUsingBuffSkill && !isAttacking && buffCooldown <= 0) {
+        if (!type.equals("lính gác") && buff && !isUsingBuffSkill && !isAttacking && buffCooldown <= 0) {
             isUsingBuffSkill = true;
             isBuffAnimationComplete = false;
             frameIndex = 0;
@@ -279,7 +350,7 @@ public class Enemy {
         }
 
         // Check for target skill activation
-        if (distanceX < 1500 && distanceY < 1500 && !isUsingTargetSkill 
+        if (type.equals("tầm xa") && distanceX < 150 && distanceY < 150 && !isUsingTargetSkill 
             && !isAttacking && !isUsingBuffSkill && targetSkillCooldown <= 0) {
             isUsingTargetSkill = true;
             isTargetSkillComplete = false;
@@ -303,38 +374,41 @@ public class Enemy {
 
         // Handle explosion animation
         if (isShowingExplosion) {
+            // Increment damage timer
+            explosionDamageTimer++;
+            // Only check collision if haven't dealt damage yet
+            if (!hasDealtExplosionDamage && explosionDamageTimer >= explosionDamageDelay) {
+                Rectangle explosionBox = new Rectangle(
+                    explosionX - 25,
+                    explosionY - 25,
+                    50,
+                    50
+                );
+                
+                Rectangle playerBox = new Rectangle(
+                    player.getX(), 
+                    player.getY(), 
+                    player.getWidth(), 
+                    player.getHeight()
+                );
+                
+                // Deal damage only once if player is in explosion area
+                if (explosionBox.intersects(playerBox)) {
+                    Long damage = calculateLimitedDamage(player, "skill");
+                    player.takeDamage(damage);
+                    hasDealtExplosionDamage = false;
+                    explosionDamageTimer = 0;
+                }
+            }
+
             frameTick++;
             if (frameTick >= frameDelay) {
                 frameTick = 0;
                 if (explosionFrameIndex < explosionFrameCount - 1) {
                     explosionFrameIndex++;
-                    
-                    // Only check collision if haven't dealt damage yet
-                    if (!hasDealtExplosionDamage) {
-                        Rectangle explosionBox = new Rectangle(
-                            explosionX - 25,
-                            explosionY - 25,
-                            50,
-                            50
-                        );
-                        
-                        Rectangle playerBox = new Rectangle(
-                            player.getX(), 
-                            player.getY(), 
-                            player.getWidth(), 
-                            player.getHeight()
-                        );
-                        
-                        // Deal damage only once if player is in explosion area
-                        if (explosionBox.intersects(playerBox)) {
-                            player.takeDamage(attackDamage * 2);
-                            hasDealtExplosionDamage = true;
-                        }
-                    }
                 } else {
                     isShowingExplosion = false;
                     explosionFrameIndex = 0;
-                    hasDealtExplosionDamage = false;
                 }
             }
         }
@@ -351,6 +425,15 @@ public class Enemy {
         } else {
             isIdle = false;
         }
+    }
+
+    public List<Enemy> getPendingEnemies() {
+        return pendingEnemies;
+    }
+
+    // Add method to clear pending enemies after they're added
+    public void clearPendingEnemies() {
+        pendingEnemies.clear();
     }
 
     public void draw(Graphics g, int camX, int camY) {
@@ -403,10 +486,6 @@ public class Enemy {
         // Draw buff active effect
         if (buffActive) {
             drawBuffEffect(g, camX, camY);
-            g.setColor(new Color(255, 215, 0, 100)); // Golden glow
-            int glowX = x - width/2 - camX - 5;
-            int glowY = y - height/2 - camY - 5;
-            g.fillOval(glowX, glowY, width + 10, height + 10);
         }
 
         // Draw target skill animation
@@ -450,6 +529,10 @@ public class Enemy {
 
         if (health <= 0) {
             health = 0L;
+            Player player = gamePanel.getInstance().getPlayer();
+            if (player != null) {
+                player.gainExp(monsterId);
+            }
             // Initialize the list only if it's null
             if (GameData.droppedItems == null) {
                 GameData.droppedItems = new ArrayList<>();
@@ -457,6 +540,25 @@ public class Enemy {
             // Drop item when monster dies
             drop(x, y, monsterId);
         }
+    }
+
+    public void ChisoGoc() {
+        GameMonster monster = GameData.monster.stream()
+            .filter(c -> c.getId().equals(monsterId))
+            .findFirst()
+            .orElse(null);
+
+        if (monster == null) {
+            System.out.println("Monster not found: " + monsterId);
+            return;
+        }
+
+        int level = monster.getLevel();
+        double levelMultiplier = Math.pow(1.2, level); // tăng 10% mỗi cấp
+        maxHealth = (long)(basemaxHealth * levelMultiplier);
+        health = maxHealth;
+        atk = (long)(baseatk * levelMultiplier);
+        def = (long)(basedef * levelMultiplier);
     }
 
     // Quái hồi máu (kỹ năng đặc biệt)
@@ -527,53 +629,147 @@ public class Enemy {
         // Ưu tiên trục có khoảng cách lớn hơn
         if (Math.abs(dx) > Math.abs(dy)) {
             // Ưu tiên di chuyển theo X
-            if (dx > 0 && !player.isBlocked(x + speed, y, 20, 50)) {
+            if (dx > 0 && !player.isBlocked(x + speed, y, 40, 50)) {
                 x += speed;
                 direction = "right";
                 animate(rightFrames);
                 moved = true;
-            } else if (dx < 0 && !player.isBlocked(x - speed, y, 20, 50)) {
+            } else if (dx < 0 && !player.isBlocked(x - speed, y, 40, 50)) {
                 x -= speed;
                 direction = "left";
                 animate(leftFrames);
                 moved = true;
             }
             // Nếu bị chặn, thử đi dọc để "men theo tường"
-            else if (dy > 0 && !player.isBlocked(x, y + offset, 20, 50)) {
+            else if (dy > 0 && !player.isBlocked(x, y + offset, 40, 50)) {
                 y += offset;
-            } else if (dy < 0 && !player.isBlocked(x, y - offset, 20, 50)) {
+                moved = true;
+            } else if (dy < 0 && !player.isBlocked(x, y - offset, 40, 50)) {
                 y -= offset;
+                moved = true;
             }
         } else {
             // Ưu tiên di chuyển theo Y
-            if (dy > 0 && !player.isBlocked(x, y + speed, 20, 50)) {
+            if (dy > 0 && !player.isBlocked(x, y + speed, 40, 50)) {
                 y += speed;
                 direction = "down";
                 animate(downFrames);
                 moved = true;
-            } else if (dy < 0 && !player.isBlocked(x, y - speed, 20, 50)) {
+            } else if (dy < 0 && !player.isBlocked(x, y - speed, 40, 50)) {
                 y -= speed;
                 direction = "up";
                 animate(upFrames);
                 moved = true;
             }
             // Nếu bị chặn, thử đi ngang để "men theo tường"
-            else if (dx > 0 && !player.isBlocked(x + offset, y, 20, 50)) {
+            else if (dx > 0 && !player.isBlocked(x + offset, y, 40, 50)) {
                 x += offset;
-            } else if (dx < 0 && !player.isBlocked(x - offset, y, 20, 50)) {
+                moved = true;
+            } else if (dx < 0 && !player.isBlocked(x - offset, y, 40, 50)) {
                 x -= offset;
+                moved = true;
             }
         }
 
         // Nếu vẫn không di chuyển được
         if (!moved) {
-            // moveSmartly(player); // fallback
+            if (dx > 0 && Math.abs(dx) > Math.abs(dy)) {
+                if (!player.isBlocked(x, y - speed, 40, 50)) {
+                    x += speed;
+                    y -= speed * 2;
+                } else if (!player.isBlocked(x, y + speed, 40, 50)) {
+                    x += speed;
+                    y += speed * 2;
+                }
+            } else if (dx > 0 && Math.abs(dx) <= Math.abs(dy)) {
+                if (!player.isBlocked(x - speed, y, 40, 50)) {
+                    y -= speed;
+                    x -= speed * 2;
+                } else if (!player.isBlocked(x + speed, y, 40, 50)) {
+                    y -= speed;
+                    x += speed * 2;
+                }
+                
+            } else if (dx < 0 && Math.abs(dx) > Math.abs(dy)) {
+                if (!player.isBlocked(x, y - speed, 40, 50)) {
+                    x -= speed;
+                    y -= speed * 2; 
+                } else if (!player.isBlocked(x, y + speed, 40, 50)) {
+                    x -= speed;
+                    y += speed * 2; 
+                }
+            } else if (dx < 0 && Math.abs(dx) <= Math.abs(dy)) {
+                if (!player.isBlocked(x - speed, y, 40, 50)) {
+                    y += speed;
+                    x -= speed * 2;
+                } else if (!player.isBlocked(x + speed, y, 40, 50)) {
+                    y += speed;
+                    x += speed * 2;
+                }
+            } 
+            // else {
+            //     Random rand = new Random();
+            //     int dir = rand.nextInt(4); // 0: lên, 1: xuống, 2: trái, 3: phải
+
+            //     switch (dir) {
+            //         case 0:
+            //             if (!player.isBlocked(x, y - speed, 40, 50)) {
+            //                 y -= speed;
+            //                 direction = "up";
+            //                 animate(upFrames);
+            //             }
+            //             break;
+            //         case 1:
+            //             if (!player.isBlocked(x, y + speed, 40, 50)) {
+            //                 y += speed;
+            //                 direction = "down";
+            //                 animate(downFrames);
+            //             }
+            //             break;
+            //         case 2:
+            //             if (!player.isBlocked(x - speed, y, 40, 50)) {
+            //                 x -= speed;
+            //                 direction = "left";
+            //                 animate(leftFrames);
+            //             }
+            //             break;
+            //         case 3:
+            //             if (!player.isBlocked(x + speed, y, 40, 50)) {
+            //                 x += speed;
+            //                 direction = "right";
+            //                 animate(rightFrames);
+            //             }
+            //             break;
+            //     }
+            // }
         }
     }
 
     //
     public boolean isDead() {
         return health <= 0;
+    }
+
+    private Long calculateLimitedDamage(Player player, String type) {
+        double damage = 1.0;
+        if (buffActive && buffDuration > 0) {
+            damage = 1.3;
+        }
+        if(type.equals("đánh thường")) {
+            // Calculate max damage allowed (25-35% of player's max HP)
+            double maxDamagePercent = 10 + random.nextInt(11); // Random between 25-35
+            Long maxAllowedDamage = (long)(player.stats.getMaxHealth() * maxDamagePercent / 100);
+            
+            // Return the smaller value between raw damage and max allowed damage
+            return (long)(maxAllowedDamage * damage);
+        } else {
+            // Calculate max damage allowed (25-35% of player's max HP)
+            double maxDamagePercent = 20 + random.nextInt(11); // Random between 25-35
+            Long maxAllowedDamage = (long)(player.stats.getMaxHealth() * maxDamagePercent / 100);
+            
+            // Return the smaller value between raw damage and max allowed damage
+            return (long)(maxAllowedDamage * damage);
+        }
     }
 
 // endregion
@@ -583,7 +779,7 @@ public class Enemy {
     // Vùng va chạm của quái
     public void drawCollisionBox(Graphics2D g, int x, int y) {
         int width = 20;
-        int height = 50; //quái lớn(150px)
+        int height = 70; //quái lớn(150px)
         // int height = 20; //quái nhỏ
         int footHeight = height / 10;
 
@@ -627,7 +823,7 @@ public class Enemy {
                 maxFrames = Math.min(normalFrameCount, frames.length);
             }
             
-            if (frames == attackFrames) {
+            if (frames == attackFramesL || frames == attackFramesR) {
                 if (frameIndex < attackFrameCount - 1) {
                     frameIndex++;
                 } else {

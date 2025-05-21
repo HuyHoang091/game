@@ -55,7 +55,7 @@ public class GameWindow extends JFrame {
         gamePanel.loadResources(mapData);
         cardLayout.show(contentPane, "Game");
         gamePanel.requestFocus();
-        gamePanel.startGameThread();
+        gamePanel.getGameLoop().startGameThread();
     }
 
     public void showMenu() {
@@ -83,7 +83,7 @@ public class GameWindow extends JFrame {
     }
 
     public void BackToMenu() {
-        gamePanel.stopGameThread();
+        gamePanel.getGameLoop().stopGameThread();
 
         // Gỡ gamePanel khỏi contentPane
         contentPane.remove(gamePanel);

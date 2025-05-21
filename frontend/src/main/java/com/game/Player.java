@@ -14,65 +14,82 @@ import com.game.model.*;
 import java.util.List;
 import com.game.ui.SkillTreeDialog;
 import javax.swing.*;
+import com.game.stats.*;
 
 public class Player extends JComponent {
     int x, y;
-    int speed = 2;
-
+    int speed = 3;
     int skillX, skillY; // Tọa độ của vùng sát thương kỹ năng
 
-    public int basemaxHealth = 500;
-    public Long maxHealth;
-    public Long health;
-    public int basemaxmana = 5000;
-    public Long maxmana;
-    public Long mana;
-    public int baseatk = 20;
-    public Long atk;
-    public int basedef = 2;
-    public Long def;
-    public double basecritRate = 0.0001;
-    public double critRate;
-    public double basecritDmg = 1.2;
-    public double critDmg;
+    // region Chỉ số Player
+    // public int basemaxHealth = 500;
+    // public Long maxHealth;
+    // public Long health;
+    // public int basemaxmana = 5000;
+    // public Long maxmana;
+    // public Long mana;
+    // public int baseatk = 20;
+    // public Long atk;
+    // public int basedef = 2;
+    // public Long def;
+    // public double basecritRate = 0.0001;
+    // public double critRate;
+    // public double basecritDmg = 1.2;
+    // public double critDmg;
+    // private int currentExp = 0;
+    // private int expBase = 100;
+    // endrehion
 
     public BufferedImage collisionImage;
 
-    BufferedImage[] upFrames, downFrames, leftFrames, rightFrames, skillFrames;
+    // region Animation
+    BufferedImage[] upFrames, downFrames, leftFrames, rightFrames;
     BufferedImage currentImage;
+    BufferedImage[] skillEffectFramesL;
+    BufferedImage[] skillEffectFramesR;
+    BufferedImage skillEffectImage; // Hình ảnh hiệu ứng kỹ năng
+    BufferedImage[] idleFrames;
     int frameIndex = 0;
-    int frameCount = 8;
-    int frameDelay = 10, frameTick = 0;
-
-    final int tileSize = 64;
-
-    private ArrayList<SkillData> skillList = new ArrayList<>();
-
-    boolean up, down, left, right, tocbien;
-    BufferedImage[] skillEffectFrames; // Các khung hình chuyển động khi dùng kỹ năng
     int skillEffectFrameIndex = 0; // Chỉ số khung hình hiện tại
+    int frameCount = 8;
+    int skillFrameCount = 9;
+    int idleFrameCount = 6;
+    int frameDelay = 10, frameTick = 0;
     int skillEffectFrameDelay = 5; // Độ trễ giữa các khung hình
     int skillEffectFrameTick = 0; // Bộ đếm thời gian cho khung hình
-    boolean isUsingSkill = false; // Trạng thái sử dụng kỹ năng
     int skillEffectDuration = 0; // Thời gian tồn tại của hiệu ứng kỹ năng
-    BufferedImage skillEffectImage; // Hình ảnh hiệu ứng kỹ năng
-
-    private BufferedImage[] idleFrames;
+    boolean isUsingSkill = false; // Trạng thái sử dụng kỹ năng
     private boolean isIdle = false;
-    private int idleFrameCount = 6;
+    private ArrayList<SkillData> skillList = new ArrayList<>();
+    // endregion
 
-    ArrayList<Enemy> enemies = new ArrayList<>();
-
-    GameWindow gameWindow;
-
-    Long characterId;
-
+    // region Di chuyển
+    boolean up, down, left, right, tocbien;
     private boolean wasMoving = false;
+    private String direction = "right";
+    private int dodgeCooldown = 250;
+    // endregion
+    
+    // region Set Đồ
+    private int boXuyenGiap = 0, boChiMang = 0, boMauTrau = 0, boHutMau = 0;
+    private Double khangST = 0.0, RateHoiMau = 0.25;
+    private boolean HoiMau = false, CMHoiMau = false, BeMau = false;
+    private int TGHoiMau = 60;
+    // endregion
+
+    // region Khác
+    ArrayList<Enemy> enemies = new ArrayList<>();
+    GameWindow gameWindow;
+    public PlayerStats stats;
+    Long characterId;
+    final int tileSize = 64;
+    // endregion
 
     public Player(int x, int y,
                   BufferedImage[] up, BufferedImage[] down,
                   BufferedImage[] left, BufferedImage[] right,
-                  BufferedImage[] skillEffectFrames,
+                  BufferedImage[] skillEffectFramesL,
+                  BufferedImage[] skillEffectFramesR,
                   BufferedImage[] idle,
                   BufferedImage collisionImage, Long characterId) {
         this.x = x;
@@ -81,27 +98,72 @@ public class Player extends JComponent {
         this.downFrames = down;
         this.leftFrames = left;
         this.rightFrames = right;
-        this.skillFrames = skillFrames;
-        this.skillEffectFrames = skillEffectFrames; 
+        this.skillEffectFramesL = skillEffectFramesL; 
+        this.skillEffectFramesR = skillEffectFramesR; 
         this.currentImage = down[0];
         this.collisionImage = collisionImage;
         this.characterId = characterId;     
-        this.idleFrames = idle;       
+        this.idleFrames = idle;   
+        this.stats = new PlayerStats(characterId);    
 
-        ChisoGoc(); // Khởi tạo chỉ số gốc
-        ChiSoTB(); // Cập nhật chỉ số dựa trên trang bị
+        // ChisoGoc();
+        // ChiSoTB();
+        // SetDo();
+
+        if (boMauTrau == 6) {
+            stats.setMaxHealth(stats.getMaxHealth()*2);
+            stats.setHealth(stats.getMaxHealth());
+            khangST = 0.99;
+            HoiMau = true;
+        } else if (boMauTrau >= 3) {
+            stats.setMaxHealth((long)(stats.getMaxHealth()*1.5));
+            stats.setHealth(stats.getMaxHealth());
+            khangST = 0.3;
+            HoiMau = false;
+        } else if (boMauTrau >= 1) {
+            stats.setMaxHealth((long)(stats.getMaxHealth()*1.2));
+            stats.setHealth(stats.getMaxHealth());
+            khangST = 0.1;
+            HoiMau = false;
+        } else {
+            HoiMau = false;
+        }
+
+        if (boChiMang == 6) {
+            stats.setCritRate(stats.getCritRate() + 0.25);
+            stats.setCritDmg(stats.getCritDmg() + 0.5);
+            if (stats.getCritRate() > 1.0) {
+                stats.setCritDmg(stats.getCritDmg() + (stats.getCritRate() - 1.0)/2);
+                stats.setCritRate(1.0);
+            }
+            CMHoiMau = true;
+        } else if (boChiMang >= 3) {
+            stats.setCritRate(stats.getCritRate() + 0.15);
+            stats.setCritDmg(stats.getCritDmg() + 0.3);
+            CMHoiMau = false;
+        } else if (boChiMang >= 1) {
+            stats.setCritRate(stats.getCritRate() + 0.05);
+            stats.setCritDmg(stats.getCritDmg() + 0.1);
+            CMHoiMau = false;
+        } else {
+            CMHoiMau = false;
+        }
     }
 
     public void update() {
         int newX = x;
         int newY = y;
         boolean moving = false;
+
+        if(dodgeCooldown > 0) {
+            dodgeCooldown --;
+        }
     
         if (up) {
             newY -= speed;
             animate(upFrames);
             moving = true;
-            if (tocbien) {
+            if (tocbien && dodgeCooldown <= 0) {
                 newY -= 10;
             }
         }
@@ -109,7 +171,7 @@ public class Player extends JComponent {
             newY += speed;
             animate(downFrames);
             moving = true;
-            if (tocbien) {
+            if (tocbien && dodgeCooldown <= 0) {
                 newY += 10;
             }
         }
@@ -117,7 +179,7 @@ public class Player extends JComponent {
             newX -= speed;
             animate(leftFrames);
             moving = true;
-            if (tocbien) {
+            if (tocbien && dodgeCooldown <= 0) {
                 newX -= 10;
             }
         }
@@ -125,22 +187,19 @@ public class Player extends JComponent {
             newX += speed;
             animate(rightFrames);
             moving = true;
-            if (tocbien) {
+            if (tocbien && dodgeCooldown <= 0) {
                 newX += 10;
             }
         }
-        if (tocbien && !up && !down && !left && !right) {
+        if (tocbien && dodgeCooldown <= 0) {
             newX += 10;
         }
     
         if (!moving) {
             if (wasMoving) {
-                // chỉ reset khi vừa chuyển từ đang đi sang đứng yên
                 frameIndex = 0;
                 frameTick = 0;
             }
-            // isIdle = true;
-            // animate(idleFrames);
         } else {
             isIdle = false;
         }
@@ -150,8 +209,16 @@ public class Player extends JComponent {
 
         // Giảm thời gian tồn tại của hiệu ứng kỹ năng
         if (isUsingSkill) {
-            if (skillEffectFrames != null && skillEffectFrames.length > 0) {
-                animate(skillEffectFrames); // Chạy hoạt ảnh kỹ năng
+            if (skillEffectFramesR != null && skillEffectFramesR.length > 0) {
+                if (direction.equals("left")){
+                    animate(skillEffectFramesL);
+                } else if (direction.equals("right")){
+                    animate(skillEffectFramesR);
+                } else if (direction.equals("up")){
+                    animate(skillEffectFramesR);
+                } else if (direction.equals("down")){
+                    animate(skillEffectFramesL);
+                }
             }
 
             skillEffectDuration--;
@@ -167,6 +234,7 @@ public class Player extends JComponent {
             }
         }
 
+        // Kiểm tra đụng tường
         if (!isBlocked(newX, y, currentImage.getWidth(), currentImage.getHeight())) {
             x = newX;
         }
@@ -183,7 +251,24 @@ public class Player extends JComponent {
             }
         }
 
-        // Check for idle state
+        // Buff Set hồi máu
+        if (boMauTrau == 6 && HoiMau) {
+            TGHoiMau --;
+            if (TGHoiMau <= 0) {
+                stats.setHealth(stats.getHealth() + (long)(stats.getMaxHealth()*0.01));
+                TGHoiMau = 60;
+            }
+        }
+
+        // Buff Set hút máu (1 lần / trận)
+        if (boHutMau == 6 && BeMau) {
+            if (stats.getHealth() <= 0) {
+                stats.setHealth(stats.getMaxHealth());
+                BeMau = false;
+            }
+        }
+
+        // Kiểm tra chạy hoạt ảnh đứng yên
         if (!moving && !isUsingSkill) {
             isIdle = true;
             animate(idleFrames);
@@ -194,6 +279,7 @@ public class Player extends JComponent {
         wasMoving = moving;
     }
 
+    // region nhặt đồ
     private void pickUpItem(DroppedItem item) {
         if (item == null || GameData.getItemById(item.getItemId()) == null) {
             System.err.println("Invalid item pickup attempt");
@@ -238,18 +324,21 @@ public class Player extends JComponent {
             e.printStackTrace();
         }
     }
+    // endregion
 
+    // region Chạy chuyển động
     private void animate(BufferedImage[] frames) {
         frameTick++;
         if (frameTick >= frameDelay) {
             frameTick = 0;
-            // Safety check for null or empty frames array
             if (frames == null || frames.length == 0) {
                 return;
             }
             int maxFrames;
-            if (frames == idleFrames) {  // Add idle animation handling
+            if (frames == idleFrames) {
                 maxFrames = Math.min(idleFrameCount, frames.length);
+            } else if (frames == skillEffectFramesL || frames == skillEffectFramesR) {
+                maxFrames = Math.min(skillFrameCount, frames.length);
             } else {
                 maxFrames = Math.min(frameCount, frames.length);
             }
@@ -261,28 +350,12 @@ public class Player extends JComponent {
                 currentImage = frames[frameIndex];
             }
         }
-        // currentImage = frames[frameIndex];
     }
+    // endregion
 
     public void draw(Graphics g, int camX, int camY) {
         Graphics2D g2d = (Graphics2D) g;
-        if (isUsingSkill && skillEffectFrames != null) {
-            // Vẽ hoạt ảnh khi dung kỹ năng
-            BufferedImage effectFrame = skillEffectFrames[skillEffectFrameIndex];
-            if (left) {
-                // Lật ảnh theo trục ngang khi hướng trái
-                AffineTransform transform = new AffineTransform();
-                transform.translate(x - camX + effectFrame.getWidth(), y - camY); // Dịch chuyển ảnh
-                transform.scale(-1, 1); // Lật ảnh theo trục X
-                g2d.drawImage(effectFrame, transform, null);
-            } else {
-                // Vẽ bình thường khi hướng phải
-                g2d.drawImage(effectFrame, x - camX, y - camY, null);
-            }
-        } else {
-            // Vẽ hình ảnh hiện tại của Player
-            g.drawImage(currentImage, x - camX, y - camY, null);
-        }
+        g.drawImage(currentImage, x - camX, y - camY, null);
 
         // Vẽ hitbox người chơi để debug
         // g.setColor(new Color(0, 255, 0, 100));
@@ -294,19 +367,20 @@ public class Player extends JComponent {
         // Vẽ vùng sát thương kỹ năng
         if (isUsingSkill && skillEffectDuration > 0) {
             g.setColor(Color.RED);
-            g.fillRect(skillX - camX, skillY - camY, skillEffectFrames[0].getWidth(), skillEffectFrames[0].getHeight());
+            g.fillRect(skillX - camX, skillY - camY, skillEffectFramesR[0].getWidth(), skillEffectFramesR[0].getHeight());
         }
 
         drawCollisionBox(g2d, x - camX, y - camY); // Vẽ hitbox
     }    
 
+    // Input
     public void setDirection(int keyCode, boolean pressed) {
         switch (keyCode) {
             case KeyEvent.VK_W -> up = pressed;
             case KeyEvent.VK_S -> down = pressed;
             case KeyEvent.VK_A -> left = pressed;
             case KeyEvent.VK_D -> right = pressed;
-            case KeyEvent.VK_SHIFT -> speed = pressed ? 3 : 2; // Tăng tốc độ khi nhấn Shift
+            case KeyEvent.VK_SHIFT -> speed = pressed ? 4 : 3; // Tăng tốc độ khi nhấn Shift
             case KeyEvent.VK_N -> {
                 gameWindow.getInstance().showSettings("Game");  
             }
@@ -321,16 +395,18 @@ public class Player extends JComponent {
                 );
                 dialog.setVisible(true);
             }
-            case KeyEvent.VK_F -> tocbien = pressed;
+            case KeyEvent.VK_G -> tocbien = pressed;
         }
     }
+    // endregion
 
+    // region Chạy hiệu ứng đánh thường, Skill, gây dame
     public SkillEffect castSkill(int skillIndex, ArrayList<Enemy> enemies, int offset) {
         if (skillIndex < 0 || skillIndex >= skillList.size()) return null;
         if (enemies.isEmpty()) return null;
 
         SkillData skill = skillList.get(skillIndex);
-        if (mana < skill.manaCost || skill.frames == null) return null;
+        if (stats.getMana() < skill.manaCost || skill.frames == null) return null;
 
         useMana(skill.manaCost);
         isUsingSkill = true;
@@ -362,8 +438,6 @@ public class Player extends JComponent {
         int enemyCenterY = nearestEnemy.y + nearestEnemy.height / 2;
         double angle = Math.atan2(enemyCenterY - playerCenterY, enemyCenterX - playerCenterX);
 
-        // Chuyển góc thành hướng
-        String direction;
         if (angle >= -Math.PI/4 && angle < Math.PI/4) direction = "right";
         else if (angle >= Math.PI/4 && angle < 3*Math.PI/4) direction = "down";
         else if (angle >= -3*Math.PI/4 && angle < -Math.PI/4) direction = "up";
@@ -418,40 +492,68 @@ public class Player extends JComponent {
         for (Enemy enemy : new ArrayList<>(enemies)) {
             Rectangle enemyBox = new Rectangle(enemy.x, enemy.y, enemy.width, enemy.height);
             if (skillBox.intersects(enemyBox)) {
-                // Tính DEF_Reduction
                 double defReduction = Math.min(0.5, enemy.def / (enemy.def + 10000.0));
+
+                if (boXuyenGiap == 6) {
+                    defReduction -= 1.1;
+                    stats.setCritRate(Math.min(0.5, stats.getCritRate()));
+                } else if (boXuyenGiap >= 3) {
+                    defReduction -= 0.3;
+                } else if (boXuyenGiap >= 1) {
+                    defReduction -= 0.1;
+                }
                 
-                // Tính xem có crit không
-                boolean isCrit = Math.random() < critRate;
+                boolean isCrit = Math.random() < stats.getCritRate();
                 
-                // Tính sát thương:
-                // - Nếu là đánh thường (skillIndex == 0)
-                // - Nếu là skill (skillIndex > 0)
                 Long damage;
                 if (skillIndex == 0) {
                     if (isCrit) {
-                        damage = (long) (atk * critDmg * (1 - defReduction));
+                        damage = (long) (stats.getAtk() * stats.getCritDmg() * (1 - defReduction));
                     } else {
-                        damage = (long) (atk * (1 - defReduction));
+                        damage = (long) (stats.getAtk() * (1 - defReduction));
                     }
                 } else {
                     if (isCrit) {
-                        damage = (long) (atk * skill.damage * critDmg * (1 - defReduction));
+                        damage = (long) (stats.getAtk() * skill.damage * stats.getCritDmg() * (1 - defReduction));
                     } else {
-                        damage = (long) (atk * skill.damage * (1 - defReduction));
+                        damage = (long) (stats.getAtk() * skill.damage * (1 - defReduction));
+                    }
+                }
+
+                if (CMHoiMau && isCrit) {
+                    boolean hoimau = Math.random() < RateHoiMau;
+                    if (hoimau) {
+                        stats.setHealth((long)Math.min(stats.getMaxHealth()*0.15, damage));
+                    }
+                }
+
+                if (boHutMau == 6) {
+                    if (skillIndex == 0) {
+                        stats.setHealth((long)Math.min(damage*0.1,stats.getMaxHealth()*0.05));
+                    } else {
+                        stats.setHealth((long)Math.min(damage*0.2,stats.getMaxHealth()*0.3));
+                    }
+                } else if (boHutMau >= 3) {
+                    if (skillIndex == 0) {
+                        stats.setHealth((long)Math.min(damage*0.05,stats.getMaxHealth()*0.05));
+                    } else {
+                        stats.setHealth((long)Math.min(damage*0.1,stats.getMaxHealth()*0.3));
+                    }
+                } else if (boHutMau >= 1) {
+                    if (skillIndex == 0) {
+                        stats.setHealth((long)Math.min(damage*0.02,stats.getMaxHealth()*0.05));
+                    } else {
+                        stats.setHealth((long)Math.min(damage*0.05,stats.getMaxHealth()*0.3));
                     }
                 }
 
                 // Gửi thêm thông tin crit
                 enemy.takeDamage(damage, isCrit);
-
-                // Áp dụng sát thương và in thông tin
-                // enemy.takeDamage(damage);
                 
                 // In thông tin combat để debug
                 System.out.printf("Hit: %s | ATK: %d | DEF_Reduction: %.2f | Crit: %b | Damage: %d%n",
                     skillIndex == 0 ? "Normal" : "Skill",
-                    atk,
+                    stats.getAtk(),
                     defReduction,
                     isCrit,
                     damage
@@ -462,11 +564,10 @@ public class Player extends JComponent {
     
         return new SkillEffect(skillX, skillY, 30, skill.frames, direction, skillBox, skill.debugColor);
     }
+    // endregion
 
+    // region Kiểm tra chạm tường
     public boolean isBlocked(int x, int y, int width, int height) {
-        // int width = currentImage.getWidth();
-        // int height = currentImage.getHeight();
-
         int footHeight = height / 10;
     
         for (int dx = 0; dx <= width; dx += tileSize / 2) {
@@ -486,6 +587,7 @@ public class Player extends JComponent {
     
         return false;
     }
+    // endregion
 
     public void drawCollisionBox(Graphics2D g, int x, int y) {
         int width = currentImage.getWidth();
@@ -501,58 +603,106 @@ public class Player extends JComponent {
     }
 
     public void takeDamage(Long damage) {
-        health -= damage;
-        if (health < 0) health = 0L;
+        stats.takeDamage(damage, khangST);
     }
 
-    public void ChisoGoc() {
+    private void SetDo() {
+        boChiMang = 0; boHutMau = 0; boMauTrau = 0; boXuyenGiap = 0;
+        for (GameInventory inventory : GameData.inventory) {
+            if (inventory.getCharacterId().equals(characterId)) {
+                if (inventory.isEquipped()){
+                    for (GameItem item : GameData.item){
+                        if (item.getId().equals(inventory.getItemId())){
+                            for (GameThuocTinh thuocTinh : GameData.thuoctinh){
+                                if(item.getThuoctinhId().equals(thuocTinh.getId())){
+                                    if (thuocTinh.getName().equals("bộ xuyên giáp")){
+                                        boXuyenGiap += 1;
+                                    } else if (thuocTinh.getName().equals("bộ máu trâu")){
+                                        boMauTrau += 1;
+                                    } else if (thuocTinh.getName().equals("bộ chí mạng")){
+                                        boChiMang += 1;
+                                    } else if (thuocTinh.getName().equals("bộ hút máu")){
+                                        boHutMau += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // endregion
+
+    // region Exp người chơi
+    // Calculate exp needed for next level
+    private int calculateExpNeeded(int level) {
+        return (int)(stats.getExpBase() * Math.pow(level, 1.5));
+    }
+
+    // Add method to gain exp when killing monsters
+    public void gainExp(Long monsterId) {
+        GameMonster monster = GameData.monster.stream()
+            .filter(m -> m.getId().equals(monsterId))
+            .findFirst()
+            .orElse(null);
+
+        if (monster == null) return;
+
+        // Calculate monster exp reward based on level
+        int monsterLevel = monster.getLevel();
+        int baseExpReward = monster.getExpReward();
+        int scaledExpReward = (int)(baseExpReward * Math.pow(monsterLevel, 1.2));
+        
+        stats.setCurrentExp(stats.getCurrentExp() + scaledExpReward);
+
+        System.out.println("Gained " + scaledExpReward + " exp!");
+        
+        // Check for level up
+        checkLevelUp();
+    }
+
+    // Modified level up check
+    private void checkLevelUp() {
         GameCharacter character = GameData.character.stream()
             .filter(c -> c.getId().equals(characterId))
             .findFirst()
             .orElse(null);
 
-        if (character == null) {
-            System.out.println("Character not found: " + characterId);
-            return;
+        if (character == null) return;
+
+        int currentLevel = character.getLevel();
+        int expNeeded = calculateExpNeeded(currentLevel);
+
+        while (stats.getCurrentExp() >= expNeeded) {
+            // Level up!
+            currentLevel++;
+            character.setLevel(currentLevel);
+            
+            // Update exp values
+            stats.setCurrentExp(stats.getCurrentExp() - expNeeded);
+            expNeeded = calculateExpNeeded(currentLevel);
+
+            // Recalculate stats with new level
+            stats.ChiSoGocGL();
+            stats.ChiSoTB();
+            
+            System.out.println("Level Up! Now level " + currentLevel);
+            System.out.println("Next level requires " + expNeeded + " exp");
         }
 
-        int level = character.getLevel();
-        double levelMultiplier = Math.pow(1.1, level); // tăng 10% mỗi cấp
-        maxHealth = (long)(basemaxHealth * levelMultiplier);
-        maxmana = (long)(basemaxmana * levelMultiplier);
-        health = maxHealth;
-        mana = maxmana;
-        atk = (long)(baseatk * levelMultiplier);
-        def = (long)(basedef * levelMultiplier);
-        // Giới hạn Crit Rate và Crit Dmg
-        critRate = Math.min(1.0, basecritRate * levelMultiplier); 
-        critDmg = Math.min(12.0, basecritDmg + 0.1 * level); 
-    }
-
-    public void ChiSoTB() {
-        for (GameInventory item : GameData.inventory) {
-            if (item.isEquipped()) {
-                GameItemInstance instance = GameData.itemInstance.stream()
-                    .filter(i -> i.getId().equals(item.getItemInstanceId()))
-                    .findFirst()
-                    .orElse(null);
-                if (instance != null) {
-                    maxHealth += instance.getHp();
-                    maxmana += instance.getMp();
-                    health += instance.getHp();
-                    mana += instance.getMp();
-                    atk += instance.getAtk();
-                    def += instance.getDef();
-                    critRate += instance.getCritRate();
-                    critDmg += instance.getCritDmg();
-                }
+        // Update character in GameData
+        for (int i = 0; i < GameData.character.size(); i++) {
+            if (GameData.character.get(i).getId().equals(characterId)) {
+                GameData.character.set(i, character);
+                break;
             }
         }
     }
+    // endregion
 
     public void useMana(int amount) {
-        mana -= amount;
-        if (mana < 0) mana = 0L;
+        stats.useMana(amount);
     }
 
     public int getX() {

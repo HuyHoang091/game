@@ -124,5 +124,6 @@ public class PlayerStats {
     public void setCritDmg(double critDmg) { this.critDmg = critDmg; }
     public int getCurrentExp() { return currentExp; }
     public void setCurrentExp(int exp) { this.currentExp += exp; }
+    public void setCurrentExpUp(int exp) { this.currentExp -= exp; }
     public int getExpBase() { return expBase; }
 }

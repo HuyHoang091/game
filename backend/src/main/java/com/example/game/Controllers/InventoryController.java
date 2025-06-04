@@ -23,4 +23,37 @@ public class InventoryController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/")
+    public ResponseEntity<List<Inventory>> getAllInventory() {
+        List<Inventory> characters = characterService.getAllInventory();
+        if (characters != null && !characters.isEmpty()) {
+            return ResponseEntity.ok(characters);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/")
+    public ResponseEntity<Inventory> createInventory(@RequestBody Inventory inventory) {
+        Inventory create = characterService.createInventory(inventory);
+        return ResponseEntity.ok(create);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Inventory> updateInventory(@PathVariable Long id, @RequestBody Inventory inventory) {
+        Inventory update = characterService.updateInventory(id, inventory);
+        if (update != null) {
+            return ResponseEntity.ok(update);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Inventory> deleteInventory(@PathVariable Long id) {
+        boolean delete = characterService.deleteInventory(id);
+        if (delete) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

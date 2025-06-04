@@ -8,6 +8,8 @@ import java.io.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.util.*;
+import java.util.List;
+
 import com.game.*;
 import java.net.*;
 import com.game.data.GameData;
@@ -44,7 +46,7 @@ public class GamePanel extends JPanel {
     private BufferedImage mapImage;
     private BufferedImage hudImage;
     private BufferedImage danhthuong;
-    private BufferedImage[] up, down, left, right;
+    private BufferedImage[] up, down, left, right, skillEffectFramesL, skillEffectFramesR, idle, die;
     
     // Quản lý game thread
     private static GamePanel currentInstance;
@@ -65,14 +67,21 @@ public class GamePanel extends JPanel {
     private int portalY = 250; // Set your desired Y position
     private boolean isBossRoom = false;
     private boolean gameEnding = false;
+    private boolean Loss = false;
     private long gameEndTime = 0;
     private static final int END_GAME_DELAY = 3000; // 3 seconds
     private boolean isBossInitialized = false;
     private boolean isLoadingMap = false;
 
+    private GameWindow gameWindow;
+
+    Enemy nearestEnemy = null;
+    double nearestDistance = Double.MAX_VALUE;
+
     // Constructor và khởi tạo
-    public GamePanel() {
+    public GamePanel(GameWindow gameWindow) {
         this.gameLoop = new GameLoop(this);
+        this.gameWindow = gameWindow;
         currentInstance = this;
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         this.setFocusable(true);
@@ -104,61 +113,152 @@ public class GamePanel extends JPanel {
             mapImage = ImageIO.read(getClass().getClassLoader().getResource(mapData.mapBackground));
             BufferedImage collisionImage = ImageIO.read(getClass().getClassLoader().getResource(mapData.collisionLayer));
 
+            boolean[][] collisionMap = generateCollisionMap(collisionImage);
+
             hudImage = ImageIO.read(getClass().getClassLoader().getResource("assets/Khung/image.png"));
             danhthuong = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/danhthuong.png"));
     
             for (GameCharacter character : GameData.character) {
-                if (character.getClassName().equals("LangKhach")) {
-                    up = AnimationLoader.loadAnimations("assets/Run/LangKhach/Right/", 8);
-                    down = AnimationLoader.loadAnimations("assets/Run/LangKhach/Right/", 8);
-                    left = AnimationLoader.loadAnimations("assets/Run/LangKhach/Left/", 8);
-                    right = AnimationLoader.loadAnimations("assets/Run/LangKhach/Right/", 8);
+                up = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
+                down = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
+                left = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runL", 8);
+                right = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
+                skillEffectFramesL = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "attackL", 9);
+                skillEffectFramesR = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "attackR", 9);
+                idle = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "idle", 6);
+                die = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "die", 12);
 
-                    playerId = character.getId();
-                }
+                playerId = character.getId();
             }
-            BufferedImage[] skill1Frames = AnimationLoader.loadSkillFrames("assets/Skill/Cat_nuoc", 10, 250, 250);
+            BufferedImage[] skill1Frames = ResourceManager.getEffectAnimation("assets/Skill", "cat_nuoc");
+            for (int i = 0; i < skill1Frames.length; i++) {
+                skill1Frames[i] = ResourceManager.resizeImage(skill1Frames[i], 250, 250);
+            }
             SkillData fireSkill = new SkillData(skill1Frames, 30, 10, Color.RED);
-            BufferedImage[] skillEffectFramesL = AnimationLoader.loadAnimations("assets/Run/LangKhach/Attack/Left/", 9);
-            BufferedImage[] skillEffectFramesR = AnimationLoader.loadAnimations("assets/Run/LangKhach/Attack/Right/", 9);
-            BufferedImage[] idle = AnimationLoader.loadAnimations("assets/Run/LangKhach/Idle/", 6);
-            player = new Player(300, 250, up, down, left, right, skillEffectFramesL, skillEffectFramesR, idle, collisionImage, playerId);
+            player = new Player(300, 250, up, down, left, right, skillEffectFramesL, skillEffectFramesR, idle, die, collisionImage, playerId);
+
+            player.addSkill(fireSkill);
 
             loadSkills();
             loadSkillIcons();
 
-            player.addSkill(fireSkill);
+            // enemies.clear();
+            // for (MapData.EnemyData enemyData : mapData.enemies) {
+            //     enemies.add(createEnemy(
+            //         enemyData.x,
+            //         enemyData.y,
+            //         250,
+            //         250,
+            //         enemyData.health,
+            //         enemyData.monsterId,
+            //         enemyData.name
+            //     ));
+            // }
 
             enemies.clear();
-            for (MapData.EnemyData enemyData : mapData.enemies) {
-                enemies.add(createEnemy(
-                    enemyData.x,
-                    enemyData.y,
-                    250,
-                    250,
-                    enemyData.health,
-                    enemyData.monsterId,
-                    enemyData.name
-                ));
-            }
+            enemies.addAll(generateRandomEnemies(
+                10,             // Số lượng quái
+                collisionMap,   // Bản đồ va chạm
+                mapImage.getWidth(),       // Chiều rộng bản đồ
+                mapImage.getHeight(),      // Chiều cao bản đồ
+                250,            // Width
+                250,            // Height
+                "Orc",        // Tên quái (tùy bạn đổi)
+                3L,             // Monster ID
+                100L            // Máu quái
+            ));
         } catch (IOException e) {
             System.out.println("Error loading images: " + e.getMessage());
         }
     }      
 
+    public List<Enemy> generateRandomEnemies(
+        int count, boolean[][] collisionMap, int mapWidth, int mapHeight,
+        int monsterWidth, int monsterHeight, String monsterName, Long monsterId, Long health
+    ) {
+        List<Enemy> generatedEnemies = new ArrayList<>();
+        Random rand = new Random();
+        int spacing = 200;
+        int maxAttempts = count * 100;
+
+        while (generatedEnemies.size() < count && maxAttempts > 0) {
+            int x = rand.nextInt(mapWidth - monsterWidth) + monsterWidth / 2;
+            int y = rand.nextInt(mapHeight - monsterHeight) + monsterHeight / 2;
+
+            if (!canSpawnAt(x, y + monsterHeight / 10, monsterWidth, monsterHeight / 10, collisionMap)) {
+                maxAttempts--;
+                continue;
+            }
+
+            boolean tooClose = false;
+            for (Enemy e : generatedEnemies) {
+                double dist = Point.distance(x, y, e.getX(), e.getY());
+                if (dist < spacing) {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            if (tooClose) {
+                maxAttempts--;
+                continue;
+            }
+
+            Enemy enemy = createEnemy(x, y, monsterWidth, monsterHeight, health, monsterId, monsterName);
+            generatedEnemies.add(enemy);
+            maxAttempts--;
+        }
+
+        return generatedEnemies;
+    }
+
+    public static boolean canSpawnAt(int x, int y, int w, int h, boolean[][] collisionMap) {
+        int startX = Math.max(0, x - w / 2);
+        int startY = Math.max(0, y - h / 2);
+        int endX = Math.min(collisionMap.length - 1, x + w / 2);
+        int endY = Math.min(collisionMap[0].length - 1, y + h / 2);
+
+        for (int i = startX; i <= endX; i++) {
+            for (int j = startY; j <= endY; j++) {
+                if (collisionMap[i][j]) {
+                    return false; // Gặp vùng va chạm
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean[][] generateCollisionMap(BufferedImage collisionImage) {
+        int width = collisionImage.getWidth();
+        int height = collisionImage.getHeight();
+        boolean[][] map = new boolean[width][height];
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int pixel = collisionImage.getRGB(x, y);
+                int alpha = (pixel >> 24) & 0xff;
+                map[x][y] = alpha != 0;  // true = có va chạm, false = đi được
+            }
+        }
+
+        return map;
+    }
+
     public Enemy createEnemy(int x, int y, int width, int height, Long health, Long monsterId, String name) {
-        BufferedImage[] upFrames = ResourceManager.getEnemyAnimations(name, "Right");
-        BufferedImage[] downFrames = ResourceManager.getEnemyAnimations(name, "Right");
-        BufferedImage[] leftFrames = ResourceManager.getEnemyAnimations(name, "Left");
-        BufferedImage[] rightFrames = ResourceManager.getEnemyAnimations(name, "Right");
-        BufferedImage[] attackFramesL = ResourceManager.getEnemyAnimations(name, "Attack/Left");
-        BufferedImage[] attackFramesR = ResourceManager.getEnemyAnimations(name, "Attack/Right");
-        BufferedImage[] buffSkill = ResourceManager.getEnemyAnimations(name, "Buff");
-        BufferedImage[] buffEffect = ResourceManager.getSkillAnimations("assets/Skill/Quanh_than/Buff/Dien", "");
-        BufferedImage[] targetSkill = ResourceManager.getEnemyAnimations(name, "Skill");
-        BufferedImage[] explosion = ResourceManager.getSkillAnimations("assets/Skill/Cat_nuoc", "");
-        BufferedImage[] idle = ResourceManager.getEnemyAnimations(name, "Idle");
-        BufferedImage[] die = ResourceManager.getEnemyAnimations(name, "Die");
+        BufferedImage[] upFrames = ResourceManager.getEnemyAnimation(name, "runR");
+        BufferedImage[] downFrames = ResourceManager.getEnemyAnimation(name, "runR");
+        BufferedImage[] leftFrames = ResourceManager.getEnemyAnimation(name, "runL");
+        BufferedImage[] rightFrames = ResourceManager.getEnemyAnimation(name, "runR");
+        BufferedImage[] attackFramesL = ResourceManager.getEnemyAnimation(name, "attackL");
+        BufferedImage[] attackFramesR = ResourceManager.getEnemyAnimation(name, "attackR");
+        BufferedImage[] buffSkill = ResourceManager.getEnemyAnimation(name, "buff");
+        BufferedImage[] targetSkill = ResourceManager.getEnemyAnimation(name, "skill");
+        BufferedImage[] idle = ResourceManager.getEnemyAnimation(name, "idle");
+        BufferedImage[] die = ResourceManager.getEnemyAnimation(name, "die");
+        
+        BufferedImage[] explosion = ResourceManager.getEffectAnimation("assets/Skill", "cat_nuoc");
+        BufferedImage[] buffEffect = ResourceManager.getEffectAnimation("assets/Skill/Quanh_than/Buff", "buff_dien");
 
         return new Enemy(x, y, width, height, health, monsterId,
                         upFrames, downFrames, leftFrames, rightFrames, attackFramesL, attackFramesR, buffSkill, buffEffect, targetSkill, explosion, idle, die);
@@ -264,10 +364,10 @@ public class GamePanel extends JPanel {
                 if (System.currentTimeMillis() - gameEndTime >= END_GAME_DELAY) {
                     gameLoop.stopGameThread();
                     SwingUtilities.invokeLater(() -> {
-                        Window window = SwingUtilities.getWindowAncestor(this);
-                        if (window != null) {
-                            window.dispose();
-                        }
+                        // Window window = SwingUtilities.getWindowAncestor(this);
+                        // if (window != null) {
+                            gameWindow.BackToMenu();
+                        // }
                         // new MapSelectScreen();
                     });
                 }
@@ -282,6 +382,9 @@ public class GamePanel extends JPanel {
                 }
 
                 java.util.List<Enemy> currentEnemies = new ArrayList<>(enemies);
+
+                nearestDistance = Double.MAX_VALUE;
+                nearestEnemy = null;
         
                 // Update existing enemies
                 for (Enemy enemy : currentEnemies) {
@@ -292,12 +395,15 @@ public class GamePanel extends JPanel {
                         enemies.addAll(enemy.getPendingEnemies());
                         enemy.clearPendingEnemies();
                     }
-                }
 
-                // Update enemies
-                // for (Enemy enemy : enemies) {
-                //     enemy.update(player);
-                // }
+                    double dx = player.getX() - enemy.getX();
+                    double dy = player.getY() - enemy.getY();
+                    double distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < nearestDistance && distance <= 200) {
+                        nearestDistance = distance; 
+                        nearestEnemy = enemy;
+                    }
+                }
 
                 // Only check for boss death if fully initialized and not loading
                 if (isBossRoom && isBossInitialized && !isLoadingMap && enemies.isEmpty()) {
@@ -307,6 +413,12 @@ public class GamePanel extends JPanel {
             }
     
             enemies.removeIf(Enemy::isDead);
+
+            if (player.isDead()) {
+                Loss = true;
+                gameEnding = true;
+                gameEndTime = System.currentTimeMillis();
+            }
             
             for (SkillEffect skill : skills) {
                 if (skill != null) {
@@ -340,30 +452,34 @@ public class GamePanel extends JPanel {
     }
     // endregion
 
-    // region Xử lý input
-
     // region Tiện ích
 
     public void loadBossRoom() {
-        isLoadingMap = true;
+        GlobalLoadingManager loadingManager = new GlobalLoadingManager(gameWindow);
+        
+        loadingManager.startLoading(() -> {
+            
+        });
 
-        // Load boss map data
-        MapData bossMapData = new MapData("assets/image.png","assets/vatlieu.png");
-        
-         // Add boss enemy data
-        MapData.EnemyData bossData = new MapData.EnemyData(300, 250, 100, 100, 1000L, 1L, "NightBorne");
-        bossData.isBoss = true;
-        bossMapData.enemies = new ArrayList<>(); // Initialize enemies list
-        bossMapData.enemies.add(bossData);
-        
-        // Set boss room flag
-        isBossRoom = true;
-        isBossInitialized = false; // Reset initialization flag
-        
-        // Load the new map
-        loadResources(bossMapData);
+        new Thread(() -> {
+            isLoadingMap = true;
 
-        isLoadingMap = false; // Clear loading flag
+            MapData bossMapData = new MapData("assets/image.png", "assets/vatlieu.png");
+
+            MapData.EnemyData bossData = new MapData.EnemyData(300, 250, 100, 100, 1000L, 1L, "NightBorne");
+            bossData.isBoss = true;
+            bossMapData.enemies = new ArrayList<>();
+            bossMapData.enemies.add(bossData);
+
+            isBossRoom = true;
+            isBossInitialized = false;
+
+            loadResources(bossMapData);
+
+            isLoadingMap = false;
+
+            loadingManager.setLoading(false);
+        }).start();
     }
     // endregion
 
@@ -415,11 +531,20 @@ public class GamePanel extends JPanel {
     public boolean isNearPortal() { return nearPortal; }
     public boolean isBossRoom() { return isBossRoom; }
     public boolean isGameEnding() { return gameEnding; }
+    public boolean isLoss() { return Loss; }
     public boolean isShowPortalPrompt() { return showPortalPrompt; }
     public int getPortalX() { return portalX; }
     public int getPortalY() { return portalY; }
     public int getEndGameSecondsLeft() {
         return (int)Math.ceil((END_GAME_DELAY - (System.currentTimeMillis() - gameEndTime)) / 1000.0);
+    }
+
+    public Enemy getNearestEnemy() {
+        return nearestEnemy;
+    }
+
+    public GameRenderer getGameRenderer() {
+        return renderer;
     }
     // endregion
 }

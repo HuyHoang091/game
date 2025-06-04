@@ -29,7 +29,7 @@ public class GameWindow extends JFrame {
         // Khởi tạo các màn hình
         mainMenu = new MainMenu(this);
         mapSelectScreen = new MapSelectScreen(this);
-        gamePanel = new GamePanel();
+        gamePanel = new GamePanel(this);
         settingsPanel = new SettingsPanel(this);
         inventoryPanel = new InventoryPanel(this);
         
@@ -92,7 +92,7 @@ public class GameWindow extends JFrame {
         gamePanel = null;
 
         // Tạo lại nếu cần chơi lại
-        gamePanel = new GamePanel();
+        gamePanel = new GamePanel(this);
         contentPane.add(gamePanel, "Game");
 
         cardLayout.show(contentPane, "Menu");

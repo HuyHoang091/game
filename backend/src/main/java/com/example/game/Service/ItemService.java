@@ -14,4 +14,28 @@ public class ItemService {
     public List<Item> getAllItem() {
         return characterRepository.findAll();
     }
+
+    public Item createItem(Item item) {
+        return characterRepository.save(item);
+    }
+
+    public Item updateItem(Long id, Item newChar) {
+        return characterRepository.findById(id).map(existing -> {
+            existing.setName(newChar.getName());
+            existing.setLevel(newChar.getLevel());
+            existing.setType(newChar.getType());
+            existing.setMota(newChar.getMota());
+            existing.setThuoctinhId(newChar.getThuoctinhId());
+            existing.setIcon(newChar.getIcon());
+            return characterRepository.save(existing);
+        }).orElse(null);
+    }
+
+    public boolean deleteItem(Long id) {
+        if (characterRepository.existsById(id)) {
+            characterRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

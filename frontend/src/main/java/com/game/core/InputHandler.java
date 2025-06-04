@@ -9,9 +9,12 @@ import com.game.SkillEffect;
 import com.game.ui.GamePanel;
 import com.game.model.GameCharacterSkill;
 import com.game.data.GameData;
+import com.game.rendering.*;
 
 public class InputHandler extends MouseAdapter implements KeyListener {
     private GamePanel gamePanel;
+
+    private GameRenderer gameRenderer;
     
     public InputHandler(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
@@ -20,6 +23,11 @@ public class InputHandler extends MouseAdapter implements KeyListener {
     @Override
     public void mouseClicked(MouseEvent e) {
         Point click = e.getPoint();
+
+        int mapX = click.x + gamePanel.getInstance().getGameRenderer().getCamX();
+        int mapY = click.y + gamePanel.getInstance().getGameRenderer().getCamY();
+
+        System.out.println("Click tại MAP: x = " + mapX + ", y = " + mapY);
 
         if (gamePanel.getNormalAttackBounds().contains(click)) {
             handleNormalAttack();

@@ -12,6 +12,7 @@ import com.game.MapData;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import com.game.data.GameData;
 import com.game.model.*;
+import com.game.resource.*;
 
 public class MapSelectScreen extends JPanel {
     private GameWindow gameWindow;

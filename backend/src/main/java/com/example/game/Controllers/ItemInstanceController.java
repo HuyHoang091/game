@@ -23,4 +23,28 @@ public class ItemInstanceController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/")
+    public ResponseEntity<ItemInstance> createItemInstance(@RequestBody ItemInstance iteminstance) {
+        ItemInstance create = characterService.createItemInstance(iteminstance);
+        return ResponseEntity.ok(create);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ItemInstance> updateItenInstance(@PathVariable Long id, @RequestBody ItemInstance iteminstance) {
+        ItemInstance update = characterService.updateItemInstance(id, iteminstance);
+        if (update != null) {
+            return ResponseEntity.ok(update);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ItemInstance> delete(@PathVariable Long id) {
+        boolean delete = characterService.deleteItemInstance(id);
+        if (delete) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

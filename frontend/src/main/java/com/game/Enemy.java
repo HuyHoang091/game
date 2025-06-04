@@ -449,21 +449,6 @@ public class Enemy {
             // Debug: vẽ vị trí chân đứng của quái
             g2d.setColor(Color.RED);
             g2d.fillOval(x - camX - 2, y - camY - 2, 4, 4);
-            // Vẽ thanh máu - căn giữa theo sprite mới
-            g.setColor(Color.RED);
-            int healthBarWidth = (int)(health * 0.5);
-            int healthBarX = drawX + (width - healthBarWidth) / 2;
-            int healthBarY = drawY - 10; // Đặt thanh máu phía trên sprite
-            g.fillRect(healthBarX, healthBarY, healthBarWidth, 5);
-
-            // Vẽ chỉ số máu - căn giữa theo sprite mới
-            g.setColor(Color.WHITE);
-            String healthText = health + "/" + maxHealth;
-            java.awt.FontMetrics fm = g.getFontMetrics();
-            int textWidth = fm.stringWidth(healthText);
-            int textX = drawX + (width - textWidth) / 2;
-            int textY = healthBarY - 5;
-            g.drawString(healthText, textX, textY);
         }
 
         // Vẽ hiệu ứng damage
@@ -629,43 +614,43 @@ public class Enemy {
         // Ưu tiên trục có khoảng cách lớn hơn
         if (Math.abs(dx) > Math.abs(dy)) {
             // Ưu tiên di chuyển theo X
-            if (dx > 0 && !player.isBlocked(x + speed, y, 40, 50)) {
+            if (dx > 0 && !player.movement.isBlocked(x + speed, y, 20, 50)) {
                 x += speed;
                 direction = "right";
                 animate(rightFrames);
                 moved = true;
-            } else if (dx < 0 && !player.isBlocked(x - speed, y, 40, 50)) {
+            } else if (dx < 0 && !player.movement.isBlocked(x - speed, y, 20, 50)) {
                 x -= speed;
                 direction = "left";
                 animate(leftFrames);
                 moved = true;
             }
             // Nếu bị chặn, thử đi dọc để "men theo tường"
-            else if (dy > 0 && !player.isBlocked(x, y + offset, 40, 50)) {
+            else if (dy > 0 && !player.movement.isBlocked(x, y + offset, 20, 50)) {
                 y += offset;
                 moved = true;
-            } else if (dy < 0 && !player.isBlocked(x, y - offset, 40, 50)) {
+            } else if (dy < 0 && !player.movement.isBlocked(x, y - offset, 20, 50)) {
                 y -= offset;
                 moved = true;
             }
         } else {
             // Ưu tiên di chuyển theo Y
-            if (dy > 0 && !player.isBlocked(x, y + speed, 40, 50)) {
+            if (dy > 0 && !player.movement.isBlocked(x, y + speed, 20, 50)) {
                 y += speed;
                 direction = "down";
                 animate(downFrames);
                 moved = true;
-            } else if (dy < 0 && !player.isBlocked(x, y - speed, 40, 50)) {
+            } else if (dy < 0 && !player.movement.isBlocked(x, y - speed, 20, 50)) {
                 y -= speed;
                 direction = "up";
                 animate(upFrames);
                 moved = true;
             }
             // Nếu bị chặn, thử đi ngang để "men theo tường"
-            else if (dx > 0 && !player.isBlocked(x + offset, y, 40, 50)) {
+            else if (dx > 0 && !player.movement.isBlocked(x + offset, y, 20, 50)) {
                 x += offset;
                 moved = true;
-            } else if (dx < 0 && !player.isBlocked(x - offset, y, 40, 50)) {
+            } else if (dx < 0 && !player.movement.isBlocked(x - offset, y, 20, 50)) {
                 x -= offset;
                 moved = true;
             }
@@ -674,35 +659,35 @@ public class Enemy {
         // Nếu vẫn không di chuyển được
         if (!moved) {
             if (dx > 0 && Math.abs(dx) > Math.abs(dy)) {
-                if (!player.isBlocked(x, y - speed, 40, 50)) {
+                if (!player.movement.isBlocked(x, y - speed, 20, 50)) {
                     x += speed;
                     y -= speed * 2;
-                } else if (!player.isBlocked(x, y + speed, 40, 50)) {
+                } else if (!player.movement.isBlocked(x, y + speed, 20, 50)) {
                     x += speed;
                     y += speed * 2;
                 }
             } else if (dx > 0 && Math.abs(dx) <= Math.abs(dy)) {
-                if (!player.isBlocked(x - speed, y, 40, 50)) {
+                if (!player.movement.isBlocked(x - speed, y, 20, 50)) {
                     y -= speed;
                     x -= speed * 2;
-                } else if (!player.isBlocked(x + speed, y, 40, 50)) {
+                } else if (!player.movement.isBlocked(x + speed, y, 20, 50)) {
                     y -= speed;
                     x += speed * 2;
                 }
                 
             } else if (dx < 0 && Math.abs(dx) > Math.abs(dy)) {
-                if (!player.isBlocked(x, y - speed, 40, 50)) {
+                if (!player.movement.isBlocked(x, y - speed, 20, 50)) {
                     x -= speed;
                     y -= speed * 2; 
-                } else if (!player.isBlocked(x, y + speed, 40, 50)) {
+                } else if (!player.movement.isBlocked(x, y + speed, 20, 50)) {
                     x -= speed;
                     y += speed * 2; 
                 }
             } else if (dx < 0 && Math.abs(dx) <= Math.abs(dy)) {
-                if (!player.isBlocked(x - speed, y, 40, 50)) {
+                if (!player.movement.isBlocked(x - speed, y, 20, 50)) {
                     y += speed;
                     x -= speed * 2;
-                } else if (!player.isBlocked(x + speed, y, 40, 50)) {
+                } else if (!player.movement.isBlocked(x + speed, y, 20, 50)) {
                     y += speed;
                     x += speed * 2;
                 }
@@ -757,7 +742,7 @@ public class Enemy {
         }
         if(type.equals("đánh thường")) {
             // Calculate max damage allowed (25-35% of player's max HP)
-            double maxDamagePercent = 10 + random.nextInt(11); // Random between 25-35
+            double maxDamagePercent = 15 + random.nextInt(11); // Random between 25-35
             Long maxAllowedDamage = (long)(player.stats.getMaxHealth() * maxDamagePercent / 100);
             
             // Return the smaller value between raw damage and max allowed damage
@@ -779,7 +764,7 @@ public class Enemy {
     // Vùng va chạm của quái
     public void drawCollisionBox(Graphics2D g, int x, int y) {
         int width = 20;
-        int height = 70; //quái lớn(150px)
+        int height = 50; //quái lớn(150px)
         // int height = 20; //quái nhỏ
         int footHeight = height / 10;
 
@@ -866,4 +851,16 @@ public class Enemy {
     }
 
 // endregion
+    public int getX() {
+        return x;
+    }
+    public int getY() {
+        return y;
+    }
+    public Long getHealth() {
+        return health;
+    }
+    public Long getMaxHealth() {
+        return maxHealth;
+    }
 }

@@ -23,4 +23,37 @@ public class CharacterSkillController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/")
+    public ResponseEntity<List<CharacterSkill>> getAllCharacterSkill() {
+        List<CharacterSkill> characters = characterService.getAllCharacterSkill();
+        if (characters != null && !characters.isEmpty()) {
+            return ResponseEntity.ok(characters);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/")
+    public ResponseEntity<CharacterSkill> createCharacterSkill(@RequestBody CharacterSkill characterSkill) {
+        CharacterSkill create = characterService.createCharacterSkill(characterSkill);
+        return ResponseEntity.ok(create);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CharacterSkill> updateCharacterSkill(@PathVariable Long id, @RequestBody CharacterSkill characterSkill) {
+        CharacterSkill update = characterService.updateCharacterSkill(id, characterSkill);
+        if(update != null){
+            return ResponseEntity.ok(update);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CharacterSkill> deleteCharacterSkill(@PathVariable Long id) {
+        boolean delete = characterService.deleteCharacterSkill(id);
+        if(delete){
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

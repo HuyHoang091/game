@@ -14,4 +14,29 @@ public class MapService {
     public List<Map> getAllMap() {
         return characterRepository.findAll();
     }
+
+    public Map createMap(Map Map) {
+        return characterRepository.save(Map);
+    }
+
+    public Map updateMap(Long id, Map newChar) {
+        return characterRepository.findById(id).map(existing -> {
+            existing.setName(newChar.getName());
+            existing.setLevel(newChar.getLevel());
+            existing.setBackground(newChar.getBackground());
+            existing.setCollisionlayer(newChar.getCollisionlayer());
+            existing.setPreview(newChar.getPreview());
+            existing.setMota(newChar.getMota());
+            existing.setMusic(newChar.getMusic());
+            return characterRepository.save(existing);
+        }).orElse(null);
+    }
+
+    public boolean deleteMap(Long id) {
+        if (characterRepository.existsById(id)) {
+            characterRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

@@ -2,6 +2,9 @@ package com.game.service;
 
 import com.game.entity.User;
 import com.game.repository.UserRepository;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,10 @@ public class UserService {
 
     public User getUserById(Long id) {
         return userRepository.findById(id).orElse(null); // Trả về user nếu tìm thấy, nếu không trả về null
+    }
+
+    public List<User> getAllUser() {
+        return userRepository.findAll();
     }
 
     // public void saveUser(User user) {

@@ -13,7 +13,6 @@ public class Monster {
 
     private String name;
     private int level;
-    private Long skillId;
     private Long hp;
     private String cauhinh;
     private Long mapId;

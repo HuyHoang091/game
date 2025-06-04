@@ -14,4 +14,29 @@ public class ItemInstanceService {
     public List<ItemInstance> getAllItemInstance() {
         return characterRepository.findAll();
     }
+
+    public ItemInstance createItemInstance(ItemInstance iteminstance) {
+        return characterRepository.save(iteminstance);
+    }
+
+    public ItemInstance updateItemInstance(Long id, ItemInstance newChar) {
+        return characterRepository.findById(id).map(existing -> {
+            existing.setItemId(newChar.getItemId());
+            existing.setAtk(newChar.getAtk());
+            existing.setDef(newChar.getDef());
+            existing.setHp(newChar.getHp());
+            existing.setMp(newChar.getMp());
+            existing.setCritRate(newChar.getCritRate());
+            existing.setCritDmg(newChar.getCritDmg());
+            return characterRepository.save(existing);
+        }).orElse(null);
+    }
+
+    public boolean deleteItemInstance(Long id) {
+        if (characterRepository.existsById(id)) {
+            characterRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

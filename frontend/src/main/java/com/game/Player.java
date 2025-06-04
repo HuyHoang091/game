@@ -15,30 +15,10 @@ import java.util.List;
 import com.game.ui.SkillTreeDialog;
 import javax.swing.*;
 import com.game.stats.*;
+import com.game.movement.*;
 
 public class Player extends JComponent {
-    int x, y;
-    int speed = 3;
     int skillX, skillY; // Tọa độ của vùng sát thương kỹ năng
-
-    // region Chỉ số Player
-    // public int basemaxHealth = 500;
-    // public Long maxHealth;
-    // public Long health;
-    // public int basemaxmana = 5000;
-    // public Long maxmana;
-    // public Long mana;
-    // public int baseatk = 20;
-    // public Long atk;
-    // public int basedef = 2;
-    // public Long def;
-    // public double basecritRate = 0.0001;
-    // public double critRate;
-    // public double basecritDmg = 1.2;
-    // public double critDmg;
-    // private int currentExp = 0;
-    // private int expBase = 100;
-    // endrehion
 
     public BufferedImage collisionImage;
 
@@ -49,25 +29,25 @@ public class Player extends JComponent {
     BufferedImage[] skillEffectFramesR;
     BufferedImage skillEffectImage; // Hình ảnh hiệu ứng kỹ năng
     BufferedImage[] idleFrames;
+    BufferedImage[] deathFrame;
     int frameIndex = 0;
     int skillEffectFrameIndex = 0; // Chỉ số khung hình hiện tại
     int frameCount = 8;
     int skillFrameCount = 9;
     int idleFrameCount = 6;
+    int deathFrameCount = 12;
     int frameDelay = 10, frameTick = 0;
     int skillEffectFrameDelay = 5; // Độ trễ giữa các khung hình
     int skillEffectFrameTick = 0; // Bộ đếm thời gian cho khung hình
     int skillEffectDuration = 0; // Thời gian tồn tại của hiệu ứng kỹ năng
     boolean isUsingSkill = false; // Trạng thái sử dụng kỹ năng
     private boolean isIdle = false;
+    boolean isDying = false, isReadyToDie = false, isDieAnimationComplete = false;
     private ArrayList<SkillData> skillList = new ArrayList<>();
     // endregion
 
     // region Di chuyển
-    boolean up, down, left, right, tocbien;
-    private boolean wasMoving = false;
     private String direction = "right";
-    private int dodgeCooldown = 250;
     // endregion
     
     // region Set Đồ
@@ -81,8 +61,10 @@ public class Player extends JComponent {
     ArrayList<Enemy> enemies = new ArrayList<>();
     GameWindow gameWindow;
     public PlayerStats stats;
+    public PlayerMovement movement;
     Long characterId;
-    final int tileSize = 64;
+    public boolean isDie = false;
+    // final int tileSize = 64;
     // endregion
 
     public Player(int x, int y,
@@ -91,9 +73,10 @@ public class Player extends JComponent {
                   BufferedImage[] skillEffectFramesL,
                   BufferedImage[] skillEffectFramesR,
                   BufferedImage[] idle,
+                  BufferedImage[] die,
                   BufferedImage collisionImage, Long characterId) {
-        this.x = x;
-        this.y = y;
+        // this.x = x;
+        // this.y = y;
         this.upFrames = up;
         this.downFrames = down;
         this.leftFrames = left;
@@ -104,11 +87,13 @@ public class Player extends JComponent {
         this.collisionImage = collisionImage;
         this.characterId = characterId;     
         this.idleFrames = idle;   
+        this.deathFrame = die;
         this.stats = new PlayerStats(characterId);    
+        this.movement = new PlayerMovement(x, y, collisionImage);
 
         // ChisoGoc();
         // ChiSoTB();
-        // SetDo();
+        SetDo();
 
         if (boMauTrau == 6) {
             stats.setMaxHealth(stats.getMaxHealth()*2);
@@ -151,62 +136,50 @@ public class Player extends JComponent {
     }
 
     public void update() {
-        int newX = x;
-        int newY = y;
-        boolean moving = false;
+        if (stats.getHealth() <= 0L && !isDying) {
+            stats.setHealth(1L); // Keep alive temporarily for animation
+            isUsingSkill = false;
+            isDying = true;
+            isReadyToDie = false; // Reset flag
+        }
 
-        if(dodgeCooldown > 0) {
-            dodgeCooldown --;
-        }
-    
-        if (up) {
-            newY -= speed;
-            animate(upFrames);
-            moving = true;
-            if (tocbien && dodgeCooldown <= 0) {
-                newY -= 10;
+        // Handle death animation
+        if (isDying) {
+            animate(deathFrame);
+            // If animation complete and dying, mark ready to die
+            if (isDieAnimationComplete) {
+                isDying = false;
+                isReadyToDie = true;
             }
+            return; // Skip all other updates while dying
         }
-        if (down) {
-            newY += speed;
-            animate(downFrames);
-            moving = true;
-            if (tocbien && dodgeCooldown <= 0) {
-                newY += 10;
+
+        // Actually die on next frame
+        if (isReadyToDie) {
+            stats.setHealth(0L);
+            isDie = true;
+            isReadyToDie = false;
+            return;
+        }
+
+        if (isDie) return;
+
+        movement.update();
+        movement.move(currentImage.getWidth(), currentImage.getHeight());
+        
+        // Update animation based on movement
+        if (movement.isMoving()) {
+            if (movement.getDirection().equals("right")) {
+                animate(rightFrames);
+            } else if (movement.getDirection().equals("left")) {
+                animate(leftFrames);
+            } else if (movement.getDirection().equals("up")) {
+                animate(upFrames);
+            } else if (movement.getDirection().equals("down")) {
+                animate(downFrames);
             }
-        }
-        if (left) {
-            newX -= speed;
-            animate(leftFrames);
-            moving = true;
-            if (tocbien && dodgeCooldown <= 0) {
-                newX -= 10;
-            }
-        }
-        if (right) {
-            newX += speed;
-            animate(rightFrames);
-            moving = true;
-            if (tocbien && dodgeCooldown <= 0) {
-                newX += 10;
-            }
-        }
-        if (tocbien && dodgeCooldown <= 0) {
-            newX += 10;
-        }
-    
-        if (!moving) {
-            if (wasMoving) {
-                frameIndex = 0;
-                frameTick = 0;
-            }
-        } else {
             isIdle = false;
         }
-
-        newX = Math.max(0, Math.min(newX, collisionImage.getWidth() * 64 - currentImage.getWidth()));
-        newY = Math.max(0, Math.min(newY, collisionImage.getHeight() * 64 - currentImage.getHeight()));
-
         // Giảm thời gian tồn tại của hiệu ứng kỹ năng
         if (isUsingSkill) {
             if (skillEffectFramesR != null && skillEffectFramesR.length > 0) {
@@ -232,14 +205,6 @@ public class Player extends JComponent {
                     skillEffectFrameIndex = (skillEffectFrameIndex + 1) % frameCount;
                 }
             }
-        }
-
-        // Kiểm tra đụng tường
-        if (!isBlocked(newX, y, currentImage.getWidth(), currentImage.getHeight())) {
-            x = newX;
-        }
-        if (!isBlocked(x, newY , currentImage.getWidth(), currentImage.getHeight())) {
-            y = newY;
         }
 
         // Kiểm tra và nhặt đồ
@@ -269,14 +234,14 @@ public class Player extends JComponent {
         }
 
         // Kiểm tra chạy hoạt ảnh đứng yên
-        if (!moving && !isUsingSkill) {
+        if (!movement.isMoving() && !isUsingSkill) {
             isIdle = true;
             animate(idleFrames);
         } else {
             isIdle = false;
         }
 
-        wasMoving = moving;
+        // wasMoving = moving;
     }
 
     // region nhặt đồ
@@ -339,11 +304,21 @@ public class Player extends JComponent {
                 maxFrames = Math.min(idleFrameCount, frames.length);
             } else if (frames == skillEffectFramesL || frames == skillEffectFramesR) {
                 maxFrames = Math.min(skillFrameCount, frames.length);
+            } else if (frames == deathFrame) {
+                maxFrames = Math.min(deathFrameCount, frames.length);
             } else {
                 maxFrames = Math.min(frameCount, frames.length);
             }
-            
-            frameIndex = (frameIndex + 1) % maxFrames;
+
+            if (frames == deathFrame) {
+                if (frameIndex < deathFrameCount - 1) {
+                    frameIndex++;
+                } else {
+                    isDieAnimationComplete = true;
+                }
+            } else {
+                frameIndex = (frameIndex + 1) % maxFrames;
+            }
 
             // Safety check before accessing frame
             if (frameIndex >= 0 && frameIndex < frames.length) {
@@ -355,14 +330,14 @@ public class Player extends JComponent {
 
     public void draw(Graphics g, int camX, int camY) {
         Graphics2D g2d = (Graphics2D) g;
-        g.drawImage(currentImage, x - camX, y - camY, null);
+        g.drawImage(currentImage, movement.getX() - camX, movement.getY() - camY, null);
 
         // Vẽ hitbox người chơi để debug
         // g.setColor(new Color(0, 255, 0, 100));
         // g.fillRect(x - camX, y - camY, 50, 70);
 
         g.setColor(new Color(0, 255, 0, 100));
-        g.fillRect(x - camX, y - camY, currentImage.getWidth(), currentImage.getHeight()/3);
+        g.fillRect(movement.getX() - camX, movement.getY() - camY, currentImage.getWidth(), currentImage.getHeight()/3);
 
         // Vẽ vùng sát thương kỹ năng
         if (isUsingSkill && skillEffectDuration > 0) {
@@ -370,17 +345,17 @@ public class Player extends JComponent {
             g.fillRect(skillX - camX, skillY - camY, skillEffectFramesR[0].getWidth(), skillEffectFramesR[0].getHeight());
         }
 
-        drawCollisionBox(g2d, x - camX, y - camY); // Vẽ hitbox
+        drawCollisionBox(g2d, movement.getX() - camX, movement.getY() - camY); // Vẽ hitbox
     }    
 
     // Input
     public void setDirection(int keyCode, boolean pressed) {
         switch (keyCode) {
-            case KeyEvent.VK_W -> up = pressed;
-            case KeyEvent.VK_S -> down = pressed;
-            case KeyEvent.VK_A -> left = pressed;
-            case KeyEvent.VK_D -> right = pressed;
-            case KeyEvent.VK_SHIFT -> speed = pressed ? 4 : 3; // Tăng tốc độ khi nhấn Shift
+            case KeyEvent.VK_W -> movement.setUp(pressed);
+            case KeyEvent.VK_S -> movement.setDown(pressed);
+            case KeyEvent.VK_A -> movement.setLeft(pressed);
+            case KeyEvent.VK_D -> movement.setRight(pressed);
+            case KeyEvent.VK_SHIFT -> movement.setSpeed(pressed ? 4 : 3); // Tăng tốc độ khi nhấn Shift
             case KeyEvent.VK_N -> {
                 gameWindow.getInstance().showSettings("Game");  
             }
@@ -395,7 +370,7 @@ public class Player extends JComponent {
                 );
                 dialog.setVisible(true);
             }
-            case KeyEvent.VK_G -> tocbien = pressed;
+            case KeyEvent.VK_G -> movement.setTocbien(pressed);
         }
     }
     // endregion
@@ -415,8 +390,8 @@ public class Player extends JComponent {
         // Tìm enemy gần nhất
         Enemy nearestEnemy = null;
         double minDistance = Double.MAX_VALUE;
-        int playerCenterX = x + currentImage.getWidth() / 2;
-        int playerCenterY = y + currentImage.getHeight() / 2;
+        int playerCenterX = movement.getX() + currentImage.getWidth() / 2;
+        int playerCenterY = movement.getY() + currentImage.getHeight() / 2;
 
         for (Enemy enemy : new ArrayList<>(enemies)) {
             int enemyCenterX = enemy.x + enemy.width / 2;
@@ -449,8 +424,8 @@ public class Player extends JComponent {
         int skillHeight = frame.getHeight();
         
         // Đặt vùng sát thương gần player hơn
-        int centerX = x + currentImage.getWidth() / 2;
-        int centerY = y + currentImage.getHeight() / 2;
+        int centerX = movement.getX() + currentImage.getWidth() / 2;
+        int centerY = movement.getY() + currentImage.getHeight() / 2;
 
         int skillX = centerX + offset;
         int skillY = centerY - skillHeight / 2;
@@ -564,31 +539,7 @@ public class Player extends JComponent {
     
         return new SkillEffect(skillX, skillY, 30, skill.frames, direction, skillBox, skill.debugColor);
     }
-    // endregion
-
-    // region Kiểm tra chạm tường
-    public boolean isBlocked(int x, int y, int width, int height) {
-        int footHeight = height / 10;
     
-        for (int dx = 0; dx <= width; dx += tileSize / 2) {
-            for (int dy = height - footHeight; dy < height; dy += tileSize / 2) {
-                int checkX = x + dx;
-                int checkY = y + dy;
-    
-                if (checkX < 0 || checkX >= collisionImage.getWidth() || checkY < 0 || checkY >= collisionImage.getHeight()) {
-                    return true;
-                }
-    
-                int pixel = collisionImage.getRGB(checkX, checkY);
-                int alpha = (pixel >> 24) & 0xFF;
-                if (alpha != 0) return true;
-            }
-        }
-    
-        return false;
-    }
-    // endregion
-
     public void drawCollisionBox(Graphics2D g, int x, int y) {
         int width = currentImage.getWidth();
         int height = currentImage.getHeight();
@@ -604,6 +555,11 @@ public class Player extends JComponent {
 
     public void takeDamage(Long damage) {
         stats.takeDamage(damage, khangST);
+        // if (stats.getHealth() <= 0) {
+        //     stats.setHealth(0L);
+        //     animate(deathFrame);
+
+        // }
     }
 
     private void SetDo() {
@@ -654,7 +610,7 @@ public class Player extends JComponent {
         int baseExpReward = monster.getExpReward();
         int scaledExpReward = (int)(baseExpReward * Math.pow(monsterLevel, 1.2));
         
-        stats.setCurrentExp(stats.getCurrentExp() + scaledExpReward);
+        stats.setCurrentExp(scaledExpReward);
 
         System.out.println("Gained " + scaledExpReward + " exp!");
         
@@ -680,7 +636,7 @@ public class Player extends JComponent {
             character.setLevel(currentLevel);
             
             // Update exp values
-            stats.setCurrentExp(stats.getCurrentExp() - expNeeded);
+            stats.setCurrentExpUp(expNeeded);
             expNeeded = calculateExpNeeded(currentLevel);
 
             // Recalculate stats with new level
@@ -705,12 +661,16 @@ public class Player extends JComponent {
         stats.useMana(amount);
     }
 
+    public boolean isDead() {
+        return stats.getHealth() <= 0;
+    }
+
     public int getX() {
-        return x;
+        return movement.getX();
     }
     
     public int getY() {
-        return y;
+        return movement.getY();
     }    
 
     @Override

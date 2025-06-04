@@ -18,8 +18,32 @@ public class ItemController {
     @GetMapping("/")
     public ResponseEntity<List<Item>> getAllItem() {
         List<Item> characters = characterService.getAllItem();
-        if (characters != null && !characters.isEmpty()) {
-            return ResponseEntity.ok(characters);
+        return ResponseEntity.ok(characters);
+    }
+
+    @PostMapping("/")
+    public ResponseEntity<Item> createItem(@RequestBody Item item) {
+        Item create = characterService.createItem(item);
+        if (create != null) {
+            return ResponseEntity.ok(create);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Item> updateItem(@PathVariable Long id, @RequestBody Item item) {
+        Item update = characterService.updateItem(id, item);
+        if (update != null) {
+            return ResponseEntity.ok(update);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Item> deleteItem(@PathVariable Long id) {
+        boolean delete = characterService.deleteItem(id);
+        if (delete) {
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
     }

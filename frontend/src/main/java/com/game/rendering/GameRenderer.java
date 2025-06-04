@@ -11,6 +11,8 @@ import java.util.ConcurrentModificationException;
 public class GameRenderer {
     private GamePanel gamePanel;
     private static final double SCALE = 1.8;
+
+    private int camX, camY;
     
     // Constants from GamePanel
     private static final int SKILL_BUTTON_SIZE = 70;
@@ -29,13 +31,14 @@ public class GameRenderer {
             renderGameWorld(g2d);
             renderHUD(g2d);
             renderSkillButtons(g2d);
+            renderHealthEnemy(g2d);
         }
     }
 
     private void renderGameWorld(Graphics2D g2d) {
         Player player = gamePanel.getPlayer();
-        int camX = player.getX() - (int)(gamePanel.getWidth()/(2 * SCALE));
-        int camY = player.getY() - (int)(gamePanel.getHeight()/(2 * SCALE));
+        camX = player.getX() - (int)(gamePanel.getWidth()/(2 * SCALE));
+        camY = player.getY() - (int)(gamePanel.getHeight()/(2 * SCALE));
 
         // Apply camera bounds
         camX = Math.max(0, Math.min(camX, gamePanel.getMapImage().getWidth() - (int)(gamePanel.getWidth()/SCALE)));
@@ -47,11 +50,6 @@ public class GameRenderer {
         // Draw portal if not in boss room
         if (!gamePanel.isBossRoom()) {
             renderPortal(g2d, camX, camY);
-        }
-
-        // Draw game ending screen
-        if (gamePanel.isGameEnding()) {
-            renderGameEnding(g2d);
         }
 
         // Draw entities
@@ -80,9 +78,21 @@ public class GameRenderer {
                 skill.draw(g2d, camX, camY);
             }
         }
+
+        renderVisionLimit(g2d, camX, camY, 550f);
+
+        // Draw game ending screen
+        if (gamePanel.isGameEnding()) {
+            renderVisionLimit(g2d, camX, camY, 300f);
+            renderGameEnding(g2d);
+        }
     }
 
     private void renderPortal(Graphics2D g2d, int camX, int camY) {
+        Font oldFont = g2d.getFont();
+        Font font = new Font("Arial", Font.BOLD, 20);
+        g2d.setFont(font);
+
         g2d.setColor(new Color(255, 215, 0, 100));
         g2d.fillRect(gamePanel.getPortalX() - camX, gamePanel.getPortalY() - camY, PORTAL_SIZE, PORTAL_SIZE);
 
@@ -94,17 +104,43 @@ public class GameRenderer {
             int textY = gamePanel.getPortalY() - camY - 10;
             g2d.drawString(prompt, textX, textY);
         }
+        g2d.setFont(oldFont);
     }
 
     private void renderGameEnding(Graphics2D g2d) {
-        g2d.setColor(Color.WHITE);
-        g2d.setFont(new Font("Arial", Font.BOLD, 48));
+        Font oldFont = g2d.getFont();
+        Font font = new Font("Arial", Font.BOLD, 48);
+        g2d.setFont(font);
+
         int secondsLeft = gamePanel.getEndGameSecondsLeft();
-        String message = "Game Over! Returning in " + secondsLeft + "...";
+
+        String line1 = "Your Win!";
+        if (gamePanel.isLoss()) {
+            line1 = "Game Over!";
+        }
+        String line2 = "Returning in " + secondsLeft + "...";
+
         FontMetrics fm = g2d.getFontMetrics();
-        g2d.drawString(message, 
-            (gamePanel.getWidth() - fm.stringWidth(message))/2, 
-            gamePanel.getHeight()/2);
+        int panelWidth = gamePanel.getWidth();
+        int panelHeight = gamePanel.getHeight();
+
+        int lineHeight = fm.getHeight();
+
+        int textX1 = (panelWidth - fm.stringWidth(line1)) / 2;
+        int textX2 = (panelWidth - fm.stringWidth(line2)) / 2;
+
+        int startY = (panelHeight - lineHeight * 2) / 2;
+
+        // Vẽ viền chữ để dễ đọc
+        g2d.setColor(Color.BLACK);
+        g2d.drawString(line1, textX1 + 2, startY + 2);
+        g2d.drawString(line2, textX2 + 2, startY + lineHeight + 2);
+
+        g2d.setColor(Color.WHITE);
+        g2d.drawString(line1, textX1, startY);
+        g2d.drawString(line2, textX2, startY + lineHeight);
+
+        g2d.setFont(oldFont);
     }
 
     private void renderHUD(Graphics2D g2d) {
@@ -228,5 +264,72 @@ public class GameRenderer {
             90, progress * 360, Arc2D.PIE
         );
         g.fill(arc);
+    }
+
+    private void renderVisionLimit(Graphics2D g2d, int camX, int camY, float radius) {
+        Player player = gamePanel.getPlayer();
+
+        // Tính vị trí trung tâm tầm nhìn (vị trí nhân vật trong viewport)
+        int centerX = (int)((player.getX() - camX)*SCALE);
+        int centerY = (int)((player.getY() - camY)*SCALE);
+
+        // Bán kính tầm nhìn
+        // float radius = 550f;
+
+        // Tạo hiệu ứng Radial Gradient từ sáng ở giữa đến tối dần
+        RadialGradientPaint light = new RadialGradientPaint(
+            new Point(centerX, centerY), radius,
+            new float[]{0f, 1f},
+            new Color[]{new Color(0f, 0f, 0f, 0f), new Color(0f, 0f, 0f, 0.85f)}
+        );
+
+        Composite originalComposite = g2d.getComposite();
+        g2d.setComposite(AlphaComposite.SrcOver);
+        Paint originalPaint = g2d.getPaint();
+
+        g2d.setPaint(light);
+        g2d.fillRect(0, 0, gamePanel.getWidth(), gamePanel.getHeight());
+
+        // Khôi phục lại trạng thái ban đầu
+        g2d.setPaint(originalPaint);
+        g2d.setComposite(originalComposite);
+    }
+
+    private void renderHealthEnemy(Graphics2D g) {
+        if (gamePanel.getNearestEnemy() != null) {
+            int barWidth = 200;
+            int barHeight = 20;
+
+            Long health = gamePanel.getNearestEnemy().getHealth();
+            Long maxHealth = gamePanel.getNearestEnemy().getMaxHealth();
+            int filledWidth = (int) ((double) health / maxHealth * barWidth);
+
+            int screenX = (gamePanel.getWidth() - barWidth) / 2;
+            int screenY = 30; // top position
+
+            // Vẽ viền
+            g.setColor(Color.DARK_GRAY);
+            g.fillRect(screenX, screenY, barWidth, barHeight);
+
+            // Vẽ phần máu
+            g.setColor(Color.RED);
+            g.fillRect(screenX, screenY, filledWidth, barHeight);
+
+            // Vẽ chữ máu
+            g.setColor(Color.WHITE);
+            String hpText = health + " / " + maxHealth;
+            FontMetrics fm = g.getFontMetrics();
+            int textX = screenX + (barWidth - fm.stringWidth(hpText)) / 2;
+            int textY = screenY + ((barHeight - fm.getHeight()) / 2) + fm.getAscent();
+            g.drawString(hpText, textX, textY);
+        }
+    }
+
+    public int getCamX() {
+        return camX;
+    }
+
+    public int getCamY() {
+        return camY;
     }
 }

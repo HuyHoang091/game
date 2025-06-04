@@ -23,4 +23,31 @@ public class MonsterController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/")
+    public ResponseEntity<Monster> createMonster(@RequestBody Monster Monster) {
+        Monster create = characterService.createMonster(Monster);
+        if (create != null) {
+            return ResponseEntity.ok(create);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Monster> updateMonster(@PathVariable Long id, @RequestBody Monster Monster) {
+        Monster update = characterService.updateMonster(id, Monster);
+        if (update != null) {
+            return ResponseEntity.ok(update);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Monster> deleteMonster(@PathVariable Long id) {
+        boolean delete = characterService.deleteMonster(id);
+        if (delete) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

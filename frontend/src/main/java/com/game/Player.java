@@ -9,6 +9,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import com.game.*;
+import com.game.core.KeyBindingConfig;
 import com.game.data.GameData;
 import com.game.model.*;
 import java.util.List;
@@ -167,31 +168,15 @@ public class Player extends JComponent {
         movement.update();
         movement.move(currentImage.getWidth(), currentImage.getHeight());
         
-        // Update animation based on movement
-        if (movement.isMoving()) {
-            if (movement.getDirection().equals("right")) {
-                animate(rightFrames);
-            } else if (movement.getDirection().equals("left")) {
-                animate(leftFrames);
-            } else if (movement.getDirection().equals("up")) {
-                animate(upFrames);
-            } else if (movement.getDirection().equals("down")) {
-                animate(downFrames);
-            }
-            isIdle = false;
-        }
-        // Giảm thời gian tồn tại của hiệu ứng kỹ năng
         if (isUsingSkill) {
-            if (skillEffectFramesR != null && skillEffectFramesR.length > 0) {
-                if (direction.equals("left")){
-                    animate(skillEffectFramesL);
-                } else if (direction.equals("right")){
-                    animate(skillEffectFramesR);
-                } else if (direction.equals("up")){
-                    animate(skillEffectFramesR);
-                } else if (direction.equals("down")){
-                    animate(skillEffectFramesL);
-                }
+            if (direction.equals("left")){
+                animate(skillEffectFramesL);
+            } else if (direction.equals("right")){
+                animate(skillEffectFramesR);
+            } else if (direction.equals("up")){
+                animate(skillEffectFramesR);
+            } else if (direction.equals("down")){
+                animate(skillEffectFramesL);
             }
 
             skillEffectDuration--;
@@ -205,6 +190,22 @@ public class Player extends JComponent {
                     skillEffectFrameIndex = (skillEffectFrameIndex + 1) % frameCount;
                 }
             }
+
+            return;
+        }
+
+        // Update animation based on movement
+        if (movement.isMoving()) {
+            if (movement.getDirection().equals("right")) {
+                animate(rightFrames);
+            } else if (movement.getDirection().equals("left")) {
+                animate(leftFrames);
+            } else if (movement.getDirection().equals("up")) {
+                animate(upFrames);
+            } else if (movement.getDirection().equals("down")) {
+                animate(downFrames);
+            }
+            isIdle = false;
         }
 
         // Kiểm tra và nhặt đồ
@@ -350,27 +351,36 @@ public class Player extends JComponent {
 
     // Input
     public void setDirection(int keyCode, boolean pressed) {
-        switch (keyCode) {
-            case KeyEvent.VK_W -> movement.setUp(pressed);
-            case KeyEvent.VK_S -> movement.setDown(pressed);
-            case KeyEvent.VK_A -> movement.setLeft(pressed);
-            case KeyEvent.VK_D -> movement.setRight(pressed);
-            case KeyEvent.VK_SHIFT -> movement.setSpeed(pressed ? 4 : 3); // Tăng tốc độ khi nhấn Shift
-            case KeyEvent.VK_N -> {
-                gameWindow.getInstance().showSettings("Game");  
-            }
-            case KeyEvent.VK_B -> {
-                gameWindow.getInstance().showInventory("Game");
-            }
-            case KeyEvent.VK_K -> {
-                // Mở cửa sổ kỹ năng khi nhấn K
-                SkillTreeDialog dialog = new SkillTreeDialog(
-                    (JFrame) SwingUtilities.getWindowAncestor(this),
-                    characterId
-                );
-                dialog.setVisible(true);
-            }
-            case KeyEvent.VK_G -> movement.setTocbien(pressed);
+        if (keyCode == KeyBindingConfig.getKey("Up")) {
+            movement.setUp(pressed);
+        }
+        if (keyCode == KeyBindingConfig.getKey("Down")) {
+            movement.setDown(pressed);
+        }
+        if (keyCode == KeyBindingConfig.getKey("Left")) {
+            movement.setLeft(pressed);
+        }
+        if (keyCode == KeyBindingConfig.getKey("Right")) {
+            movement.setRight(pressed);
+        }
+        if (keyCode == KeyBindingConfig.getKey("Speed")) {
+            movement.setSpeed(pressed ? 4 : 3);
+        }
+        if (keyCode == KeyBindingConfig.getKey("Open Setting")) {
+            gameWindow.getInstance().showSettings("Game");  
+        }
+        if (keyCode == KeyBindingConfig.getKey("Open Inventory")) {
+            gameWindow.getInstance().showInventory("Game");  
+        }
+        if (keyCode == KeyBindingConfig.getKey("Open Skill Tree")) {
+            SkillTreeDialog dialog = new SkillTreeDialog(
+                (JFrame) SwingUtilities.getWindowAncestor(this),
+                characterId
+            );
+            dialog.setVisible(true); 
+        }
+        if (keyCode == KeyBindingConfig.getKey("Dodge")) {
+            movement.setTocbien(pressed);
         }
     }
     // endregion

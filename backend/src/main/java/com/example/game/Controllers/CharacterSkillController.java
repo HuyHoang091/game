@@ -56,4 +56,10 @@ public class CharacterSkillController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/batch")
+    public ResponseEntity<Void> updateCharacters(@RequestBody List<CharacterSkill> characters) {
+        characterService.updateListCharacterSkill(characters);
+        return ResponseEntity.ok().build();
+    }
 }

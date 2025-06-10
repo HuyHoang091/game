@@ -110,8 +110,14 @@ public class GamePanel extends JPanel {
     public void loadResources(MapData mapData) {
         this.currentMapData = mapData;
         try {
-            mapImage = ImageIO.read(getClass().getClassLoader().getResource(mapData.mapBackground));
-            BufferedImage collisionImage = ImageIO.read(getClass().getClassLoader().getResource(mapData.collisionLayer));
+            BufferedImage collisionImage;
+            if (isBossRoom) {
+                mapImage = ImageIO.read(getClass().getClassLoader().getResource("assets/bossroom.png"));
+                collisionImage = ImageIO.read(getClass().getClassLoader().getResource("assets/collision_boss.png"));
+            } else {
+                mapImage = ImageIO.read(getClass().getClassLoader().getResource(mapData.mapBackground));
+                collisionImage = ImageIO.read(getClass().getClassLoader().getResource(mapData.collisionLayer));
+            }
 
             boolean[][] collisionMap = generateCollisionMap(collisionImage);
 
@@ -119,16 +125,18 @@ public class GamePanel extends JPanel {
             danhthuong = ImageIO.read(getClass().getClassLoader().getResource("assets/Skill/danhthuong.png"));
     
             for (GameCharacter character : GameData.character) {
-                up = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
-                down = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
-                left = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runL", 8);
-                right = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
-                skillEffectFramesL = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "attackL", 9);
-                skillEffectFramesR = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "attackR", 9);
-                idle = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "idle", 6);
-                die = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "die", 12);
+                if (character.getClassName().equals("LangKhach")) {
+                    up = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
+                    down = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
+                    left = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runL", 8);
+                    right = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "runR", 8);
+                    skillEffectFramesL = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "attackL", 9);
+                    skillEffectFramesR = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "attackR", 9);
+                    idle = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "idle", 6);
+                    die = ResourceManager.getPlayerAnimation("assets/Run/LangKhach", "die", 12);
 
-                playerId = character.getId();
+                    playerId = character.getId();
+                }
             }
             BufferedImage[] skill1Frames = ResourceManager.getEffectAnimation("assets/Skill", "cat_nuoc");
             for (int i = 0; i < skill1Frames.length; i++) {
@@ -142,31 +150,31 @@ public class GamePanel extends JPanel {
             loadSkills();
             loadSkillIcons();
 
-            // enemies.clear();
-            // for (MapData.EnemyData enemyData : mapData.enemies) {
-            //     enemies.add(createEnemy(
-            //         enemyData.x,
-            //         enemyData.y,
-            //         250,
-            //         250,
-            //         enemyData.health,
-            //         enemyData.monsterId,
-            //         enemyData.name
-            //     ));
-            // }
-
             enemies.clear();
-            enemies.addAll(generateRandomEnemies(
-                10,             // Số lượng quái
-                collisionMap,   // Bản đồ va chạm
-                mapImage.getWidth(),       // Chiều rộng bản đồ
-                mapImage.getHeight(),      // Chiều cao bản đồ
-                250,            // Width
-                250,            // Height
-                "Orc",        // Tên quái (tùy bạn đổi)
-                3L,             // Monster ID
-                100L            // Máu quái
-            ));
+            for (MapData.EnemyData enemyData : mapData.enemies) {
+                String type = "Enemy";
+                int count = 10;
+                if (isBossRoom) {
+                    type = "Boss";
+                    count = 1;
+                }
+                System.out.print(enemyData);
+                if (enemyData.type.equals(type)) {
+                    enemies.addAll(generateRandomEnemies(
+                        count,
+                        collisionMap,
+                        mapImage.getWidth(),
+                        mapImage.getHeight(),
+                        enemyData.width,
+                        enemyData.height,
+                        enemyData.name,
+                        enemyData.monsterId,
+                        enemyData.health
+                    ));
+                    System.out.print(type + "," + enemyData.width + "," + enemyData.height);
+                }
+            }
+            
         } catch (IOException e) {
             System.out.println("Error loading images: " + e.getMessage());
         }
@@ -204,7 +212,7 @@ public class GamePanel extends JPanel {
                 continue;
             }
 
-            Enemy enemy = createEnemy(x, y, monsterWidth, monsterHeight, health, monsterId, monsterName);
+            Enemy enemy = createEnemy(x, y, monsterWidth, monsterHeight, health, monsterId, monsterName, false);
             generatedEnemies.add(enemy);
             maxAttempts--;
         }
@@ -245,7 +253,7 @@ public class GamePanel extends JPanel {
         return map;
     }
 
-    public Enemy createEnemy(int x, int y, int width, int height, Long health, Long monsterId, String name) {
+    public Enemy createEnemy(int x, int y, int width, int height, Long health, Long monsterId, String name, boolean trieuhoi) {
         BufferedImage[] upFrames = ResourceManager.getEnemyAnimation(name, "runR");
         BufferedImage[] downFrames = ResourceManager.getEnemyAnimation(name, "runR");
         BufferedImage[] leftFrames = ResourceManager.getEnemyAnimation(name, "runL");
@@ -261,7 +269,7 @@ public class GamePanel extends JPanel {
         BufferedImage[] buffEffect = ResourceManager.getEffectAnimation("assets/Skill/Quanh_than/Buff", "buff_dien");
 
         return new Enemy(x, y, width, height, health, monsterId,
-                        upFrames, downFrames, leftFrames, rightFrames, attackFramesL, attackFramesR, buffSkill, buffEffect, targetSkill, explosion, idle, die);
+                        upFrames, downFrames, leftFrames, rightFrames, attackFramesL, attackFramesR, buffSkill, buffEffect, targetSkill, explosion, idle, die, trieuhoi);
     }
 
     public void loadSkills() {
@@ -362,13 +370,8 @@ public class GamePanel extends JPanel {
             // Check for game end condition
             if (gameEnding) {
                 if (System.currentTimeMillis() - gameEndTime >= END_GAME_DELAY) {
-                    gameLoop.stopGameThread();
                     SwingUtilities.invokeLater(() -> {
-                        // Window window = SwingUtilities.getWindowAncestor(this);
-                        // if (window != null) {
-                            gameWindow.BackToMenu();
-                        // }
-                        // new MapSelectScreen();
+                        gameWindow.BackToMenu();
                     });
                 }
                 return;
@@ -399,7 +402,7 @@ public class GamePanel extends JPanel {
                     double dx = player.getX() - enemy.getX();
                     double dy = player.getY() - enemy.getY();
                     double distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < nearestDistance && distance <= 200) {
+                    if (distance < nearestDistance && distance <= 400) {
                         nearestDistance = distance; 
                         nearestEnemy = enemy;
                     }
@@ -464,17 +467,10 @@ public class GamePanel extends JPanel {
         new Thread(() -> {
             isLoadingMap = true;
 
-            MapData bossMapData = new MapData("assets/image.png", "assets/vatlieu.png");
-
-            MapData.EnemyData bossData = new MapData.EnemyData(300, 250, 100, 100, 1000L, 1L, "NightBorne");
-            bossData.isBoss = true;
-            bossMapData.enemies = new ArrayList<>();
-            bossMapData.enemies.add(bossData);
-
             isBossRoom = true;
             isBossInitialized = false;
 
-            loadResources(bossMapData);
+            loadResources(currentMapData);
 
             isLoadingMap = false;
 
@@ -543,8 +539,8 @@ public class GamePanel extends JPanel {
         return nearestEnemy;
     }
 
-    public GameRenderer getGameRenderer() {
-        return renderer;
-    }
+    // public GameRenderer getGameRenderer() {
+    //     return renderer;
+    // }
     // endregion
 }

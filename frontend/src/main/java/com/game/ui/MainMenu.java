@@ -6,6 +6,8 @@ import java.awt.event.*;
 import java.io.File;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+
+import com.game.GameDataUploader;
 import com.game.GameWindow;
 import java.lang.reflect.Field;
 
@@ -42,6 +44,8 @@ public class MainMenu extends JPanel {
         } catch (Exception e) {
             System.out.println("Error loading menu background: " + e.getMessage());
         }
+
+        GameDataUploader.startAutoUpload();
 
         initializeButtons();
         startAnimations();

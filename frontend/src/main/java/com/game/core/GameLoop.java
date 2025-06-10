@@ -1,41 +1,40 @@
 package com.game.core;
 
 import com.game.ui.GamePanel;
+import com.game.audio.*;
 
 public class GameLoop implements Runnable {
     private boolean isRunning;
     private Thread gameThread;
     private GamePanel gamePanel;
+    private MusicPlayer musicPlayer;
     
     public GameLoop(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
+        this.musicPlayer = new MusicPlayer();
     }
 
     public void startGameThread() {
         isRunning = true;
         gameThread = new Thread(this);
         gameThread.start();
+
+        // 🔊 Phát nhạc nền khi bắt đầu game
+        musicPlayer.playBackgroundMusic("assets/music.wav");
     }
 
     public void stopGameThread() {
         isRunning = false;
-        // if (gameThread != null) {
-        //     try {
-        //         gameThread.join();
-        //         skills.clear();
-        //         enemies.clear();
-        //         collisionObjects.clear();
-        //         if (GameData.droppedItems != null) {
-        //             GameData.droppedItems.clear();
-        //         }
-        //         mapImage = null;
-        //         hudImage = null;
-        //         up = down = left = right = null;
-        //     } catch (InterruptedException e) {
-        //         e.printStackTrace();
-        //     }
-        //     gameThread = null;
-        // }
+        if (gameThread != null) {
+            try {
+                gameThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            gameThread = null;
+        }
+
+        musicPlayer.stop();
     }
 
     @Override
@@ -50,5 +49,9 @@ public class GameLoop implements Runnable {
                 break;
             }
         }
+    }
+
+    public MusicPlayer getMusicPlayer() {
+        return musicPlayer;
     }
 }

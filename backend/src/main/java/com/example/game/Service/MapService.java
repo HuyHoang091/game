@@ -26,8 +26,8 @@ public class MapService {
             existing.setBackground(newChar.getBackground());
             existing.setCollisionlayer(newChar.getCollisionlayer());
             existing.setPreview(newChar.getPreview());
-            existing.setMota(newChar.getMota());
-            existing.setMusic(newChar.getMusic());
+            existing.setEnemyId(newChar.getEnemyId());
+            existing.setBossId(newChar.getBossId());
             return characterRepository.save(existing);
         }).orElse(null);
     }

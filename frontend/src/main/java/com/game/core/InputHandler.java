@@ -13,8 +13,6 @@ import com.game.rendering.*;
 
 public class InputHandler extends MouseAdapter implements KeyListener {
     private GamePanel gamePanel;
-
-    private GameRenderer gameRenderer;
     
     public InputHandler(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
@@ -23,11 +21,6 @@ public class InputHandler extends MouseAdapter implements KeyListener {
     @Override
     public void mouseClicked(MouseEvent e) {
         Point click = e.getPoint();
-
-        int mapX = click.x + gamePanel.getInstance().getGameRenderer().getCamX();
-        int mapY = click.y + gamePanel.getInstance().getGameRenderer().getCamY();
-
-        System.out.println("Click tại MAP: x = " + mapX + ", y = " + mapY);
 
         if (gamePanel.getNormalAttackBounds().contains(click)) {
             handleNormalAttack();
@@ -44,31 +37,28 @@ public class InputHandler extends MouseAdapter implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_SPACE:
-                handleNormalAttack();
-                break;
-            case KeyEvent.VK_Q:
-                handleSkillUse(0);
-                break;
-            case KeyEvent.VK_E:
-                handleSkillUse(1);
-                break;
-            case KeyEvent.VK_R:
-                handleSkillUse(2);
-                break;
-            case KeyEvent.VK_T:
-                handleSkillUse(3);
-                break;
-            case KeyEvent.VK_F:
-                if (gamePanel.isNearPortal()) {
-                    gamePanel.loadBossRoom();
-                }
-                break;
-            default:
-                gamePanel.getPlayer().setDirection(e.getKeyCode(), true);
-                break;
+        int key = e.getKeyCode();
+        if (key == KeyBindingConfig.getKey("Attack")) {
+            handleNormalAttack();
         }
+        if (key == KeyBindingConfig.getKey("Skill1")) {
+            handleSkillUse(0);
+        }
+        if (key == KeyBindingConfig.getKey("Skill2")) {
+            handleSkillUse(1);
+        }
+        if (key == KeyBindingConfig.getKey("Skill3")) {
+            handleSkillUse(2);
+        }
+        if (key == KeyBindingConfig.getKey("Skill4")) {
+            handleSkillUse(3);
+        }
+        if (key == KeyBindingConfig.getKey("Interact")) {
+            if (gamePanel.isNearPortal() && !gamePanel.isBossRoom()) {
+                gamePanel.loadBossRoom();
+            }
+        }
+        gamePanel.getPlayer().setDirection(e.getKeyCode(), true);
     }
 
     @Override

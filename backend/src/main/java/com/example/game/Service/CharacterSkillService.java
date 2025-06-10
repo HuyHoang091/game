@@ -5,6 +5,7 @@ import com.game.repository.CharacterSkillRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CharacterSkillService {
@@ -31,6 +32,17 @@ public class CharacterSkillService {
             existing.setSlot(newChar.getSlot());
             return characterRepository.save(existing);
         }).orElse(null);
+    }
+
+    public void updateListCharacterSkill(List<CharacterSkill> characters) {
+        for (CharacterSkill character : characters) {
+            Optional<CharacterSkill> existing = characterRepository.findByCharacterIdAndSkillId(character.getCharacterId(), character.getSkillId());
+            if (existing.isPresent()) {
+                characterRepository.save(character); // update
+            } else {
+                characterRepository.insert(character.getId(), character.getCharacterId(), character.getSkillId(), character.getLevel(), character.getSlot()); // insert
+            }
+        }
     }
 
     public boolean deleteCharacterSkill(Long id) {

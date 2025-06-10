@@ -87,9 +87,10 @@ public class Enemy {
 
     private int level;
     private String name, type;
-    private boolean SkillTH = false, SkillTX = false, SkillBuff = false;
+    private boolean SkillTH = false;
 
     GamePanel gamePanel;
+    private boolean trieuhoi;
 
     public Enemy(int x, int y, int width, int height, Long health, Long monsterId,
                 BufferedImage[] up, BufferedImage[] down, 
@@ -101,7 +102,8 @@ public class Enemy {
                 BufferedImage[] targetSkill,
                 BufferedImage[] explosion,
                 BufferedImage[] idle,
-                BufferedImage[] die) {
+                BufferedImage[] die,
+                boolean trieuhoi) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -127,7 +129,7 @@ public class Enemy {
 
         this.deathFrames = die;
 
-        ChisoGoc();
+        this.trieuhoi = trieuhoi;
 
         for(GameMonster monster : GameData.monster) {
             if(monster.getId().equals(monsterId)){
@@ -136,6 +138,8 @@ public class Enemy {
                 this.type = monster.getBehavior();
             }
         } 
+
+        ChisoGoc();
     }
 
     public void update(Player player) {
@@ -260,7 +264,7 @@ public class Enemy {
         }
 
         // Kỹ năng triệu hồi
-        if (type.equals("tầm xa") && level >= 50 && !SkillTH && health <= (maxHealth*30/100)) {
+        if (type.equals("tầm xa") && level >= 50 && !SkillTH && health <= (maxHealth*30/100) && !trieuhoi) {
             animate(buffSkill);
             int sl = 0;
             if (level <= 60) sl = 1;
@@ -272,7 +276,7 @@ public class Enemy {
                 Enemy newEnemy = gamePanel.getInstance().createEnemy(
                     x,
                     y,
-                    70, 70, 10L, monsterId, name
+                    70, 70, 10L, monsterId, name, true
                 );
                 if (newEnemy != null) {
                     pendingEnemies.add(newEnemy);
@@ -538,7 +542,6 @@ public class Enemy {
             return;
         }
 
-        int level = monster.getLevel();
         double levelMultiplier = Math.pow(1.2, level); // tăng 10% mỗi cấp
         maxHealth = (long)(basemaxHealth * levelMultiplier);
         health = maxHealth;

@@ -120,4 +120,7 @@ public class ResourceManager {
         return resizedImage;
     }
 
+    public static void clearAnimationCache() {
+        animationCache.clear();
+    }
 }

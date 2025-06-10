@@ -56,4 +56,10 @@ public class CharacterController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/batch")
+    public ResponseEntity<Void> updateCharacters(@RequestBody List<Character> characters) {
+        characterService.updateListCharacters(characters);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -2,7 +2,6 @@ package com.game.rendering;
 
 import java.awt.*;
 import java.awt.geom.Arc2D;
-import java.awt.image.BufferedImage;
 import com.game.*;
 import com.game.ui.GamePanel;
 import com.game.data.GameData;
@@ -83,7 +82,9 @@ public class GameRenderer {
 
         // Draw game ending screen
         if (gamePanel.isGameEnding()) {
-            renderVisionLimit(g2d, camX, camY, 300f);
+            if (gamePanel.isLoss()) {
+                renderVisionLimit(g2d, camX, camY, 300f);
+            }
             renderGameEnding(g2d);
         }
     }
@@ -323,13 +324,5 @@ public class GameRenderer {
             int textY = screenY + ((barHeight - fm.getHeight()) / 2) + fm.getAscent();
             g.drawString(hpText, textX, textY);
         }
-    }
-
-    public int getCamX() {
-        return camX;
-    }
-
-    public int getCamY() {
-        return camY;
     }
 }

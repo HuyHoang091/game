@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import com.game.MapData;
 import com.game.ui.*;
+import com.game.resource.*;
 
 public class GameWindow extends JFrame {
     private CardLayout cardLayout;
@@ -15,6 +16,11 @@ public class GameWindow extends JFrame {
     private InventoryPanel inventoryPanel;
     private String previousScreen = "Menu";
     private static GameWindow instance;
+    private ResourceManager resourceManager;
+
+    private boolean isFullScreen = false;
+    private GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    private Rectangle windowedBounds;  // Lưu vị trí + kích thước cửa sổ trước fullscreen
 
     public GameWindow() {
         instance = this;
@@ -90,6 +96,7 @@ public class GameWindow extends JFrame {
 
         // Null để GC dễ dọn dẹp
         gamePanel = null;
+        resourceManager.clearAnimationCache();
 
         // Tạo lại nếu cần chơi lại
         gamePanel = new GamePanel(this);
@@ -98,5 +105,34 @@ public class GameWindow extends JFrame {
         cardLayout.show(contentPane, "Menu");
 
         System.gc(); // Gợi ý GC
+    }
+
+    public void toggleFullScreen() {
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        if (isFullScreen) {
+            // Thoát fullscreen
+            dispose();
+            setUndecorated(false);
+            setBounds(windowedBounds); // Trả về kích thước cũ
+            setVisible(true);
+            isFullScreen = false;
+        } else {
+            // Lưu lại kích thước cửa sổ hiện tại
+            windowedBounds = getBounds();
+
+            // Vào fullscreen borderless
+            dispose();
+            setUndecorated(true);
+            setBounds(0, 0, screenSize.width, screenSize.height); // Full màn hình
+            setVisible(true);
+            isFullScreen = true;
+        }
+    }
+
+
+    public boolean isFullScreen() {
+        return isFullScreen;
     }
 }

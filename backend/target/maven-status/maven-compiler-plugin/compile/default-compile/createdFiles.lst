@@ -5,6 +5,7 @@ com\game\entity\Monster.class
 com\game\service\InventoryService.class
 com\game\controller\CharacterSkillController.class
 com\game\controller\SkillController.class
+com\game\service\EmailService.class
 com\game\controller\ThuocTinhController.class
 com\game\entity\User.class
 com\game\repository\MonsterRepository.class
@@ -12,6 +13,7 @@ com\game\service\MonsterDropService.class
 com\game\controller\ItemInstanceController.class
 com\game\service\SkillUpdateRequirementsService.class
 com\game\service\ThuocTinhService.class
+com\game\config\SecurityConfig.class
 com\game\GameApplication.class
 com\game\service\ItemInstanceService.class
 com\game\controller\MonsterController.class

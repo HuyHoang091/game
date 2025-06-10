@@ -16,6 +16,6 @@ public class Map {
     private String background;
     private String collisionlayer;
     private String preview;
-    private String mota;
-    private String music;
+    private Long enemyId;
+    private Long bossId;
 }

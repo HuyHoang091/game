@@ -5,6 +5,7 @@ import com.game.repository.CharacterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CharacterService {
@@ -32,6 +33,17 @@ public class CharacterService {
             existing.setExp(newChar.getExp());
             return characterRepository.save(existing);
         }).orElse(null);
+    }
+
+    public void updateListCharacters(List<Character> characters) {
+        for (Character character : characters) {
+            Optional<Character> existing = characterRepository.findById(character.getId());
+            if (existing.isPresent()) {
+                characterRepository.save(character); // update
+            } else {
+                characterRepository.save(character); // insert
+            }
+        }
     }
     
     public boolean deleteCharacter(Long id) {

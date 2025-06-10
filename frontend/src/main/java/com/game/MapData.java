@@ -16,16 +16,15 @@ public class MapData {
 
     // Class con để lưu thông tin quái vật
     public static class EnemyData {
-        public int x, y;
+        public String type;
         public int width, height;
         public Long health;
         public Long monsterId;
         public boolean isBoss = false;
         public String name;
 
-        public EnemyData(int x, int y, int width, int height, Long health, Long monsterId, String name) {
-            this.x = x;
-            this.y = y;
+        public EnemyData(String type, int width, int height, Long health, Long monsterId, String name) {
+            this.type = type;
             this.width = width;
             this.height = height;
             this.health = health;

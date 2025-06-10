@@ -63,15 +63,27 @@ public class MapSelectScreen extends JPanel {
                 map.getCollisionlayer()
             );
             for (GameMonster monster : GameData.monster) {
-                String[] cauhinhParts = monster.getCauhinh().split(",");
+                boolean isEnemy = monster.getId().equals(map.getEnemyId());
+                boolean isBoss = monster.getId().equals(map.getBossId());
 
-                // Chuyển đổi các phần tử của chuỗi thành kiểu int
-                int x = Integer.parseInt(cauhinhParts[0].trim());
-                int y = Integer.parseInt(cauhinhParts[1].trim());
-                int width = Integer.parseInt(cauhinhParts[2].trim());
-                int height = Integer.parseInt(cauhinhParts[3].trim());
-                if (monster.getMapId() == map.getId()) {
-                    forestMap.enemies.add(new MapData.EnemyData(x, y, width, height, monster.getHp(), monster.getId(), monster.getName()));
+                if ((isEnemy || isBoss)) {
+                    String type = isBoss ? "Boss" : "Enemy";
+
+                    System.out.print(type);
+
+                    String[] cauhinhParts = monster.getCauhinh().split(",");
+                    int width = Integer.parseInt(cauhinhParts[2].trim());
+                    int height = Integer.parseInt(cauhinhParts[3].trim());
+
+                    forestMap.enemies.add(new MapData.EnemyData(
+                        type,
+                        width,
+                        height,
+                        monster.getHp(),
+                        monster.getId(),
+                        monster.getName()
+                    ));
+                
                 }
             }
             String mapKey = "map" + mapIndex;

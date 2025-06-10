@@ -26,10 +26,10 @@ public class BossRoomState {
         MapData bossMapData = new MapData("assets/image.png", "assets/vatlieu.png");
         
         // Add boss enemy data
-        MapData.EnemyData bossData = new MapData.EnemyData(300, 250, 100, 100, 1000L, 1L, "NightBorne");
-        bossData.isBoss = true;
-        bossMapData.enemies = new ArrayList<>();
-        bossMapData.enemies.add(bossData);
+        // MapData.EnemyData bossData = new MapData.EnemyData(300, 250, 100, 100, 1000L, 1L, "NightBorne");
+        // bossData.isBoss = true;
+        // bossMapData.enemies = new ArrayList<>();
+        // bossMapData.enemies.add(bossData);
         
         // Set boss room flag
         isBossRoom = true;

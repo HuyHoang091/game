@@ -10,4 +10,5 @@ public class GameUser {
     private String password;
     private String email;
     private int tiendo;
+    private String trangthai;
 }

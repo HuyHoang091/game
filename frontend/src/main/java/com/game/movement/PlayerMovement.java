@@ -33,7 +33,7 @@ public class PlayerMovement {
             newY -= speed;
             moving = true;
             if (tocbien && dodgeCooldown <= 0) {
-                newY -= 10;
+                newY -= 15;
                 dodgeCooldown = 250;
             }
         }
@@ -41,7 +41,7 @@ public class PlayerMovement {
             newY += speed;
             moving = true;
             if (tocbien && dodgeCooldown <= 0) {
-                newY += 10;
+                newY += 15;
                 dodgeCooldown = 250;
             }
         }
@@ -50,7 +50,7 @@ public class PlayerMovement {
             direction = "left";
             moving = true;
             if (tocbien && dodgeCooldown <= 0) {
-                newX -= 10;
+                newX -= 15;
                 dodgeCooldown = 250;
             }
         }
@@ -59,12 +59,12 @@ public class PlayerMovement {
             direction = "right";
             moving = true;
             if (tocbien && dodgeCooldown <= 0) {
-                newX += 10;
+                newX += 15;
                 dodgeCooldown = 250;
             }
         }
         if (tocbien && dodgeCooldown <= 0) {
-            newX += 10;
+            newX += 15;
             dodgeCooldown = 250;
         }
 

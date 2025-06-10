@@ -1,4 +1,5 @@
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Controllers\SkillUpdateRequirementsController.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Service\EmailService.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Model\User.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Model\Skill.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Model\Map.java
@@ -20,6 +21,7 @@ C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Model\Chara
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Controllers\InventoryController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Service\ItemInstanceService.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Model\ThuocTinh.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Config\SecurityConfig.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Controllers\UserController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Repository\SkillRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\example\game\Model\Inventory.java

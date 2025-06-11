@@ -18,7 +18,6 @@ public class PlayerStats {
     private double critRate;
     private double basecritDmg = 1.2;
     private double critDmg;
-    private int currentExp = 0;
     private int expBase = 100;
     private Long characterId;
 
@@ -122,8 +121,5 @@ public class PlayerStats {
     public void setCritRate(double critRate) { this.critRate = critRate; }
     public double getCritDmg() { return critDmg; }
     public void setCritDmg(double critDmg) { this.critDmg = critDmg; }
-    public int getCurrentExp() { return currentExp; }
-    public void setCurrentExp(int exp) { this.currentExp += exp; }
-    public void setCurrentExpUp(int exp) { this.currentExp -= exp; }
     public int getExpBase() { return expBase; }
 }

@@ -534,15 +534,6 @@ public class Player extends JComponent {
 
                 // Gửi thêm thông tin crit
                 enemy.takeDamage(damage, isCrit);
-                
-                // In thông tin combat để debug
-                System.out.printf("Hit: %s | ATK: %d | DEF_Reduction: %.2f | Crit: %b | Damage: %d%n",
-                    skillIndex == 0 ? "Normal" : "Skill",
-                    stats.getAtk(),
-                    defReduction,
-                    isCrit,
-                    damage
-                );
             }
         }
                 
@@ -580,7 +571,7 @@ public class Player extends JComponent {
                     for (GameItem item : GameData.item){
                         if (item.getId().equals(inventory.getItemId())){
                             for (GameThuocTinh thuocTinh : GameData.thuoctinh){
-                                if(item.getThuoctinhId().equals(thuocTinh.getId())){
+                                if(item.getThuoctinh().equals(thuocTinh.getId())){
                                     if (thuocTinh.getName().equals("bộ xuyên giáp")){
                                         boXuyenGiap += 1;
                                     } else if (thuocTinh.getName().equals("bộ máu trâu")){
@@ -620,10 +611,8 @@ public class Player extends JComponent {
         int baseExpReward = monster.getExpReward();
         int scaledExpReward = (int)(baseExpReward * Math.pow(monsterLevel, 1.2));
         
-        stats.setCurrentExp(scaledExpReward);
+        GameData.character.get(0).setExp(GameData.character.get(0).getExp() + scaledExpReward);
 
-        System.out.println("Gained " + scaledExpReward + " exp!");
-        
         // Check for level up
         checkLevelUp();
     }
@@ -640,13 +629,13 @@ public class Player extends JComponent {
         int currentLevel = character.getLevel();
         int expNeeded = calculateExpNeeded(currentLevel);
 
-        while (stats.getCurrentExp() >= expNeeded) {
+        while (GameData.character.get(0).getExp()  >= expNeeded) {
             // Level up!
             currentLevel++;
             character.setLevel(currentLevel);
             
             // Update exp values
-            stats.setCurrentExpUp(expNeeded);
+            GameData.character.get(0).setExp(GameData.character.get(0).getExp() - expNeeded);
             expNeeded = calculateExpNeeded(currentLevel);
 
             // Recalculate stats with new level

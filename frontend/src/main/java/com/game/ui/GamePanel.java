@@ -158,7 +158,6 @@ public class GamePanel extends JPanel {
                     type = "Boss";
                     count = 1;
                 }
-                System.out.print(enemyData);
                 if (enemyData.type.equals(type)) {
                     enemies.addAll(generateRandomEnemies(
                         count,
@@ -171,7 +170,6 @@ public class GamePanel extends JPanel {
                         enemyData.monsterId,
                         enemyData.health
                     ));
-                    System.out.print(type + "," + enemyData.width + "," + enemyData.height);
                 }
             }
             
@@ -310,9 +308,6 @@ public class GamePanel extends JPanel {
                             // Lưu vào map và thêm vào player
                             skillDataMap.put(skillInfo.getId(), skillData);
                             player.addSkill(skillData);
-
-                            System.out.println("Đã tải skill: " + skillInfo.getName() + 
-                                            " với cấu hình: " + animationPath + ", " + frameCount + "," + width + "," + height);
 
                             // Lưu cooldown cho slot
                             if (charSkill.getSlot() > 0) {

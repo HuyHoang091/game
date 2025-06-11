@@ -12,9 +12,8 @@ public class Item {
     private Long id;
 
     private String name;
-    private int level;
     private String type;
     private String mota;
-    private Long thuoctinhId;
+    private String thuoctinh;
     private String icon;
 }

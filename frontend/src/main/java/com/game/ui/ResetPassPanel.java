@@ -33,7 +33,6 @@ public class ResetPassPanel extends JPanel {
     private GameUser user;
 
     public ResetPassPanel(AccessFrame frame) {
-        System.out.println("User in ResetPassPanel = " + user);
         this.gameWindow = frame;
         setLayout(new BorderLayout());
         // Load background image

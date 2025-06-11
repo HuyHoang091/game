@@ -273,11 +273,7 @@ public class LoginPanel extends JPanel {
                     // ✅ Load dữ liệu của user
                     loadUserData(user.getId());
 
-                    // // ✅ Mở giao diện chính
-                    // accessFrame.dispose();
-                    // gameWindow = new GameWindow();
-                    // gameWindow.setVisible(true);
-                    accessFrame.showCharacter(1L);
+                    accessFrame.showCharacter(user.getId());
                 } else {
                     GameUser user = mapper.readValue(response.body(), GameUser.class);
                     GameData.user = user;
@@ -312,70 +308,6 @@ public class LoginPanel extends JPanel {
         } else {
             GameData.character = new ArrayList<>();
         }
-        
-        // Long characterId = characters.get(0).getId();
-
-        // // Lấy character skills
-        // String csUrl = "http://localhost:8080/api/character_skills/" + characterId;
-        // HttpRequest request3 = HttpRequest.newBuilder().uri(URI.create(csUrl)).GET().build();
-        // HttpResponse<String> response3 = client.send(request3, HttpResponse.BodyHandlers.ofString());
-        // List<GameCharacterSkill> apiCharacterSkill = Arrays.asList(mapper.readValue(response3.body(), GameCharacterSkill[].class));
-        // GameData.loadCharacterSkills(apiCharacterSkill);
-
-        // // Lấy inventory
-        // String invUrl = "http://localhost:8080/api/inventory/" + characterId;
-        // HttpRequest request4 = HttpRequest.newBuilder().uri(URI.create(invUrl)).GET().build();
-        // HttpResponse<String> response4 = client.send(request4, HttpResponse.BodyHandlers.ofString());
-        // GameData.inventory = Arrays.asList(mapper.readValue(response4.body(), GameInventory[].class));
-
-        // // Lấy item
-        // String itUrl = "http://localhost:8080/api/item/";
-        // HttpRequest request5 = HttpRequest.newBuilder().uri(URI.create(itUrl)).GET().build();
-        // HttpResponse<String> response5 = client.send(request5, HttpResponse.BodyHandlers.ofString());
-        // GameData.item = Arrays.asList(mapper.readValue(response5.body(), GameItem[].class));
-
-        // // Lấy item instance
-        // String itiUrl = "http://localhost:8080/api/iteminstance/";
-        // HttpRequest request6 = HttpRequest.newBuilder().uri(URI.create(itiUrl)).GET().build();
-        // HttpResponse<String> response6 = client.send(request6, HttpResponse.BodyHandlers.ofString());
-        // List<GameItemInstance> apiInstances = Arrays.asList(mapper.readValue(response6.body(), GameItemInstance[].class));
-        // GameData.loadItemInstances(apiInstances);
-
-        // // Lấy map
-        // String mapUrl = "http://localhost:8080/api/map/";
-        // HttpRequest request7 = HttpRequest.newBuilder().uri(URI.create(mapUrl)).GET().build();
-        // HttpResponse<String> response7 = client.send(request7, HttpResponse.BodyHandlers.ofString());
-        // GameData.map = Arrays.asList(mapper.readValue(response7.body(), GameMap[].class));
-
-        // // Lấy monster
-        // String msUrl = "http://localhost:8080/api/monster/";
-        // HttpRequest request8 = HttpRequest.newBuilder().uri(URI.create(msUrl)).GET().build();
-        // HttpResponse<String> response8 = client.send(request8, HttpResponse.BodyHandlers.ofString());
-        // GameData.monster = Arrays.asList(mapper.readValue(response8.body(), GameMonster[].class));
-
-        // // Lấy monster drop
-        // String msdrUrl = "http://localhost:8080/api/monsterdrop/";
-        // HttpRequest request9 = HttpRequest.newBuilder().uri(URI.create(msdrUrl)).GET().build();
-        // HttpResponse<String> response9 = client.send(request9, HttpResponse.BodyHandlers.ofString());
-        // GameData.monsterDrop = Arrays.asList(mapper.readValue(response9.body(), GameMonsterDrop[].class));
-
-        // // Lấy skills
-        // String skUrl = "http://localhost:8080/api/skill/";
-        // HttpRequest request10 = HttpRequest.newBuilder().uri(URI.create(skUrl)).GET().build();
-        // HttpResponse<String> response10 = client.send(request10, HttpResponse.BodyHandlers.ofString());
-        // GameData.skills = Arrays.asList(mapper.readValue(response10.body(), GameSkill[].class));
-
-        // // Lấy skill update requirements
-        // String skuUrl = "http://localhost:8080/api/skillupdate/";
-        // HttpRequest request11 = HttpRequest.newBuilder().uri(URI.create(skuUrl)).GET().build();
-        // HttpResponse<String> response11 = client.send(request11, HttpResponse.BodyHandlers.ofString());
-        // GameData.skillUpdate = Arrays.asList(mapper.readValue(response11.body(), GameSkillUpdateRequirements[].class));
-
-        // // Lấy thuoctinh
-        // String ttUrl = "http://localhost:8080/api/thuoctinh/";
-        // HttpRequest request12 = HttpRequest.newBuilder().uri(URI.create(ttUrl)).GET().build();
-        // HttpResponse<String> response12 = client.send(request12, HttpResponse.BodyHandlers.ofString());
-        // GameData.thuoctinh = Arrays.asList(mapper.readValue(response12.body(), GameThuocTinh[].class));
     }
 
     private class CyberBorder implements Border {

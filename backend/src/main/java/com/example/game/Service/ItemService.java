@@ -22,10 +22,9 @@ public class ItemService {
     public Item updateItem(Long id, Item newChar) {
         return characterRepository.findById(id).map(existing -> {
             existing.setName(newChar.getName());
-            existing.setLevel(newChar.getLevel());
             existing.setType(newChar.getType());
             existing.setMota(newChar.getMota());
-            existing.setThuoctinhId(newChar.getThuoctinhId());
+            existing.setThuoctinh(newChar.getThuoctinh());
             existing.setIcon(newChar.getIcon());
             return characterRepository.save(existing);
         }).orElse(null);

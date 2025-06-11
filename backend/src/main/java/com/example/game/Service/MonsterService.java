@@ -25,7 +25,6 @@ public class MonsterService {
             existing.setLevel(newChar.getLevel());
             existing.setHp(newChar.getHp());
             existing.setCauhinh(newChar.getCauhinh());
-            existing.setMapId(newChar.getMapId());
             existing.setExpReward(newChar.getExpReward());
             existing.setBehavior(newChar.getBehavior());
             return characterRepository.save(existing);

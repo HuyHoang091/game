@@ -10,7 +10,6 @@ public class GameMonster {
     private int level;
     private Long hp;
     private String cauhinh;
-    private Long mapId;
     private int expReward;
     private String behavior;
 }

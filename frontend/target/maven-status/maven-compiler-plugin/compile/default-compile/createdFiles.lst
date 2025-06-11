@@ -13,6 +13,7 @@ com\game\AccessFrame.class
 com\game\ui\ResetPassPanel$3.class
 com\game\ui\InventoryPanel$InventorySlot.class
 com\game\pathfinding\Node.class
+com\game\ui\CharacterGalleryPanel$2.class
 com\game\ui\InventoryPanel.class
 com\game\state\BossRoomState.class
 com\game\MapData.class
@@ -25,14 +26,19 @@ com\game\ui\MapSelectScreen$6.class
 com\game\ui\MapSelectScreen$3.class
 com\game\ui\SignUpPanel$2.class
 com\game\ui\MapSelectScreen$1.class
+com\game\demo\TableDisplayHelper$EnemyReviewRenderer.class
 com\game\pathfinding\AStar.class
 com\game\ui\SettingsPanel$4.class
 com\game\core\KeyBindingConfig.class
 com\game\model\GameInventory.class
+com\game\demo\LayoutManager$ComboItem.class
+com\game\demo\TableDisplayHelper$ImageRenderer.class
 com\game\model\GameSkill.class
 com\game\ui\SettingsPanel$1.class
 com\game\ui\SettingsPanel$2.class
 com\game\stats\PlayerStats.class
+com\game\demo\LayoutManager$2.class
+com\game\demo\LayoutManager$1.class
 com\game\model\GameItem.class
 com\game\Player.class
 com\game\ui\LoginPanel$CyberBorder.class
@@ -44,6 +50,8 @@ com\game\ui\MapSelectScreen$9.class
 com\game\rendering\GlobalLoadingManager$BackgroundPanel.class
 com\game\ui\StatsDialog$1.class
 com\game\ui\MapSelectScreen.class
+com\game\demo\TableDisplayHelper$NameLookupRenderer.class
+com\game\demo\TableDisplayHelper.class
 com\game\ui\ResetPassPanel$CyberBorder.class
 com\game\ui\SignUpPanel$3.class
 com\game\ui\ResetPassPanel.class

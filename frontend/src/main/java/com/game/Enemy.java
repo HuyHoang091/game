@@ -319,7 +319,7 @@ public class Enemy {
         else if (level <= 100){ if(health < maxHealth*80/100) buff = true;}
 
         // Check for buff skill activation
-        if (!type.equals("lính gác") && buff && !isUsingBuffSkill && !isAttacking && buffCooldown <= 0) {
+        if (!type.equals("canh gác") && buff && !isUsingBuffSkill && !isAttacking && buffCooldown <= 0) {
             isUsingBuffSkill = true;
             isBuffAnimationComplete = false;
             frameIndex = 0;

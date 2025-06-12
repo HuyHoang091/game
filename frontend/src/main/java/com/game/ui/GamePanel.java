@@ -366,6 +366,9 @@ public class GamePanel extends JPanel {
             if (gameEnding) {
                 if (System.currentTimeMillis() - gameEndTime >= END_GAME_DELAY) {
                     SwingUtilities.invokeLater(() -> {
+                        if (GameData.user.getTiendo() < gameWindow.getInstance().getLevel()) {
+                            GameData.user.setTiendo(gameWindow.getInstance().getLevel());
+                        }
                         gameWindow.BackToMenu();
                     });
                 }

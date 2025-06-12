@@ -13,10 +13,12 @@ com\game\AccessFrame.class
 com\game\ui\ResetPassPanel$3.class
 com\game\ui\InventoryPanel$InventorySlot.class
 com\game\pathfinding\Node.class
+com\game\demo\InputFormBuilder$1.class
 com\game\ui\CharacterGalleryPanel$2.class
 com\game\ui\InventoryPanel.class
 com\game\state\BossRoomState.class
 com\game\MapData.class
+com\game\demo\InputFormBuilder$2.class
 com\game\DamageEffect.class
 com\game\ui\MapSelectScreen$7.class
 com\game\SkillData.class
@@ -24,9 +26,11 @@ com\game\core\InputHandler.class
 com\game\Enemy.class
 com\game\ui\MapSelectScreen$6.class
 com\game\ui\MapSelectScreen$3.class
+com\game\demo\InputFormBuilder$3.class
 com\game\ui\SignUpPanel$2.class
 com\game\ui\MapSelectScreen$1.class
 com\game\demo\TableDisplayHelper$EnemyReviewRenderer.class
+com\game\demo\TableSearchHelper.class
 com\game\pathfinding\AStar.class
 com\game\ui\SettingsPanel$4.class
 com\game\core\KeyBindingConfig.class
@@ -37,7 +41,6 @@ com\game\model\GameSkill.class
 com\game\ui\SettingsPanel$1.class
 com\game\ui\SettingsPanel$2.class
 com\game\stats\PlayerStats.class
-com\game\demo\LayoutManager$2.class
 com\game\demo\LayoutManager$1.class
 com\game\model\GameItem.class
 com\game\Player.class
@@ -48,7 +51,9 @@ com\game\DroppedItem.class
 com\game\resource\AnimationManager.class
 com\game\ui\MapSelectScreen$9.class
 com\game\rendering\GlobalLoadingManager$BackgroundPanel.class
+com\game\demo\TableSearchHelper$1.class
 com\game\ui\StatsDialog$1.class
+com\game\demo\InputFormBuilder.class
 com\game\ui\MapSelectScreen.class
 com\game\demo\TableDisplayHelper$NameLookupRenderer.class
 com\game\demo\TableDisplayHelper.class
@@ -70,6 +75,7 @@ com\game\ui\MapSelectScreen$5.class
 com\game\GameDataUploader.class
 com\game\model\GameSkillUpdateRequirements.class
 com\game\model\GameThuocTinh.class
+com\game\demo\LayoutManager$RoundedButton.class
 com\game\audio\MusicPlayer.class
 com\game\ui\CustomScrollBarUI.class
 com\game\ui\SignUpPanel$CyberBorder.class
@@ -79,6 +85,7 @@ com\game\ui\MapSelectScreen$8.class
 com\game\ui\MainMenu$2.class
 com\game\Main.class
 com\game\ui\SkillTreeDialog.class
+com\game\demo\LayoutManager$TableTreeNode.class
 com\game\demo\LayoutManager.class
 com\game\ui\ResetPassPanel$2.class
 com\game\MapData$EnemyData.class
@@ -86,6 +93,7 @@ com\game\ui\StatsDialog$2.class
 com\game\model\GameMonster.class
 com\game\rendering\GameRenderer.class
 com\game\resource\ResourceManager.class
+com\game\demo\DataCrudHelper.class
 com\game\ui\LoginPanel.class
 com\game\ui\LoginPanel$2.class
 com\game\audio\SoundEffectPlayer.class
@@ -94,6 +102,7 @@ com\game\resource\AnimationLoader.class
 com\game\ui\SkillTreeDialog$1.class
 com\game\ui\InventoryPanel$InventoryItem.class
 com\game\ui\SettingsPanel.class
+com\game\demo\LayoutManager$PlaceholderTextField.class
 com\game\ui\LoginPanel$3.class
 com\game\ui\CharacterGalleryPanel.class
 com\game\Inventory.class

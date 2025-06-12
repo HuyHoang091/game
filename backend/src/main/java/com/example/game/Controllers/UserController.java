@@ -59,12 +59,14 @@ public class UserController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<User> createUser(@RequestBody User character) {
+    public ResponseEntity<?> createUser(@RequestBody User character) {
         User created = userService.createUser(character);
         if (created != null) {
             return ResponseEntity.ok(created);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity
+            .badRequest()
+            .body("Tài khoản hoặc email đã tồn tại, vui lòng chọn tên khác.");
     }
 
     @PutMapping("/{id}")

@@ -8,15 +8,18 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TableDisplayHelper {
-    private final Map<Object, String> itemNameCache;
-    private final Map<Object, String> itemIconCache;
-    private final Map<Object, String> monsterNameCache;
-    private final Map<Object, String> mapNameCache;
-    private final Map<Object, String> skillNameCache;
+    public final Map<Object, String> itemNameCache;
+    public final Map<Object, String> itemIconCache;
+    public final Map<Object, String> monsterNameCache;
+    public final Map<Object, String> mapNameCache;
+    public final Map<Object, String> skillNameCache;
+
+    java.util.Map<String, String> displayNames;
 
     public TableDisplayHelper(
             Map<Object, String> itemNameCache,
@@ -234,5 +237,111 @@ public class TableDisplayHelper {
                 table.getColumn("skillId").setCellRenderer(new NameLookupRenderer("skill"));
             }
         }
+    }
+
+    public void setColumnDisplayNames(JTable table, String tableName) {
+        displayNames = new java.util.HashMap<>();
+        // Đặt tên hiển thị cho từng bảng
+        if (tableName.equalsIgnoreCase("users")) {
+            displayNames.put("id", "Mã người dùng");
+            displayNames.put("username", "Tên đăng nhập");
+            displayNames.put("password", "Mật khẩu");
+            displayNames.put("email", "Email");
+            displayNames.put("tiendo", "Tiến độ");
+            displayNames.put("trangthai", "Trạng thái");
+        } else if (tableName.equalsIgnoreCase("characters")) {
+            displayNames.put("id", "Mã nhân vật");
+            displayNames.put("userId", "Mã người dùng");
+            displayNames.put("name", "Tên nhân vật");
+            displayNames.put("level", "Cấp độ");
+            displayNames.put("skillPoint", "Điểm kỹ năng");
+            displayNames.put("gold", "Vàng");
+            displayNames.put("exp", "Kinh nghiệm");
+            displayNames.put("className", "Lớp nhân vật");
+        } else if (tableName.equalsIgnoreCase("character_skills")) {
+            displayNames.put("id", "Mã kỹ năng nhân vật");
+            displayNames.put("characterId", "Mã nhân vật");
+            displayNames.put("skillId", "Kỹ năng");
+            displayNames.put("level", "Cấp độ");
+            displayNames.put("slot", "Ô kỹ năng");
+        } else if (tableName.equalsIgnoreCase("inventory")) {
+            displayNames.put("id", "Mã kho đồ");
+            displayNames.put("characterId", "Mã nhân vật");
+            displayNames.put("itemId", "Mã vật phẩm");
+            displayNames.put("itemInstanceId", "Mã vật phẩm cá nhân");
+            displayNames.put("quantity", "Số lượng");
+            displayNames.put("equipped", "Đã trang bị");
+        } else if (tableName.equalsIgnoreCase("map")) {
+            displayNames.put("id", "Mã bản đồ");
+            displayNames.put("name", "Tên bản đồ");
+            displayNames.put("level", "Cấp độ");
+            displayNames.put("background", "Ảnh nền");
+            displayNames.put("collisionlayer", "Lớp va chạm");
+            displayNames.put("preview", "Ảnh xem trước");
+            displayNames.put("enemyId", "Quái thường");
+            displayNames.put("bossId", "Quái boss");
+        } else if (tableName.equalsIgnoreCase("monsterdrop")) {
+            displayNames.put("id", "Mã rơi quái");
+            displayNames.put("monsterId", "Tên quái");
+            displayNames.put("itemId", "Tên vật phẩm");
+            displayNames.put("dropRate", "Tỷ lệ rơi");
+        } else if (tableName.equalsIgnoreCase("skill")) {
+            displayNames.put("id", "Mã kỹ năng");
+            displayNames.put("name", "Tên kỹ năng");
+            displayNames.put("className", "Lớp kỹ năng");
+            displayNames.put("levelRequired", "Cấp độ yêu cầu");
+            displayNames.put("maxLevel", "Cấp độ tối đa");
+            displayNames.put("manaCost", "Mana tiêu hao");
+            displayNames.put("mota", "Mô tả");
+            displayNames.put("damage", "Sát thương(%)");
+            displayNames.put("cooldown", "Thời gian hồi chiêu");
+            displayNames.put("cauhinh", "Cấu hình");
+            displayNames.put("icon", "Biểu tượng");
+        } else if (tableName.equalsIgnoreCase("skillupdate")) {
+            displayNames.put("id", "Mã cập nhật kỹ năng");
+            displayNames.put("skillId", "Kỹ năng");
+            displayNames.put("level", "Cấp độ");
+            displayNames.put("levelRequired", "Cấp độ yêu cầu");
+            displayNames.put("pointRequired", "Điểm yêu cầu");
+            displayNames.put("goldRequired", "Vàng yêu cầu");
+        } else if (tableName.equalsIgnoreCase("iteminstance")) {
+            displayNames.put("id", "Mã vật phẩm cá nhân");
+            displayNames.put("itemId", "Vật phẩm");
+            displayNames.put("atk", "Tấn công");
+            displayNames.put("def", "Phòng thủ");
+            displayNames.put("hp", "Máu");
+            displayNames.put("mp", "Mana");
+            displayNames.put("critRate", "Tỷ lệ chí mạng");
+            displayNames.put("critDmg", "Sát thương chí mạng");
+        } else if (tableName.equalsIgnoreCase("item")) {
+            displayNames.put("id", "Mã vật phẩm");
+            displayNames.put("name", "Tên vật phẩm");
+            displayNames.put("type", "Loại");
+            displayNames.put("mota", "Mô tả");
+            displayNames.put("thuoctinh", "Thuộc tính");
+            displayNames.put("icon", "Biểu tượng");
+        } else if (tableName.equalsIgnoreCase("monster")) {
+            displayNames.put("id", "Mã quái");
+            displayNames.put("name", "Tên quái");
+            displayNames.put("level", "Cấp độ");
+            displayNames.put("hp", "Máu");
+            displayNames.put("cauhinh", "Cấu hình");
+            displayNames.put("expReward", "Phần thưởng kinh nghiệm");
+            displayNames.put("behavior", "Hành vi");
+        }
+
+        // Đổi tên header, không ảnh hưởng dữ liệu
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            String col = table.getColumnName(i);
+            if (displayNames.containsKey(col)) {
+                table.getColumnModel().getColumn(i).setHeaderValue(displayNames.get(col));
+            }
+        }
+        // Cập nhật lại header
+        table.getTableHeader().repaint();
+    }
+
+    public Map<String, String> getDisplayNames() {
+        return this.displayNames;
     }
 }

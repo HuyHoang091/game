@@ -262,6 +262,16 @@ public class Player extends JComponent {
             newInventory.setQuantity(1);
             newInventory.setEquipped(false);
 
+            Long maxId = 0L;
+            if (GameData.inventory != null && !GameData.inventory.isEmpty()) {
+                for (GameInventory inv : GameData.inventory) {
+                    if (inv.getId() != null && inv.getId() > maxId) {
+                        maxId = inv.getId();
+                    }
+                }
+            }
+            newInventory.setId(maxId + 1);
+
             List<GameInventory> currentInventory = (GameData.inventory != null) ? 
                 new ArrayList<>(GameData.inventory) : new ArrayList<>();
             
@@ -275,16 +285,7 @@ public class Player extends JComponent {
                 .filter(i -> i.getId().equals(item.getItemInstanceId()))
                 .findFirst()
                 .orElse(null);
-                
-            if (instance != null) {
-                System.out.println("Picked up item with stats: " +
-                    "ATK:" + instance.getAtk() +
-                    " DEF:" + instance.getDef() +
-                    " HP:" + instance.getHp() +
-                    " MP:" + instance.getMp() +
-                    " Crit Rate:" + String.format("%.1f%%", instance.getCritRate() * 100) +
-                    " Crit DMG:" + String.format("%.1f%%", instance.getCritDmg() * 100));
-            }
+
         } catch (Exception e) {
             System.err.println("Error adding item to inventory: " + e.getMessage());
             e.printStackTrace();
@@ -532,6 +533,10 @@ public class Player extends JComponent {
                     }
                 }
 
+                if (damage > 99999999) {
+                    damage = 99999999L; // Giới hạn sát thương tối đa
+                }
+
                 // Gửi thêm thông tin crit
                 enemy.takeDamage(damage, isCrit);
             }
@@ -556,11 +561,6 @@ public class Player extends JComponent {
 
     public void takeDamage(Long damage) {
         stats.takeDamage(damage, khangST);
-        // if (stats.getHealth() <= 0) {
-        //     stats.setHealth(0L);
-        //     animate(deathFrame);
-
-        // }
     }
 
     private void SetDo() {
@@ -613,6 +613,8 @@ public class Player extends JComponent {
         
         GameData.character.get(0).setExp(GameData.character.get(0).getExp() + scaledExpReward);
 
+        gainGold(monsterId);
+
         // Check for level up
         checkLevelUp();
     }
@@ -641,9 +643,6 @@ public class Player extends JComponent {
             // Recalculate stats with new level
             stats.ChiSoGocGL();
             stats.ChiSoTB();
-            
-            System.out.println("Level Up! Now level " + currentLevel);
-            System.out.println("Next level requires " + expNeeded + " exp");
         }
 
         // Update character in GameData
@@ -655,6 +654,28 @@ public class Player extends JComponent {
         }
     }
     // endregion
+
+    public void gainGold(Long monsterId) {
+        GameMonster monster = GameData.monster.stream()
+            .filter(m -> m.getId().equals(monsterId))
+            .findFirst()
+            .orElse(null);
+
+        if (monster == null) return;
+
+        int baseGold = 10;
+        int monsterLevel = monster.getLevel();
+        int goldReward = (int) (baseGold * Math.pow(monsterLevel, 1.2)); // tăng dần theo cấp
+
+        GameCharacter character = GameData.character.stream()
+            .filter(c -> c.getId().equals(characterId))
+            .findFirst()
+            .orElse(null);
+
+        if (character != null) {
+            character.setGold(character.getGold() + goldReward);
+        }
+    }
 
     public void useMana(int amount) {
         stats.useMana(amount);

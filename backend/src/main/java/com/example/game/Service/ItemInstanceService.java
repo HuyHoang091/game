@@ -5,6 +5,7 @@ import com.game.repository.ItemInstanceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ItemInstanceService {
@@ -30,6 +31,17 @@ public class ItemInstanceService {
             existing.setCritDmg(newChar.getCritDmg());
             return characterRepository.save(existing);
         }).orElse(null);
+    }
+
+    public void updateListItemInstance(List<ItemInstance> characters) {
+        for (ItemInstance character : characters) {
+            Optional<ItemInstance> existing = characterRepository.findById(character.getId());
+            if (existing.isPresent()) {
+                characterRepository.save(character); // update
+            } else {
+                characterRepository.insert(character.getId(), character.getItemId(), character.getAtk(), character.getDef(), character.getHp(), character.getMp(), character.getCritRate(), character.getCritDmg()); // insert
+            }
+        }
     }
 
     public boolean deleteItemInstance(Long id) {

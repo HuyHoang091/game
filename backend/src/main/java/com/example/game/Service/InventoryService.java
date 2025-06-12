@@ -5,6 +5,7 @@ import com.game.repository.InventoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class InventoryService {
@@ -32,6 +33,17 @@ public class InventoryService {
             existing.setEquipped(newChar.isEquipped());
             return characterRepository.save(existing);
         }).orElse(null);
+    }
+
+    public void updateListInventory(List<Inventory> characters) {
+        for (Inventory character : characters) {
+            Optional<Inventory> existing = characterRepository.findById(character.getId());
+            if (existing.isPresent()) {
+                characterRepository.save(character); // update
+            } else {
+                characterRepository.insert(character.getId(), character.getCharacterId(), character.getItemId(), character.getItemInstanceId(), character.getQuantity(), character.isEquipped()); // insert
+            }
+        }
     }
 
     public boolean deleteInventory(Long id) {

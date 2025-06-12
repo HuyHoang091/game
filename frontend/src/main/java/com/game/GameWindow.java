@@ -22,6 +22,8 @@ public class GameWindow extends JFrame {
     private GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     private Rectangle windowedBounds;  // Lưu vị trí + kích thước cửa sổ trước fullscreen
 
+    public int level = 1;
+
     public GameWindow() {
         instance = this;
         setTitle("Game Menu");
@@ -57,7 +59,23 @@ public class GameWindow extends JFrame {
         cardLayout.show(contentPane, "MapSelect");
     }
 
-    public void startGame(MapData mapData) {
+    public void reloadMapSelectScreen() {
+        // Gỡ mapSelectScreen khỏi contentPane
+        contentPane.remove(mapSelectScreen);
+
+        // Null để GC dễ dọn dẹp
+        mapSelectScreen = null;
+
+        // Gợi ý GC
+        System.gc();
+
+        // Tạo lại MapSelectScreen mới với dữ liệu mới nhất
+        mapSelectScreen = new MapSelectScreen(this);
+        contentPane.add(mapSelectScreen, "MapSelect");
+    }
+
+    public void startGame(MapData mapData, int level) {
+        this.level = level;
         gamePanel.loadResources(mapData);
         cardLayout.show(contentPane, "Game");
         gamePanel.requestFocus();
@@ -104,6 +122,8 @@ public class GameWindow extends JFrame {
 
         cardLayout.show(contentPane, "Menu");
 
+        reloadMapSelectScreen();
+
         System.gc(); // Gợi ý GC
     }
 
@@ -131,8 +151,11 @@ public class GameWindow extends JFrame {
         }
     }
 
-
     public boolean isFullScreen() {
         return isFullScreen;
+    }
+
+    public int getLevel() {
+        return level;
     }
 }

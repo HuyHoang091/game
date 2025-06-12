@@ -31,18 +31,21 @@ public class GameDataUploader {
                     sendJson("http://localhost:8080/api/character_skills/batch", GameData.characterSkills);
 
                 // 3. Gửi inventory
-                // if (GameData.inventory != null && !GameData.inventory.isEmpty())
-                //     sendJson("http://localhost:8080/api/inventory/update", GameData.inventory);
+                if (GameData.inventory != null && !GameData.inventory.isEmpty())
+                    sendJson("http://localhost:8080/api/inventory/batch", GameData.inventory);
 
                 // 4. Gửi itemInstance
-                // if (!GameData.itemInstance.isEmpty())
-                //     sendJson("http://localhost:8080/api/item-instance/update", GameData.itemInstance);
+                if (!GameData.itemInstance.isEmpty())
+                    sendJson("http://localhost:8080/api/iteminstance/batch", GameData.itemInstance);
 
+                if (GameData.user != null)
+                    sendJson("http://localhost:8080/api/users/" + GameData.user.getId(), GameData.user);
+                
             } catch (Exception e) {
                 System.err.println("Error uploading game data: " + e.getMessage());
                 e.printStackTrace();
             }
-        }, 0, 10, TimeUnit.SECONDS); // Gửi mỗi 5 giây
+        }, 0, 5, TimeUnit.SECONDS); // Gửi mỗi 5 giây
     }
 
     private static void sendJson(String url, Object data) throws Exception {

@@ -56,4 +56,10 @@ public class InventoryController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/batch")
+    public ResponseEntity<Void> updateInventorys(@RequestBody List<Inventory> characters) {
+        characterService.updateListInventory(characters);
+        return ResponseEntity.ok().build();
+    }
 }

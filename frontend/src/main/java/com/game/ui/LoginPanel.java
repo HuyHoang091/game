@@ -264,8 +264,18 @@ public class LoginPanel extends JPanel {
             if (response.statusCode() == 200) {
                 JSONObject jsonObject = new JSONObject(response.body());
                 String trangthai = jsonObject.getString("trangthai");
+                String admin = jsonObject.getString("username");
 
-                if (trangthai.equals("Đã kích hoạt")) {
+                if (admin.equals("admin")) {
+                    AccessFrame.getInstance().dispose();
+                    try {
+                        UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatIntelliJLaf());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    com.game.demo.LayoutManager layout = new com.game.demo.LayoutManager();
+                    layout.setVisible(true);
+                } else if (trangthai.equals("Đã kích hoạt")) {
                     // ✅ Parse User
                     GameUser user = mapper.readValue(response.body(), GameUser.class);
                     GameData.user = user;

@@ -133,12 +133,11 @@ public class Enemy {
 
         for(GameMonster monster : GameData.monster) {
             if(monster.getId().equals(monsterId)){
-                this.level = monster.getLevel();
+                this.level = GameWindow.getInstance().getLevel();
                 this.name = monster.getName();
                 this.type = monster.getBehavior();
             }
-        } 
-
+        }
         ChisoGoc();
     }
 
@@ -580,7 +579,7 @@ public class Enemy {
                             // Pass monster level when creating item instance
                             GameItemInstance itemInstance = GameData.createItemInstance(
                                 drop.getItemId(), 
-                                monster.getLevel()
+                                GameWindow.getInstance().getLevel()
                             );
                             
                             DroppedItem droppedItem = new DroppedItem(

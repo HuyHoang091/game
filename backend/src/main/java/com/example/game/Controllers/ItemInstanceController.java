@@ -31,7 +31,7 @@ public class ItemInstanceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ItemInstance> updateItenInstance(@PathVariable Long id, @RequestBody ItemInstance iteminstance) {
+    public ResponseEntity<ItemInstance> updateItemInstance(@PathVariable Long id, @RequestBody ItemInstance iteminstance) {
         ItemInstance update = characterService.updateItemInstance(id, iteminstance);
         if (update != null) {
             return ResponseEntity.ok(update);
@@ -46,5 +46,11 @@ public class ItemInstanceController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/batch")
+    public ResponseEntity<Void> updateItemInstances(@RequestBody List<ItemInstance> characters) {
+        characterService.updateListItemInstance(characters);
+        return ResponseEntity.ok().build();
     }
 }

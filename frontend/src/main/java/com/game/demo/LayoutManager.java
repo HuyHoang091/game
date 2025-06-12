@@ -1,12 +1,16 @@
 package com.game.demo;
 
 import javax.swing.*;
+import javax.swing.border.AbstractBorder;
 import javax.swing.tree.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
+
 import java.awt.*;
 import java.io.File;
 import java.net.URI;
@@ -18,12 +22,15 @@ public class LayoutManager extends JFrame {
     private JTable table;
     private JPanel inputPanel;
     private java.util.Map<String, JComponent> inputFields = new java.util.HashMap<>();
-    private final String[] Classer = { "LangKhach", "Samurai", "Tanker", "Assassin", "Vampire" };
+    public final String[] Classer = { "LangKhach", "Samurai", "Tanker", "Assassin", "Vampire" };
 
     private JScrollPane tableScroll;
     private JSplitPane verticalSplit;
 
     private JButton btnThem, btnSua, btnXoa;
+    private JTextField searchField;
+    private TableRowSorter<DefaultTableModel> rowSorter;
+    private TableSearchHelper tableSearchHelper;
 
     // --- Cache cho lookup nhanh ---
     private final java.util.Map<Object, String> itemNameCache = new java.util.HashMap<>();
@@ -49,28 +56,28 @@ public class LayoutManager extends JFrame {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("ROOT");
 
         DefaultMutableTreeNode playerNode = new DefaultMutableTreeNode("Player");
-        playerNode.add(new DefaultMutableTreeNode("users"));
-        playerNode.add(new DefaultMutableTreeNode("characters"));
-        playerNode.add(new DefaultMutableTreeNode("character_skills"));
-        playerNode.add(new DefaultMutableTreeNode("inventory"));
+        playerNode.add(new TableTreeNode("Tài khoản", "users"));
+        playerNode.add(new TableTreeNode("Nhân vật","characters"));
+        playerNode.add(new TableTreeNode("Kho kỹ năng","character_skills"));
+        playerNode.add(new TableTreeNode("Kho đồ","inventory"));
 
         DefaultMutableTreeNode monsterNode = new DefaultMutableTreeNode("Monster");
-        monsterNode.add(new DefaultMutableTreeNode("monster"));
-        monsterNode.add(new DefaultMutableTreeNode("monsterdrop"));
+        monsterNode.add(new TableTreeNode("Quái vật","monster"));
+        monsterNode.add(new TableTreeNode("Quái vật rơi đồ","monsterdrop"));
 
         DefaultMutableTreeNode gameDataNode = new DefaultMutableTreeNode("GameData");
-        gameDataNode.add(new DefaultMutableTreeNode("map"));
+        gameDataNode.add(new TableTreeNode("Bản đồ","map"));
 
         DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode("Item");
-        itemNode.add(new DefaultMutableTreeNode("item"));
-        itemNode.add(new DefaultMutableTreeNode("iteminstance"));
-        itemNode.add(new DefaultMutableTreeNode("thuoctinh"));
+        itemNode.add(new TableTreeNode("Trang bị","item"));
+        itemNode.add(new TableTreeNode("Trang bị cá nhân","iteminstance"));
+        itemNode.add(new TableTreeNode("Thuộc tính","thuoctinh"));
 
         gameDataNode.add(itemNode);
 
         DefaultMutableTreeNode skillNode = new DefaultMutableTreeNode("Skill");
-        skillNode.add(new DefaultMutableTreeNode("skill"));
-        skillNode.add(new DefaultMutableTreeNode("skillupdate"));
+        skillNode.add(new TableTreeNode("Kỹ năng","skill"));
+        skillNode.add(new TableTreeNode("Nâng cấp kỹ năng","skillupdate"));
 
         gameDataNode.add(skillNode);
 
@@ -87,8 +94,42 @@ public class LayoutManager extends JFrame {
 
         // Table
         table = new JTable(new DefaultTableModel(new Object[] { "Trống" }, 0));
+        JTableHeader header = table.getTableHeader();
+        header.setBackground(new Color(33, 150, 243));
+        header.setForeground(Color.WHITE);
+        header.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
         tableSelect(table);
+
+        // Tạo rowSorter cho table
+        rowSorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
+        table.setRowSorter(rowSorter);
+
+        tableSearchHelper = new TableSearchHelper(table, rowSorter, tableHelper);
+
+        // Khung tìm kiếm
+        searchField = new PlaceholderTextField(getSearchPlaceholder(""));
+        searchField.setPreferredSize(new Dimension(200, 28));
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        searchField.setToolTipText("Tìm kiếm...");
+
+        // Sự kiện lọc khi nhập
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { tableSearchHelper.filter(searchField.getText()); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { tableSearchHelper.filter(searchField.getText()); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { tableSearchHelper.filter(searchField.getText()); }
+        });
+
+        // Panel chứa search + table
+        JPanel tablePanel = new JPanel(new BorderLayout(5, 5));
+        JPanel searchPanel = new JPanel(new BorderLayout());
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        searchPanel.add(new JLabel("🔍 "), BorderLayout.WEST);
+        searchPanel.add(searchField, BorderLayout.CENTER);
+
+        tablePanel.add(searchPanel, BorderLayout.NORTH);
         tableScroll = new JScrollPane(table);
+        tablePanel.add(tableScroll, BorderLayout.CENTER);
 
         // Input
         inputPanel = new JPanel(new GridLayout(5, 2, 5, 5));
@@ -99,12 +140,12 @@ public class LayoutManager extends JFrame {
 
         // Button
         JPanel buttonPanel = new JPanel();
-        btnThem = new JButton("Thêm");
-        addData(btnThem, tree);
-        btnSua = new JButton("Sửa");
-        updateData(btnSua, tree);
-        btnXoa = new JButton("Xóa");
-        deleteData(btnXoa, tree);
+        btnThem = new RoundedButton("Thêm", 15);
+        btnSua = new RoundedButton("Sửa", 15);
+        btnXoa = new RoundedButton("Xóa", 15);
+        btnThem.addActionListener(e -> DataCrudHelper.addData(inputFields, tree, this));
+        btnSua.addActionListener(e -> DataCrudHelper.updateData(inputFields, tree, this));
+        btnXoa.addActionListener(e -> DataCrudHelper.deleteData(inputFields, tree, this));
         buttonPanel.add(btnThem);
         buttonPanel.add(btnSua);
         buttonPanel.add(btnXoa);
@@ -113,8 +154,16 @@ public class LayoutManager extends JFrame {
         formInput.add(inputScroll, BorderLayout.CENTER);
         formInput.add(buttonPanel, BorderLayout.SOUTH);
 
+        // Áp dụng style cho các nút
+        btnThem.setBackground(new Color(76, 175, 80));
+        btnSua.setBackground(new Color(255, 193, 7));
+        btnXoa.setBackground(new Color(244, 67, 54));
+        btnThem.setForeground(Color.WHITE);
+        btnSua.setForeground(Color.WHITE);
+        btnXoa.setForeground(Color.WHITE);
+
         // Bottom Right: Table + Form
-        verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableScroll, formInput);
+        verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, formInput);
         verticalSplit.setResizeWeight(0.7); // 70% table, 30% form
 
         // Main Split: JTree + Right
@@ -129,20 +178,21 @@ public class LayoutManager extends JFrame {
     private void treeSelect(JTree tree) {
         tree.addTreeSelectionListener(e -> {
             DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-            if (selectedNode == null || selectedNode.isRoot())
-                return;
-
-            String tableName = selectedNode.toString();
-            if (!tableName.equals("Player") && !tableName.equals("Monster") && !tableName.equals("GameData")
-                    && !tableName.equals("Item") && !tableName.equals("Skill")) {
-                try {
-                    String url = "http://localhost:8080/api/" + tableName + "/";
-                    HttpClient client = HttpClient.newHttpClient();
-                    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                    loadDataFromJson(response.body(), tableName);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+            if (selectedNode instanceof TableTreeNode) {
+                String tableName = ((TableTreeNode) selectedNode).getTableName();
+                if (tableName != null) {
+                    if (!tableName.equals("Player") && !tableName.equals("Monster") && !tableName.equals("GameData")
+                            && !tableName.equals("Item") && !tableName.equals("Skill")) {
+                        try {
+                            String url = "http://localhost:8080/api/" + tableName + "/";
+                            HttpClient client = HttpClient.newHttpClient();
+                            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+                            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                            loadDataFromJson(response.body(), tableName);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
                 }
             }
         });
@@ -153,237 +203,44 @@ public class LayoutManager extends JFrame {
         ObjectMapper mapper = new ObjectMapper();
         java.util.List<java.util.Map<String, Object>> list = mapper.readValue(json, java.util.List.class);
 
-        if (list.isEmpty())
-            return;
+        String[] columnNames;
+        if (!list.isEmpty()) {
+            columnNames = list.get(0).keySet().toArray(new String[0]);
+        } else {
+            columnNames = new String[] { "Trống" };
+        }
 
-        String[] columnNames = list.get(0).keySet().toArray(new String[0]);
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
         for (var row : list) {
-            Object[] rowData = row.values().toArray();
+            Object[] rowData = new Object[columnNames.length];
+            for (int i = 0; i < columnNames.length; i++) {
+                String col = columnNames[i];
+                Object value = row.get(col);
+
+                rowData[i] = value;
+            }
             model.addRow(rowData);
         }
 
         table.setModel(model);
-        buildFormFromColumns(columnNames, tableName);
-        tableHelper.customizeTableDisplay(table, tableName);
-    }
+        rowSorter.setModel(model);
+        table.setRowSorter(rowSorter);
 
-    // region Load input
-    private void buildFormFromColumns(String[] columns, String tableName) {
-        inputPanel.removeAll();
-        inputPanel.setLayout(new GridLayout(columns.length, 2, 5, 5));
-        inputFields.clear();
-
-        for (String column : columns) {
-            inputPanel.add(new JLabel(column + ":"));
-            JComponent input = null;
-
-            // MONSTER
-            if (tableName.equalsIgnoreCase("monster")) {
-                if (column.equalsIgnoreCase("name")) {
-                    // Combobox tên thư mục trong assets/Enemy
-                    JComboBox<String> combo = new JComboBox<>(getEnemyFolderNames());
-                    combo.setPreferredSize(new Dimension(200, 25));
-                    input = combo;
-                } else if (column.equalsIgnoreCase("behavior")) {
-                    JComboBox<String> combo = new JComboBox<>(new String[] { "cận chiến", "tầm xa", "canh gác" });
-                    combo.setPreferredSize(new Dimension(200, 25));
-                    input = combo;
-                }
-            }
-            // MONSTERDROP
-            else if (tableName.equalsIgnoreCase("monsterdrop")) {
-                if (column.equalsIgnoreCase("monsterId")) {
-                    DefaultComboBoxModel<ComboItem> model = new DefaultComboBoxModel<>();
-                    for (var entry : monsterNameCache.entrySet()) {
-                        model.addElement(new ComboItem(entry.getKey(), entry.getValue()));
-                    }
-                    JComboBox<ComboItem> combo = new JComboBox<>(model);
-                    input = combo;
-                } else if (column.equalsIgnoreCase("itemId")) {
-                    DefaultComboBoxModel<ComboItem> model = new DefaultComboBoxModel<>();
-                    for (var entry : itemNameCache.entrySet()) {
-                        model.addElement(new ComboItem(entry.getKey(), entry.getValue()));
-                    }
-                    JComboBox<ComboItem> combo = new JComboBox<>(model);
-                    input = combo;
-                }
-            }
-            // MAP
-            else if (tableName.equalsIgnoreCase("map")) {
-                if (column.equalsIgnoreCase("background") || column.equalsIgnoreCase("collisionlayer")
-                        || column.equalsIgnoreCase("preview")) {
-                    JPanel panel = new JPanel(new BorderLayout());
-                    JTextField pathField = new JTextField();
-                    JButton btn = new JButton("Chọn ảnh");
-                    JLabel preview = new JLabel();
-                    btn.addActionListener(e -> {
-                        JFileChooser chooser = new JFileChooser("assets/Map");
-                        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("PNG Images", "png"));
-                        int result = chooser.showOpenDialog(this);
-                        if (result == JFileChooser.APPROVE_OPTION) {
-                            java.io.File file = chooser.getSelectedFile();
-                            String relativePath = "assets/Map/" + file.getName();
-                            pathField.setText(relativePath);
-                            preview.setIcon(new ImageIcon(file.getAbsolutePath()));
-                        }
-                    });
-                    panel.add(pathField, BorderLayout.CENTER);
-                    panel.add(btn, BorderLayout.EAST);
-                    panel.add(preview, BorderLayout.SOUTH);
-                    input = panel;
-                } else if (column.equalsIgnoreCase("enemyId") || column.equalsIgnoreCase("bossId")) {
-                    DefaultComboBoxModel<ComboItem> model = new DefaultComboBoxModel<>();
-                    for (var entry : monsterNameCache.entrySet()) {
-                        model.addElement(new ComboItem(entry.getKey(), entry.getValue()));
-                    }
-                    JComboBox<ComboItem> combo = new JComboBox<>(model);
-                    input = combo;
-                }
-            }
-            // ITEM
-            else if (tableName.equalsIgnoreCase("item")) {
-                if (column.equalsIgnoreCase("icon")) {
-                    JPanel panel = new JPanel(new BorderLayout());
-                    JTextField pathField = new JTextField();
-                    JButton btn = new JButton("Chọn ảnh");
-                    JLabel preview = new JLabel();
-
-                    // Thư mục gốc (tính từ thư mục dự án)
-                    File rootDir = new File("src/main/resources").getAbsoluteFile();
-
-                    btn.addActionListener(e -> {
-                        JFileChooser chooser = new JFileChooser(new File(rootDir, "assets/Item")) {
-                            @Override
-                            public void approveSelection() {
-                                File selectedFile = getSelectedFile();
-                                if (selectedFile != null && !selectedFile.getAbsolutePath().startsWith(rootDir.getAbsolutePath())) {
-                                    JOptionPane.showMessageDialog(this,
-                                        "Chỉ được chọn file bên trong thư mục: " + rootDir.getAbsolutePath(),
-                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                    return;
-                                }
-                                super.approveSelection();
-                            }
-                        };
-                        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("PNG Images", "png"));
-
-                        // Tạo label để hiển thị ảnh thumbnail
-                        JLabel imagePreview = new JLabel();
-                        imagePreview.setPreferredSize(new Dimension(200, 200));
-                        chooser.setAccessory(imagePreview);
-
-                        // Cập nhật thumbnail mỗi khi chọn file mới
-                        chooser.addPropertyChangeListener(evt -> {
-                            if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(evt.getPropertyName())) {
-                                File selectedFile = (File) evt.getNewValue();
-                                if (selectedFile != null && selectedFile.exists() && selectedFile.getName().toLowerCase().endsWith(".png")) {
-                                    ImageIcon icon = new ImageIcon(selectedFile.getAbsolutePath());
-                                    Image scaled = icon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH);
-                                    imagePreview.setIcon(new ImageIcon(scaled));
-                                } else {
-                                    imagePreview.setIcon(null);
-                                }
-                            }
-                        });
-
-                        int result = chooser.showOpenDialog(null);
-                        if (result == JFileChooser.APPROVE_OPTION) {
-                            File file = chooser.getSelectedFile();
-                            String fullPath = file.getAbsolutePath();
-                            String basePath = rootDir.getAbsolutePath();
-
-                            // Cắt đường dẫn tương đối sau "src/main/resources/"
-                            String relativePath = fullPath.substring(basePath.length() + 1).replace("\\", "/");
-
-                            pathField.setText(relativePath);
-                            preview.setIcon(new ImageIcon(file.getAbsolutePath()));
-                        }
-                    });
-
-                    panel.add(pathField, BorderLayout.CENTER);
-                    panel.add(btn, BorderLayout.EAST);
-                    panel.add(preview, BorderLayout.SOUTH);
-                    inputFields.put(column, pathField);
-                    input = panel;
-                }
-            }
-            // ITEMINSTANCE
-            else if (tableName.equalsIgnoreCase("iteminstance")) {
-                if (column.equalsIgnoreCase("itemId")) {
-                    DefaultComboBoxModel<ComboItem> model = new DefaultComboBoxModel<>();
-                    for (var entry : itemNameCache.entrySet()) {
-                        model.addElement(new ComboItem(entry.getKey(), entry.getValue()));
-                    }
-                    JComboBox<ComboItem> combo = new JComboBox<>(model);
-                    input = combo;
-                }
-            }
-            // SKILL
-            else if (tableName.equalsIgnoreCase("skill")) {
-                if (column.equalsIgnoreCase("icon")) {
-                    JPanel panel = new JPanel(new BorderLayout());
-                    JTextField pathField = new JTextField();
-                    JButton btn = new JButton("Chọn ảnh");
-                    JLabel preview = new JLabel();
-                    btn.addActionListener(e -> {
-                        JFileChooser chooser = new JFileChooser("assets/Icon");
-                        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("PNG Images", "png"));
-                        int result = chooser.showOpenDialog(this);
-                        if (result == JFileChooser.APPROVE_OPTION) {
-                            java.io.File file = chooser.getSelectedFile();
-                            String relativePath = "assets/Icon/" + file.getName();
-                            pathField.setText(relativePath);
-                            preview.setIcon(new ImageIcon(file.getAbsolutePath()));
-                        }
-                    });
-                    panel.add(pathField, BorderLayout.CENTER);
-                    panel.add(btn, BorderLayout.EAST);
-                    panel.add(preview, BorderLayout.SOUTH);
-                    input = panel;
-                }
-            }
-            // SKILLUPDATE
-            else if (tableName.equalsIgnoreCase("skillupdate")) {
-                if (column.equalsIgnoreCase("skillId")) {
-                    DefaultComboBoxModel<ComboItem> model = new DefaultComboBoxModel<>();
-                    for (var entry : skillNameCache.entrySet()) {
-                        model.addElement(new ComboItem(entry.getKey(), entry.getValue()));
-                    }
-                    JComboBox<ComboItem> combo = new JComboBox<>(model);
-                    input = combo;
-                }
-            }
-
-            if (column.equalsIgnoreCase("id")) {
-                JTextField field = new JTextField();
-                field.setEditable(false);
-                field.setPreferredSize(new Dimension(200, 25));
-                input = field;
-            }
-
-            // Nếu chưa có input đặc biệt thì dùng mặc định
-            if (input == null) {
-                JTextField field = new JTextField();
-                field.setPreferredSize(new Dimension(200, 25));
-                input = field;
-            }
-
-            if (input instanceof JTextField || input instanceof JComboBox) {
-                inputFields.put(column, input);
-            }
-            inputPanel.add(input);
+        if (searchField instanceof PlaceholderTextField) {
+            ((PlaceholderTextField) searchField).setPlaceholder(getSearchPlaceholder(tableName));
+            searchField.repaint();
         }
 
-        inputPanel.revalidate();
-        inputPanel.repaint();
+        tableHelper.customizeTableDisplay(table, tableName);
+        tableHelper.setColumnDisplayNames(table, tableName);
+        InputFormBuilder.buildFormFromColumns(
+                inputPanel, inputFields, columnNames, tableName,
+                monsterNameCache, itemNameCache, skillNameCache, this, tableHelper.getDisplayNames());
+        tableSearchHelper.setTableName(tableName);
     }
 
-    private String[] getEnemyFolderNames() {
+    public String[] getEnemyFolderNames() {
         try {
             java.net.URL url = getClass().getClassLoader().getResource("assets/Enemy");
             if (url != null && url.getProtocol().equals("file")) {
@@ -409,6 +266,31 @@ public class LayoutManager extends JFrame {
                     if (input instanceof JTextField) {
                         JTextField field = (JTextField) input;
                         field.setText(value != null ? value.toString() : "");
+                        // Nếu là trường ảnh, cập nhật preview
+                        if (columnName.equalsIgnoreCase("icon") || columnName.equalsIgnoreCase("background")
+                                || columnName.equalsIgnoreCase("preview")
+                                || columnName.equalsIgnoreCase("collisionlayer")) {
+                            // Tìm panel cha chứa preview
+                            Container parent = field.getParent();
+                            for (Component comp : parent.getComponents()) {
+                                if (comp instanceof JLabel) {
+                                    JLabel preview = (JLabel) comp;
+                                    String path = field.getText();
+                                    if (path != null && !path.isEmpty()) {
+                                        java.net.URL imgUrl = getClass().getClassLoader().getResource(path);
+                                        if (imgUrl != null) {
+                                            ImageIcon icon = new ImageIcon(imgUrl);
+                                            Image img = icon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+                                            preview.setIcon(new ImageIcon(img));
+                                        } else {
+                                            preview.setIcon(null);
+                                        }
+                                    } else {
+                                        preview.setIcon(null);
+                                    }
+                                }
+                            }
+                        }
                     } else if (input instanceof JComboBox) {
                         JComboBox<?> combo = (JComboBox<?>) input;
                         if (combo.getItemCount() > 0) {
@@ -434,246 +316,7 @@ public class LayoutManager extends JFrame {
         });
     }
 
-    // region Thêm
-    private void addData(JButton btnThem, JTree tree) {
-        btnThem.addActionListener(e -> {
-            try {
-                DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-                if (selectedNode == null || selectedNode.isRoot()) {
-                    JOptionPane.showMessageDialog(this, "Vui lòng chọn bảng dữ liệu trên cây.");
-                    return;
-                }
-
-                String tableName = selectedNode.toString();
-
-                java.util.Map<String, Object> data = new java.util.HashMap<>();
-                for (var entry : inputFields.entrySet()) {
-                    String key = entry.getKey();
-                    JComponent comp = entry.getValue();
-                    if (comp instanceof JTextField) {
-                        data.put(key, ((JTextField) comp).getText());
-                    } else if (comp instanceof JComboBox) {
-                        Object selected = ((JComboBox<?>) comp).getSelectedItem();
-                        if (selected instanceof ComboItem) {
-                            data.put(key, ((ComboItem) selected).getId());
-                        } else {
-                            data.put(key, selected);
-                        }
-                    }
-                }
-
-                data.remove("id");
-
-                ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writeValueAsString(data);
-
-                String url = "http://localhost:8080/api/" + tableName + "/";
-
-                HttpClient client = HttpClient.newHttpClient();
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(url))
-                        .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(json))
-                        .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response.statusCode() == 200) {
-                    JOptionPane.showMessageDialog(this, "Thêm mới thành công!");
-                    if (selectedNode != null) {
-                        TreePath path = new TreePath(selectedNode.getPath());
-                        tree.setSelectionPath(null);
-                        tree.setSelectionPath(path);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Lỗi khi thêm mới: " + response.body());
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Lỗi khi gửi dữ liệu: " + ex.getMessage());
-            }
-        });
-    }
-
-    // region Sửa
-    private void updateData(JButton btnUpdate, JTree tree) {
-        btnUpdate.addActionListener(e -> {
-            try {
-                DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-                if (selectedNode == null || selectedNode.isRoot()) {
-                    JOptionPane.showMessageDialog(this, "Vui lòng chọn bảng dữ liệu trên cây.");
-                    return;
-                }
-
-                String tableName = selectedNode.toString();
-
-                Object idValue = null;
-                if (inputFields.containsKey("id")) {
-                    JComponent idComp = inputFields.get("id");
-                    if (idComp instanceof JTextField) {
-                        idValue = ((JTextField) idComp).getText();
-                    } else if (idComp instanceof JComboBox) {
-                        idValue = ((JComboBox<?>) idComp).getSelectedItem();
-                    }
-                    if (idValue == null || idValue.toString().isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Vui lòng chọn bản ghi để cập nhật.");
-                        return;
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Không tìm thấy trường id.");
-                    return;
-                }
-
-                java.util.Map<String, Object> data = new java.util.HashMap<>();
-                for (var entry : inputFields.entrySet()) {
-                    String key = entry.getKey();
-                    JComponent comp = entry.getValue();
-                    if (comp instanceof JTextField) {
-                        data.put(key, ((JTextField) comp).getText());
-                    } else if (comp instanceof JComboBox) {
-                        Object selected = ((JComboBox<?>) comp).getSelectedItem();
-                        if (selected instanceof ComboItem) {
-                            data.put(key, ((ComboItem) selected).getId());
-                        } else {
-                            data.put(key, selected);
-                        }
-                    }
-                }
-
-                ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writeValueAsString(data);
-
-                String url = "http://localhost:8080/api/" + tableName + "/" + idValue;
-
-                HttpClient client = HttpClient.newHttpClient();
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(url))
-                        .header("Content-Type", "application/json")
-                        .PUT(HttpRequest.BodyPublishers.ofString(json))
-                        .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response.statusCode() == 200) {
-                    JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
-
-                    if (selectedNode != null) {
-                        TreePath path = new TreePath(selectedNode.getPath());
-                        tree.setSelectionPath(null);
-                        tree.setSelectionPath(path);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Lỗi khi cập nhật: " + response.body());
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Lỗi khi gửi dữ liệu: " + ex.getMessage());
-            }
-        });
-    }
-
-    // region Xóa
-    private void deleteData(JButton btnDelete, JTree tree) {
-        btnDelete.addActionListener(e -> {
-            try {
-                DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-                if (selectedNode == null || selectedNode.isRoot()) {
-                    JOptionPane.showMessageDialog(this, "Vui lòng chọn bảng dữ liệu trên cây.");
-                    return;
-                }
-
-                String tableName = selectedNode.toString();
-
-                Object idValue = null;
-                if (inputFields.containsKey("id")) {
-                    JComponent idComp = inputFields.get("id");
-                    if (idComp instanceof JTextField) {
-                        idValue = ((JTextField) idComp).getText();
-                    } else if (idComp instanceof JComboBox) {
-                        idValue = ((JComboBox<?>) idComp).getSelectedItem();
-                    }
-                    if (idValue == null || idValue.toString().isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Vui lòng chọn bản ghi để xoá.");
-                        return;
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Không tìm thấy trường id.");
-                    return;
-                }
-
-                int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xoá bản ghi này không?",
-                        "Xác nhận xoá", JOptionPane.YES_NO_OPTION);
-                if (confirm != JOptionPane.YES_OPTION) {
-                    return;
-                }
-
-                String url = "http://localhost:8080/api/" + tableName + "/" + idValue;
-
-                HttpClient client = HttpClient.newHttpClient();
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(url))
-                        .DELETE()
-                        .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response.statusCode() == 200) {
-                    JOptionPane.showMessageDialog(this, "Xoá thành công!");
-
-                    if (selectedNode != null) {
-                        TreePath path = new TreePath(selectedNode.getPath());
-                        tree.setSelectionPath(null);
-                        tree.setSelectionPath(path);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Lỗi khi xoá: " + response.body());
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Lỗi khi gửi dữ liệu: " + ex.getMessage());
-            }
-        });
-    }
-
-    private String selectImageFromResource(String resourceFolder) {
-        JDialog dialog = new JDialog(this, "Chọn ảnh", true);
-        JPanel panel = new JPanel(new FlowLayout());
-        JScrollPane scroll = new JScrollPane(panel);
-        scroll.setPreferredSize(new Dimension(400, 300));
-
-        java.net.URL url = getClass().getClassLoader().getResource(resourceFolder);
-        if (url != null && url.getProtocol().equals("file")) {
-            java.io.File dir = new java.io.File(url.getPath());
-            String[] files = dir.list((d, name) -> name.endsWith(".png") || name.endsWith(".jpg"));
-            if (files != null) {
-                for (String file : files) {
-                    java.net.URL imgUrl = getClass().getClassLoader().getResource(resourceFolder + "/" + file);
-                    if (imgUrl != null) {
-                        ImageIcon icon = new ImageIcon(imgUrl);
-                        Image img = icon.getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH);
-                        JLabel label = new JLabel(new ImageIcon(img));
-                        label.setToolTipText(file);
-                        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                        label.addMouseListener(new java.awt.event.MouseAdapter() {
-                            public void mouseClicked(java.awt.event.MouseEvent e) {
-                                dialog.setTitle(file); // dùng title để trả về tên file
-                                dialog.dispose();
-                            }
-                        });
-                        panel.add(label);
-                    }
-                }
-            }
-        }
-        dialog.add(scroll);
-        dialog.pack();
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-        String selected = dialog.getTitle();
-        return (selected != null && !selected.equals("Chọn ảnh")) ? selected : null;
-    }
-
-    private static class ComboItem {
+    public static class ComboItem {
         private final Object id;
         private final String name;
 
@@ -692,7 +335,107 @@ public class LayoutManager extends JFrame {
         }
     }
 
+    public class RoundedButton extends JButton {
+        private final int radius;
+
+        public RoundedButton(String text, int radius) {
+            super(text);
+            this.radius = radius;
+            setFocusPainted(false);
+            setContentAreaFilled(false);
+            setOpaque(false);
+            setFont(getFont().deriveFont(Font.BOLD, 12f));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getModel().isArmed() ? getBackground().darker() : getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
+            super.paintComponent(g);
+            g2.dispose();
+        }
+
+        @Override
+        public void updateUI() {
+            super.updateUI();
+            setOpaque(false);
+        }
+    }
+
+    public class PlaceholderTextField extends JTextField {
+        private String placeholder;
+
+        public PlaceholderTextField(String placeholder) {
+            this.placeholder = placeholder;
+        }
+
+        public void setPlaceholder(String placeholder) {
+            this.placeholder = placeholder;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (getText().isEmpty() && !isFocusOwner() && placeholder != null) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setFont(getFont().deriveFont(Font.ITALIC));
+                g2.setColor(Color.GRAY);
+                Insets insets = getInsets();
+                g2.drawString(placeholder, insets.left + 4, getHeight() / 2 + getFont().getSize() / 2 - 2);
+                g2.dispose();
+            }
+        }
+    }
+
+    public class TableTreeNode extends DefaultMutableTreeNode {
+        private final String displayName;
+        private final String tableName;
+
+        public TableTreeNode(String displayName, String tableName) {
+            super(displayName); // Hiển thị trên tree
+            this.displayName = displayName;
+            this.tableName = tableName;
+        }
+
+        public String getTableName() {
+            return tableName;
+        }
+    }
+
+    private String getSearchPlaceholder(String tableName) {
+        switch (tableName.toLowerCase()) {
+            case "users":
+                return "Tìm kiếm theo tên người dùng, email...";
+            case "characters":
+                return "Tìm kiếm theo tên nhân vật, lớp nhân vật...";    
+            case "item":
+                return "Tìm kiếm theo tên hoặc loại vật phẩm...";
+            case "monster":
+                return "Tìm kiếm theo tên quái, hành vi...";
+            case "map":
+                return "Tìm kiếm theo tên bản đồ, level...";
+            case "skill":
+                return "Tìm kiếm theo tên kỹ năng, lớp nhân vật...";
+            case "monsterdrop":
+                return "Tìm kiếm theo tên quái, tên vật phẩm...";
+            case "iteminstance":
+                return "Tìm kiếm theo tên vật phẩm...";
+            case "skillupdate":
+                return "Tìm kiếm theo tên kỹ năng...";
+            default:
+                return "Tìm kiếm...";
+        }
+    }
+
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatIntelliJLaf());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         SwingUtilities.invokeLater(() -> new LayoutManager().setVisible(true));
     }
 }

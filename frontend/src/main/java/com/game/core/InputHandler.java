@@ -22,6 +22,15 @@ public class InputHandler extends MouseAdapter implements KeyListener {
     public void mouseClicked(MouseEvent e) {
         Point click = e.getPoint();
 
+        int camX = gamePanel.getRenderer().getCamX();
+        int camY = gamePanel.getRenderer().getCamY();
+        double scale = 1.8;
+
+        int mapX = (int) (click.x / scale) + camX;
+        int mapY = (int) (click.y / scale) + camY;
+
+        System.out.println("Map click at: (" + mapX + ", " + mapY + ")");
+
         if (gamePanel.getNormalAttackBounds().contains(click)) {
             handleNormalAttack();
         }
@@ -37,6 +46,9 @@ public class InputHandler extends MouseAdapter implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (GamePanel.getInstance().isPaused()) {
+            return; // Không xử lý phím/mouse khi đang pause
+        }
         int key = e.getKeyCode();
         if (key == KeyBindingConfig.getKey("Attack")) {
             handleNormalAttack();
@@ -63,6 +75,9 @@ public class InputHandler extends MouseAdapter implements KeyListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
+        if (GamePanel.getInstance().isPaused()) {
+            return; // Không xử lý phím/mouse khi đang pause
+        }
         gamePanel.getPlayer().setDirection(e.getKeyCode(), false);
     }
 

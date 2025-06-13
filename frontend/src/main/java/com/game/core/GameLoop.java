@@ -8,6 +8,10 @@ public class GameLoop implements Runnable {
     private Thread gameThread;
     private GamePanel gamePanel;
     private MusicPlayer musicPlayer;
+
+    private int fps = 0;
+    private int frames = 0;
+    private long lastFpsTime = System.currentTimeMillis();
     
     public GameLoop(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
@@ -42,6 +46,15 @@ public class GameLoop implements Runnable {
         while (isRunning) {
             gamePanel.update();
             gamePanel.repaint();
+
+            frames++;
+            long now = System.currentTimeMillis();
+            if (now - lastFpsTime >= 1000) {
+                fps = frames;
+                frames = 0;
+                lastFpsTime = now;
+            }
+            
             try {
                 Thread.sleep(16);
             } catch (InterruptedException e) {
@@ -54,4 +67,6 @@ public class GameLoop implements Runnable {
     public MusicPlayer getMusicPlayer() {
         return musicPlayer;
     }
+
+    public int getFps() { return fps; }
 }

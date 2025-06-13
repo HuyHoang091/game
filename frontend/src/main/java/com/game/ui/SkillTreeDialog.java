@@ -14,9 +14,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.json.JSONObject;
+import org.w3c.dom.events.MouseEvent;
+
 import java.util.ArrayList;
 import javax.swing.border.EmptyBorder;
-import java.awt.Insets;
 
 public class SkillTreeDialog extends JDialog {
     private static final int DIALOG_WIDTH = 800;
@@ -96,6 +97,7 @@ public class SkillTreeDialog extends JDialog {
         closeButton.setBounds(DIALOG_WIDTH - 30, 0, 30, 30);
         styleCloseButton(closeButton);
         closeButton.addActionListener(e -> {
+            GamePanel.getInstance().setPaused(false);
             setVisible(false);
             dispose();
         });

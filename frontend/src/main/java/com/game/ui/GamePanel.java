@@ -63,8 +63,8 @@ public class GamePanel extends JPanel {
     private static final int INTERACTION_RANGE = 100;
     
     // Add portal position
-    private int portalX = 300; // Set your desired X position
-    private int portalY = 250; // Set your desired Y position
+    private int portalX = 740; // Set your desired X position
+    private int portalY = 760; // Set your desired Y position
     private boolean isBossRoom = false;
     private boolean gameEnding = false;
     private boolean Loss = false;
@@ -77,6 +77,8 @@ public class GamePanel extends JPanel {
 
     Enemy nearestEnemy = null;
     double nearestDistance = Double.MAX_VALUE;
+
+    private boolean paused = false;
 
     // Constructor và khởi tạo
     public GamePanel(GameWindow gameWindow) {
@@ -359,6 +361,8 @@ public class GamePanel extends JPanel {
     // region Quản lý game loop
     
     public void update() {
+        if (paused) return;
+        
         if (player != null) {
             player.update();
     
@@ -537,8 +541,16 @@ public class GamePanel extends JPanel {
         return nearestEnemy;
     }
 
-    // public GameRenderer getGameRenderer() {
-    //     return renderer;
-    // }
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public GameRenderer getRenderer() {
+        return renderer;
+    }
     // endregion
 }

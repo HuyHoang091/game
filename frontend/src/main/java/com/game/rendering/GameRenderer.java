@@ -2,6 +2,8 @@ package com.game.rendering;
 
 import java.awt.*;
 import java.awt.geom.Arc2D;
+import java.awt.image.BufferedImage;
+
 import com.game.*;
 import com.game.ui.GamePanel;
 import com.game.data.GameData;
@@ -32,6 +34,13 @@ public class GameRenderer {
             renderSkillButtons(g2d);
             renderHealthEnemy(g2d);
         }
+        g2d.setFont(new Font("Arial", Font.BOLD, 16));
+        g2d.setColor(Color.YELLOW);
+        String fpsText = "FPS: " + gamePanel.getInstance().getGameLoop().getFps();
+        FontMetrics fm = g2d.getFontMetrics();
+        int x = gamePanel.getWidth() - fm.stringWidth(fpsText) - 16;
+        int y = 22;
+        g2d.drawString(fpsText, x, y);
     }
 
     private void renderGameWorld(Graphics2D g2d) {
@@ -44,7 +53,11 @@ public class GameRenderer {
         camY = Math.max(0, Math.min(camY, gamePanel.getMapImage().getHeight() - (int)(gamePanel.getHeight()/SCALE)));
 
         // Draw map
-        g2d.drawImage(gamePanel.getMapImage(), -camX, -camY, null);
+        BufferedImage mapImg = gamePanel.getMapImage();
+        int viewW = (int)(gamePanel.getWidth()/SCALE);
+        int viewH = (int)(gamePanel.getHeight()/SCALE);
+        BufferedImage subMap = mapImg.getSubimage(camX, camY, viewW, viewH);
+        g2d.drawImage(subMap, 0, 0, viewW, viewH, null);
 
         // Draw portal if not in boss room
         if (!gamePanel.isBossRoom()) {
@@ -54,14 +67,16 @@ public class GameRenderer {
         // Draw entities
         player.draw(g2d, camX, camY);
         for (Enemy enemy : gamePanel.getEnemies()) {
-            enemy.draw(g2d, camX, camY);
+            if (enemy.isInView(camX, camY, viewW, viewH)) {
+                enemy.draw(g2d, camX, camY);
+            }
         }
 
         // Draw dropped items
         try {
             if (GameData.droppedItems != null) {
                 for (DroppedItem item : GameData.droppedItems) {
-                    if (item != null) {
+                    if (item != null && item.isInView(camX, camY, viewW, viewH)) {
                         item.draw(g2d, camX, camY);
                     }
                 }
@@ -324,5 +339,12 @@ public class GameRenderer {
             int textY = screenY + ((barHeight - fm.getHeight()) / 2) + fm.getAscent();
             g.drawString(hpText, textX, textY);
         }
+    }
+
+    public int getCamX() {
+        return camX;
+    }
+    public int getCamY() {
+        return camY;
     }
 }

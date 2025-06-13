@@ -28,6 +28,7 @@ com\game\ui\MapSelectScreen$6.class
 com\game\ui\MapSelectScreen$3.class
 com\game\demo\InputFormBuilder$3.class
 com\game\ui\SignUpPanel$2.class
+com\game\ui\InventoryPanel$3.class
 com\game\ui\MapSelectScreen$1.class
 com\game\demo\TableDisplayHelper$EnemyReviewRenderer.class
 com\game\demo\TableSearchHelper.class
@@ -58,15 +59,19 @@ com\game\ui\MapSelectScreen.class
 com\game\demo\TableDisplayHelper$NameLookupRenderer.class
 com\game\demo\TableDisplayHelper.class
 com\game\ui\ResetPassPanel$CyberBorder.class
+com\game\ui\SettingsPanel$5.class
 com\game\ui\SignUpPanel$3.class
 com\game\ui\ResetPassPanel.class
 com\game\Item.class
 com\game\movement\PlayerMovement.class
+com\game\ui\InventoryPanel$EquipmentSlot.class
 com\game\model\GameCharacterSkill.class
 com\game\GameWindow.class
+com\game\ui\InventoryPanel$1.class
 com\game\ui\SettingsPanel$CustomJButton.class
 com\game\ui\CharacterGalleryPanel$1.class
 com\game\model\GameMap.class
+com\game\ui\InventoryPanel$2.class
 com\game\core\GameLoop.class
 com\game\ui\MapSelectScreen$4.class
 com\game\model\GameUser.class

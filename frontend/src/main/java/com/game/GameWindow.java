@@ -3,6 +3,7 @@ package com.game;
 import javax.swing.*;
 import java.awt.*;
 import com.game.MapData;
+import com.game.data.GameData;
 import com.game.ui.*;
 import com.game.resource.*;
 
@@ -63,8 +64,11 @@ public class GameWindow extends JFrame {
         // Gỡ mapSelectScreen khỏi contentPane
         contentPane.remove(mapSelectScreen);
 
-        // Null để GC dễ dọn dẹp
-        mapSelectScreen = null;
+        // Giải phóng tài nguyên
+        if (mapSelectScreen != null) {
+            mapSelectScreen.dispose();
+            mapSelectScreen = null;
+        }
 
         // Gợi ý GC
         System.gc();
@@ -89,6 +93,10 @@ public class GameWindow extends JFrame {
     public void showSettings(String fromScreen) {
         previousScreen = fromScreen;
         cardLayout.show(contentPane, "Settings");
+        new javax.swing.Timer(200, e -> {
+            settingsPanel.registerEscAction();
+            ((javax.swing.Timer) e.getSource()).stop();
+        }).start();
     }
 
     public void showInventory(String fromScreen) {
@@ -101,8 +109,13 @@ public class GameWindow extends JFrame {
     public void goBack() {
         cardLayout.show(contentPane, previousScreen);
         if(previousScreen.equals("Game")) {
-            gamePanel.requestFocus();
+            GamePanel.getInstance().setPaused(false);
+            new javax.swing.Timer(200, e -> {
+                gamePanel.requestFocus();
+                ((javax.swing.Timer) e.getSource()).stop();
+            }).start();
             // gamePanel.startGameThread();
+            settingsPanel.removeEscAction();
         }
     }
 
@@ -125,6 +138,8 @@ public class GameWindow extends JFrame {
         reloadMapSelectScreen();
 
         System.gc(); // Gợi ý GC
+        settingsPanel.removeEscAction();
+        GameData.droppedItems.clear(); // Xóa danh sách item rơi
     }
 
     public void toggleFullScreen() {

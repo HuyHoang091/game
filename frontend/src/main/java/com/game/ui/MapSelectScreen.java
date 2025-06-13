@@ -317,6 +317,8 @@ public class MapSelectScreen extends JPanel {
         mapPanel.putClientProperty("mapLevel", level);
         mapPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
+        mapPanel.putClientProperty("glowTimer", glowTimer);
+
         // Map preview with custom frame
         try {
             BufferedImage preview = ImageIO.read(getClass().getClassLoader().getResource(previewPath));
@@ -578,5 +580,23 @@ public class MapSelectScreen extends JPanel {
         // Add dark overlay
         g2d.setColor(new Color(0, 0, 0, 180));
         g2d.fillRect(0, 0, getWidth(), getHeight());
+    }
+
+    public void dispose() {
+        if (glowTimer != null) {
+            glowTimer.stop();
+            glowTimer = null;
+        }
+        // Dừng timer trong từng mapPanel
+        if (mapGrid != null) {
+            for (Component comp : mapGrid.getComponents()) {
+                if (comp instanceof JPanel) {
+                    JPanel panel = (JPanel) comp;
+                    Timer t = (Timer) panel.getClientProperty("glowTimer");
+                    if (t != null) t.stop();
+                }
+            }
+        }
+        backgroundImage = null;
     }
 }

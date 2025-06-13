@@ -22,24 +22,24 @@ public class GameDataUploader {
     public static void startAutoUpload() {
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                // 1. Gửi character
-                if (GameData.character != null && !GameData.character.isEmpty())
-                    sendJson("http://localhost:8080/api/characters/batch", GameData.character);
+                // // 1. Gửi character
+                // if (GameData.character != null && !GameData.character.isEmpty())
+                //     sendJson("http://localhost:8080/api/characters/batch", GameData.character);
 
-                // 2. Gửi characterSkills
-                if (GameData.characterSkills != null && !GameData.characterSkills.isEmpty())
-                    sendJson("http://localhost:8080/api/character_skills/batch", GameData.characterSkills);
+                // // 2. Gửi characterSkills
+                // if (GameData.characterSkills != null && !GameData.characterSkills.isEmpty())
+                //     sendJson("http://localhost:8080/api/character_skills/batch", GameData.characterSkills);
 
-                // 3. Gửi inventory
-                if (GameData.inventory != null && !GameData.inventory.isEmpty())
-                    sendJson("http://localhost:8080/api/inventory/batch", GameData.inventory);
+                // // 3. Gửi inventory
+                // if (GameData.inventory != null && !GameData.inventory.isEmpty())
+                //     sendJson("http://localhost:8080/api/inventory/batch", GameData.inventory);
 
-                // 4. Gửi itemInstance
-                if (!GameData.itemInstance.isEmpty())
-                    sendJson("http://localhost:8080/api/iteminstance/batch", GameData.itemInstance);
+                // // 4. Gửi itemInstance
+                // if (!GameData.itemInstance.isEmpty())
+                //     sendJson("http://localhost:8080/api/iteminstance/batch", GameData.itemInstance);
 
-                if (GameData.user != null)
-                    sendJson("http://localhost:8080/api/users/" + GameData.user.getId(), GameData.user);
+                // if (GameData.user != null)
+                //     sendJson("http://localhost:8080/api/users/" + GameData.user.getId(), GameData.user);
                 
             } catch (Exception e) {
                 System.err.println("Error uploading game data: " + e.getMessage());

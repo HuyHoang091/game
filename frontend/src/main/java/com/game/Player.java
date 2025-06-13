@@ -13,6 +13,8 @@ import com.game.core.KeyBindingConfig;
 import com.game.data.GameData;
 import com.game.model.*;
 import java.util.List;
+
+import com.game.ui.GamePanel;
 import com.game.ui.SkillTreeDialog;
 import javax.swing.*;
 import com.game.stats.*;
@@ -368,12 +370,15 @@ public class Player extends JComponent {
             movement.setSpeed(pressed ? 4 : 3);
         }
         if (keyCode == KeyBindingConfig.getKey("Open Setting")) {
+            GamePanel.getInstance().setPaused(true);
             gameWindow.getInstance().showSettings("Game");  
         }
         if (keyCode == KeyBindingConfig.getKey("Open Inventory")) {
+            GamePanel.getInstance().setPaused(true);
             gameWindow.getInstance().showInventory("Game");  
         }
         if (keyCode == KeyBindingConfig.getKey("Open Skill Tree")) {
+            GamePanel.getInstance().setPaused(true);
             SkillTreeDialog dialog = new SkillTreeDialog(
                 (JFrame) SwingUtilities.getWindowAncestor(this),
                 characterId

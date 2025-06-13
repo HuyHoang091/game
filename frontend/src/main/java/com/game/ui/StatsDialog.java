@@ -19,13 +19,15 @@ public class StatsDialog extends JDialog {
     private JButton equipButton;
     private GameInventory currentInventory;
     GamePanel gamePanel;
+    private InventoryPanel inventoryPanel;
     
-    public StatsDialog(JFrame parent, GameItemInstance instance, GameItem item, String type) {
+    public StatsDialog(JFrame parent, InventoryPanel iPanel, GameItemInstance instance, GameItem item, String type) {
         super(parent, "Item Stats", true);
         initializeDialog(parent);
         setupMainPanel();
         setupCloseButton();
         setupContentPanel();
+        this.inventoryPanel = iPanel;
         
         // Hiển thị thông tin item
         displayItemInfo(item, instance);
@@ -217,6 +219,7 @@ public class StatsDialog extends JDialog {
             player.stats.ChiSoGocGL();    // Tính lại chỉ số gốc
             player.stats.ChiSoTB();     // Tính lại chỉ số từ trang bị
         }
+        inventoryPanel.updateInventory();
     }
     
     // Gỡ trang bị cùng loại

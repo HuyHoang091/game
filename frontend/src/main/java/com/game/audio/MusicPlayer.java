@@ -6,54 +6,76 @@ import java.io.IOException;
 import com.game.ui.*;
 
 public class MusicPlayer {
-    private Clip clip;
+    private volatile boolean playing = false;
+    private Thread musicThread;
+    private SourceDataLine line;
     private FloatControl volumeControl;
-    private SettingsPanel settingsPanel;
 
     public void playBackgroundMusic(String resourcePath) {
-        try {
-            URL url = getClass().getClassLoader().getResource(resourcePath);
-            if (url == null) {
-                System.err.println("Không tìm thấy file nhạc: " + resourcePath);
-                return;
+        stop(); // Dừng nhạc cũ nếu có
+        playing = true;
+        musicThread = new Thread(() -> {
+            while (playing) {
+                try {
+                    URL url = getClass().getClassLoader().getResource(resourcePath);
+                    if (url == null) {
+                        System.err.println("Không tìm thấy file nhạc: " + resourcePath);
+                        return;
+                    }
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(url);
+                    AudioFormat format = audioInput.getFormat();
+                    DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+                    line = (SourceDataLine) AudioSystem.getLine(info);
+                    line.open(format);
+                    // Lấy volume control nếu có
+                    if (line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                        volumeControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
+                    } else {
+                        volumeControl = null;
+                    }
+                    line.start();
+
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while (playing && (bytesRead = audioInput.read(buffer, 0, buffer.length)) != -1) {
+                        line.write(buffer, 0, bytesRead);
+                    }
+
+                    line.drain();
+                    line.stop();
+                    line.close();
+                    audioInput.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    break;
+                }
             }
-
-            AudioInputStream audioInput = AudioSystem.getAudioInputStream(url);
-            clip = AudioSystem.getClip();
-            clip.open(audioInput);
-
-            // Lấy volume control TRƯỚC khi sử dụng
-            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-
-                // Áp dụng âm lượng từ SettingsPanel nếu cần
-                float max = volumeControl.getMaximum(); // Thường là 6.0f
-                float minAudible = -20.0f; // Dưới mức này là tắt
-                float gain = minAudible + (max - minAudible) * settingsPanel.getInstance().getVolume();
-                volumeControl.setValue(gain);
-            } else {
-                System.err.println("Clip không hỗ trợ MASTER_GAIN");
-            }
-
-            clip.loop(Clip.LOOP_CONTINUOUSLY); // Lặp vô hạn
-            clip.start();
-        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-            e.printStackTrace();
-        }
+        });
+        musicThread.setDaemon(true);
+        musicThread.start();
     }
 
     public void stop() {
-        if (clip != null && clip.isRunning()) {
-            clip.stop();
-            clip.close();
+        playing = false;
+        if (musicThread != null && musicThread.isAlive()) {
+            try {
+                musicThread.join(100); // Đợi thread kết thúc
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        if (line != null && line.isOpen()) {
+            line.stop();
+            line.close();
         }
     }
 
     public void setVolume(float volume) {
+        // volume: 0.0f (min) -> 1.0f (max)
         if (volumeControl != null) {
-            float max = volumeControl.getMaximum(); // Thường là 6.0f
-            float minAudible = -20.0f; // Dưới mức này là tắt
-            float gain = minAudible + (max - minAudible) * volume;
+            float min = volumeControl.getMinimum();
+            float max = volumeControl.getMaximum();
+            float gain = min + (max - min) * volume;
             volumeControl.setValue(gain);
         }
     }

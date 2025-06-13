@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -274,8 +275,23 @@ public class SettingsPanel extends JPanel {
 
         // Tùy chỉnh thanh cuộn
         scrollPane.getVerticalScrollBar().setUI(new CustomScrollBarUI());
-        
+
         add(scrollPane, BorderLayout.CENTER);
+    }
+
+    public void registerEscAction() {
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "closeSettings");
+        getActionMap().put("closeSettings", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gameWindow.goBack();
+            }
+        });
+    }
+
+    public void removeEscAction() {
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(KeyStroke.getKeyStroke("ESCAPE"));
+        getActionMap().remove("closeSettings");
     }
 
     // --- Phương thức để áp dụng style chung cho các nút ---

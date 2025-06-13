@@ -74,4 +74,15 @@ public class DroppedItem {
     public int getY() { return y; }
     public boolean isPicked() { return picked; }
     public void setPicked(boolean picked) { this.picked = picked; }
+
+    public boolean isInView(int camX, int camY, int viewW, int viewH) {
+        int entityRight = this.getX() + 32;
+        int entityBottom = this.getY() + 32;
+        int viewRight = camX + viewW;
+        int viewBottom = camY + viewH;
+
+        // Kiểm tra xem entity có giao với vùng camera không
+        return !(entityRight < camX || this.getX() > viewRight ||
+                entityBottom < camY || this.getY() > viewBottom);
+    }
 }

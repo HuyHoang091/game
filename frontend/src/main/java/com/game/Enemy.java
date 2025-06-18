@@ -3,6 +3,7 @@ package com.game;
 import java.awt.Graphics;
 import java.awt.Color;
 import com.game.*;
+import com.game.audio.SoundEffectPlayer;
 import com.game.data.GameData;
 import com.game.model.*;
 
@@ -91,6 +92,8 @@ public class Enemy {
 
     GamePanel gamePanel;
     private boolean trieuhoi;
+
+    private boolean ismusicAttack = false;
 
     public Enemy(int x, int y, int width, int height, Long health, Long monsterId,
                 BufferedImage[] up, BufferedImage[] down, 
@@ -194,6 +197,11 @@ public class Enemy {
         }
         // Xử lý animation tấn công
         if (isAttacking && !isDying && !isUsingTargetSkill) {
+            if (!ismusicAttack) {
+                SoundEffectPlayer soundEffectPlayer = new SoundEffectPlayer();
+                soundEffectPlayer.playSound("assets/monster_attack.wav");
+                ismusicAttack = true;
+            }
             // animate(attackFrames);
             if(direction.equals("right")){
                 animate(attackFramesR);
@@ -222,6 +230,7 @@ public class Enemy {
                 isAttackAnimationComplete = false;
                 frameIndex = 0;
                 attackArea = null;
+                ismusicAttack = false;
             }
         } else if (isUsingBuffSkill && !isDying && !isUsingTargetSkill) {
             animate(buffSkill);
@@ -466,8 +475,8 @@ public class Enemy {
                       attackArea.width, attackArea.height);
         }
 
-        g.setColor(new Color(0, 255, 0, 100));
-        g.fillRect(x - camX, y - camY, 50, 70/3);
+        // g.setColor(new Color(0, 255, 0, 100));
+        // g.fillRect(x - camX, y - camY, 50, 70/3);
 
         drawCollisionBox(g2d, x - camX, y - camY);
 

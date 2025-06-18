@@ -321,7 +321,7 @@ public class MapSelectScreen extends JPanel {
 
         // Map preview with custom frame
         try {
-            BufferedImage preview = ImageIO.read(getClass().getClassLoader().getResource(previewPath));
+            BufferedImage preview = MapPreviewManager.getMapPreview(previewPath);
             JLabel imageLabel = new JLabel(new ImageIcon(preview.getScaledInstance(200, 150, Image.SCALE_SMOOTH))) {
                 @Override
                 protected void paintComponent(Graphics g) {

@@ -126,8 +126,10 @@ public class GameWindow extends JFrame {
         contentPane.remove(gamePanel);
 
         // Null để GC dễ dọn dẹp
+        gamePanel.currentInstance = null;
         gamePanel = null;
         resourceManager.clearAnimationCache();
+        MapPreviewManager.previewCache.clear();
 
         // Tạo lại nếu cần chơi lại
         gamePanel = new GamePanel(this);
@@ -172,5 +174,14 @@ public class GameWindow extends JFrame {
 
     public int getLevel() {
         return level;
+    }
+
+    public void Logout() {
+        mainMenu = null;
+        mapSelectScreen = null;
+        gamePanel = null;
+        settingsPanel = null;
+        inventoryPanel = null;
+        cardLayout = null;
     }
 }

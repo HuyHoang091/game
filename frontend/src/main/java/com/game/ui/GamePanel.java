@@ -49,7 +49,7 @@ public class GamePanel extends JPanel {
     private BufferedImage[] up, down, left, right, skillEffectFramesL, skillEffectFramesR, idle, die;
     
     // Quản lý game thread
-    private static GamePanel currentInstance;
+    public static GamePanel currentInstance;
 
     // Cooldown management
     private long lastNormalAttackTime = 0;

@@ -30,6 +30,18 @@ public class MusicPlayer {
                     // Lấy volume control nếu có
                     if (line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                         volumeControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
+                        float min = volumeControl.getMinimum();
+                        float max = volumeControl.getMaximum();
+                        float volume = SettingsPanel.getInstance().getVolume(); // 0.0f - 1.0f
+                        float gain;
+                        if (volume == 0f) {
+                            gain = min;
+                        } else {
+                            gain = (float) (Math.log10(volume) * 20.0);
+                            if (gain < min) gain = min;
+                            if (gain > max) gain = max;
+                        }
+                        volumeControl.setValue(gain);
                     } else {
                         volumeControl = null;
                     }

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 public class MapPreviewManager {
-    private static final Map<String, WeakReference<BufferedImage>> previewCache = new HashMap<>();
+    public static final Map<String, WeakReference<BufferedImage>> previewCache = new HashMap<>();
     private static final int PREVIEW_WIDTH = 200;
     private static final int PREVIEW_HEIGHT = 150;
 

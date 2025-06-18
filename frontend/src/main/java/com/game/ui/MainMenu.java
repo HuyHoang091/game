@@ -7,9 +7,16 @@ import java.io.File;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
+import com.game.AccessFrame;
 import com.game.GameDataUploader;
 import com.game.GameWindow;
+import com.game.core.KeyBindingConfig;
+import com.game.data.GameData;
+import com.game.resource.MapPreviewManager;
+import com.game.resource.ResourceManager;
+
 import java.lang.reflect.Field;
+import java.util.Set;
 
 public class MainMenu extends JPanel {
     private BufferedImage backgroundImage;
@@ -63,9 +70,18 @@ public class MainMenu extends JPanel {
         settingsButton.addActionListener(e -> {
             gameWindow.showSettings("Menu");
         });
-        exitButton = createStyledButton("EXIT", buttonFont, buttonSize);
+        exitButton = createStyledButton("LOG OUT", buttonFont, buttonSize);
         exitButton.addActionListener(e -> {
-            System.exit(0);
+            GameWindow.getInstance().Logout();
+            GameData.clear();
+            MapPreviewManager.previewCache.clear();
+            ResourceManager.clearAnimationCache();
+            GamePanel.currentInstance = null;
+            SettingsPanel.instance = null;
+            System.gc();
+            AccessFrame loginFrame = new AccessFrame();
+            loginFrame.setVisible(true);
+            GameWindow.getInstance().dispose();
         });
         
         // Center buttons horizontally

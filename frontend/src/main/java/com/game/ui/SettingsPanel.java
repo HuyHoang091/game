@@ -14,6 +14,7 @@ import java.util.Map;
 // import com.game.resources.GameIcons; // Ví dụ: Lớp chứa các biểu tượng game
 
 import com.game.GameWindow;
+import com.game.audio.SoundEffectPlayer;
 import com.game.core.GameLoop;
 import com.game.core.KeyBindingConfig;
 
@@ -23,7 +24,7 @@ public class SettingsPanel extends JPanel {
     private JComboBox<String> resolutionCombo;
     private JCheckBox fullscreenCheck;
     private float volume;
-    private static SettingsPanel instance;
+    public static SettingsPanel instance;
 
     // Các màu sắc và font được định nghĩa để dễ dàng quản lý
     // Đã điều chỉnh để tối hơn và có các điểm nhấn màu sắc rõ rệt
@@ -102,6 +103,7 @@ public class SettingsPanel extends JPanel {
         volumeSlider.setMajorTickSpacing(25);
         volumeSlider.setPaintLabels(true);
         volumeSlider.setToolTipText("Điều chỉnh âm lượng tổng thể");
+        volume = volumeSlider.getValue() / 100f;
         volumeSlider.addChangeListener(e -> {
             volume = volumeSlider.getValue() / 100f;
             if (GameWindow.getInstance() != null && GameWindow.getInstance() != null) {

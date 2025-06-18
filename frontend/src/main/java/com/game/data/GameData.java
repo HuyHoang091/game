@@ -140,4 +140,20 @@ public class GameData {
             .findFirst()
             .orElse(null);
     }
+
+    public static void clear() {
+        user = null;
+        character = null;
+        characterSkills = null;
+        inventory = null;
+        item = null;
+        itemInstance = null;
+        map = null;
+        monster = null;
+        monsterDrop = null;
+        skills = null;
+        skillUpdate = null;
+        thuoctinh = null;
+        droppedItems = null;
+    }
 }

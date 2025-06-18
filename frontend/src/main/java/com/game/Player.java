@@ -9,6 +9,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import com.game.*;
+import com.game.audio.SoundEffectPlayer;
 import com.game.core.KeyBindingConfig;
 import com.game.data.GameData;
 import com.game.model.*;
@@ -340,8 +341,8 @@ public class Player extends JComponent {
         // g.setColor(new Color(0, 255, 0, 100));
         // g.fillRect(x - camX, y - camY, 50, 70);
 
-        g.setColor(new Color(0, 255, 0, 100));
-        g.fillRect(movement.getX() - camX, movement.getY() - camY, currentImage.getWidth(), currentImage.getHeight()/3);
+        // g.setColor(new Color(0, 255, 0, 100));
+        // g.fillRect(movement.getX() - camX, movement.getY() - camY, currentImage.getWidth(), currentImage.getHeight()/3);
 
         // Vẽ vùng sát thương kỹ năng
         if (isUsingSkill && skillEffectDuration > 0) {
@@ -423,6 +424,9 @@ public class Player extends JComponent {
         }
 
         if (nearestEnemy == null) return null;
+
+        SoundEffectPlayer soundEffectPlayer = new SoundEffectPlayer();
+        soundEffectPlayer.playSound("assets/player_attack.wav");
 
         // Tính góc giữa player và enemy
         int enemyCenterX = nearestEnemy.x + nearestEnemy.width / 2;

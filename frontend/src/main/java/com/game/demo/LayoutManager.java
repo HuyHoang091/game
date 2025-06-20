@@ -5,6 +5,7 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.tree.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.game.data.GameData;
 
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -186,7 +187,11 @@ public class LayoutManager extends JFrame {
                         try {
                             String url = "http://localhost:8080/api/" + tableName + "/";
                             HttpClient client = HttpClient.newHttpClient();
-                            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+                            HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .header("Authorization", "Bearer " + GameData.token)
+                            .GET()
+                            .build();
                             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                             loadDataFromJson(response.body(), tableName);
                         } catch (Exception ex) {

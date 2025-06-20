@@ -11,6 +11,7 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.game.data.GameData;
 
 public class TableDisplayHelper {
     public final Map<Object, String> itemNameCache;
@@ -45,7 +46,11 @@ public class TableDisplayHelper {
         try {
             String url = "http://localhost:8080/api/" + type + "/";
             HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+            HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .header("Authorization", "Bearer " + GameData.token)
+                            .GET()
+                            .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200) {
                 ObjectMapper mapper = new ObjectMapper();
@@ -235,6 +240,14 @@ public class TableDisplayHelper {
         if (tableName.equalsIgnoreCase("skillupdate")) {
             if (model.findColumn("skillId") != -1) {
                 table.getColumn("skillId").setCellRenderer(new NameLookupRenderer("skill"));
+            }
+        }
+
+        if (table.getColumnModel().getColumnCount() > 0) {
+            try {
+                table.removeColumn(table.getColumn("password"));
+            } catch (IllegalArgumentException ignored) {
+                // Không có cột password thì bỏ qua
             }
         }
     }

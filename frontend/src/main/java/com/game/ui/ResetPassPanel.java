@@ -107,10 +107,10 @@ public class ResetPassPanel extends JPanel {
         signUpLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         signUpLabel.setToolTipText("Nhấn để đăng nhập");
 
-        // Gắn sự kiện khi nhấn "Đăng ký"
         signUpLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
+                GameData.clear();
                 frame.showLogin();
             }
         });
@@ -241,8 +241,9 @@ public class ResetPassPanel extends JPanel {
 
                 HttpClient client = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/users/" + user.getId()))
+                        .uri(URI.create("http://localhost:8080/api/users/repass/" + user.getId()))
                         .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + GameData.token)
                         .PUT(HttpRequest.BodyPublishers.ofString(json))
                         .build();
 

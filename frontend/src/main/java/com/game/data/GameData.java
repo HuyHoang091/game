@@ -20,6 +20,7 @@ public class GameData {
     public static List<GameSkillUpdateRequirements> skillUpdate;
     public static List<GameThuocTinh> thuoctinh;
     public static List<DroppedItem> droppedItems = new ArrayList<>(); // Initialize immediately
+    public static String token;
 
     public static void loadItemInstances(List<GameItemInstance> apiInstances) {
         itemInstance = new ArrayList<>(apiInstances); // Create new ArrayList from API data
@@ -155,5 +156,6 @@ public class GameData {
         skillUpdate = null;
         thuoctinh = null;
         droppedItems = null;
+        token = null;
     }
 }

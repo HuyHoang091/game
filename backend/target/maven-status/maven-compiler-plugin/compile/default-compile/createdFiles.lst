@@ -8,7 +8,9 @@ com\game\Model\Map.class
 com\game\Service\CharacterService.class
 com\game\Service\ItemInstanceService.class
 com\game\Service\MonsterService.class
+com\game\Config\JwtAuthenticationFilter.class
 com\game\Model\Character.class
+com\game\Config\JwtUtil.class
 com\game\Repository\InventoryRepository.class
 com\game\Controllers\MonsterController.class
 com\game\Controllers\CharacterSkillController.class
@@ -34,6 +36,7 @@ com\game\Service\CharacterSkillService.class
 com\game\Controllers\SkillUpdateRequirementsController.class
 com\game\Model\User.class
 com\game\Controllers\InventoryController.class
+com\game\Model\AuthResponse.class
 com\game\Service\EmailService.class
 com\game\Controllers\MonsterDropController.class
 com\game\Model\Skill.class
@@ -46,6 +49,7 @@ com\game\Model\ItemInstance.class
 com\game\Repository\MonsterRepository.class
 com\game\Service\MapService.class
 com\game\Repository\ItemInstanceRepository.class
+com\game\Service\CustomUserDetailsService.class
 com\game\Model\ThuocTinh.class
 com\game\Repository\MonsterDropRepository.class
 com\game\Config\SecurityConfig.class

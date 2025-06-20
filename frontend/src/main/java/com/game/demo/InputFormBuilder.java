@@ -286,7 +286,7 @@ public class InputFormBuilder {
                 }
             }
 
-            if (column.equalsIgnoreCase("id")) {
+            if (column.equalsIgnoreCase("id") || column.equalsIgnoreCase("password")) {
                 JTextField field = new JTextField();
                 field.setEditable(false);
                 field.setPreferredSize(new Dimension(200, 25));
@@ -295,6 +295,10 @@ public class InputFormBuilder {
                 JComboBox<String> comboBox = new JComboBox<>(parent.Classer);
                 comboBox.setPreferredSize(new Dimension(200, 25));
                 input = comboBox;
+            } else if (column.equalsIgnoreCase("trangthai")) {
+                JComboBox<String> combo = new JComboBox<>(new String[]{"Đã kích hoạt", "Chưa kích hoạt"});
+                combo.setPreferredSize(new Dimension(200, 25));
+                input = combo;
             }
 
             // Nếu chưa có input đặc biệt thì dùng mặc định

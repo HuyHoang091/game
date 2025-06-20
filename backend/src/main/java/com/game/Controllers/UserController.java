@@ -1,6 +1,8 @@
 package com.game.Controllers;
 
+import com.game.Config.JwtUtil;
 import com.game.Model.User;
+import com.game.Model.AuthResponse;
 import com.game.Service.UserService;
 
 import java.util.List;
@@ -16,11 +18,15 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginRequest) {
         User user = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
         if (user != null) {
-            return ResponseEntity.ok(user);
+            String token = jwtUtil.generateToken(user.getUsername());
+            return ResponseEntity.ok(new AuthResponse(user, token));
         }
         return ResponseEntity.badRequest().body("Invalid credentials");
     }
@@ -83,6 +89,15 @@ public class UserController {
         boolean deleted = userService.deleteUser(id);
         if (deleted) {
             return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/repass/{id}")
+    public ResponseEntity<User> repassUser(@PathVariable Long id, @RequestBody User character) {
+        User updated = userService.repassUser(id, character);
+        if (updated != null) {
+            return ResponseEntity.ok(updated);
         }
         return ResponseEntity.notFound().build();
     }

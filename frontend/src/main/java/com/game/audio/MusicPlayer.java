@@ -12,7 +12,7 @@ public class MusicPlayer {
     private FloatControl volumeControl;
 
     public void playBackgroundMusic(String resourcePath) {
-        stop(); // Dừng nhạc cũ nếu có
+        stop();
         playing = true;
         musicThread = new Thread(() -> {
             while (playing) {
@@ -27,7 +27,6 @@ public class MusicPlayer {
                     DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
                     line = (SourceDataLine) AudioSystem.getLine(info);
                     line.open(format);
-                    // Lấy volume control nếu có
                     if (line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
                         volumeControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
                         float min = volumeControl.getMinimum();

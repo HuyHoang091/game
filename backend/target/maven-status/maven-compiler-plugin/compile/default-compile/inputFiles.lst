@@ -13,6 +13,9 @@ C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\ThuocTi
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Model\CharacterSkill.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\ItemInstanceRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\SkillUpdateRequirementsRepository.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\CustomUserDetailsService.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Model\AuthResponse.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Config\JwtAuthenticationFilter.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\MonsterController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\CharacterRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\ItemController.java
@@ -42,6 +45,7 @@ C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\Inventor
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\ItemService.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Model\Inventory.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\ItemInstanceController.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Config\JwtUtil.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\SkillUpdateRequirementsController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Config\SecurityConfig.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\MonsterService.java

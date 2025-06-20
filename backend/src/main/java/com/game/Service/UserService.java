@@ -18,7 +18,7 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired // Đảm bảo dòng này tồn tại
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired // <--- Đảm bảo dòng này tồn tại
@@ -26,7 +26,7 @@ public class UserService {
 
     public User login(String username, String password) {
         User user = userRepository.findByUsername(username);
-        if (user != null && user.getPassword().equals(password)) {
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
             return user;
         }
         return null;
@@ -46,10 +46,17 @@ public class UserService {
         if (username != null || email != null) {
             return null;
         }
+        String encodedPassword = passwordEncoder.encode("123");
+        character.setPassword(encodedPassword);
         return userRepository.save(character);
     }
 
     public User updateUser(Long id, User newChar) {
+        User oldUser = userRepository.findById(id).orElse(null);
+        if (oldUser == null) return null;
+
+        newChar.setPassword(oldUser.getPassword());
+
         return userRepository.save(newChar);
     }
     
@@ -59,6 +66,12 @@ public class UserService {
             return true;
         }
         return false;
+    }
+
+    public User repassUser(Long id, User newChar) {
+        String encodedPassword = passwordEncoder.encode(newChar.getPassword());
+        newChar.setPassword(encodedPassword);
+        return userRepository.save(newChar);
     }
 
     @Transactional
@@ -78,8 +91,8 @@ public class UserService {
         System.out.println("Generated password for " + user.getUsername() + ": " + generatedPassword); // CHỈ ĐỂ DEBUG, KHÔNG IN RA LOG THẬT!
 
         // 3. Mã hóa mật khẩu trước khi lưu
-        // String encodedPassword = passwordEncoder.encode(generatedPassword);
-        user.setPassword(generatedPassword);
+        String encodedPassword = passwordEncoder.encode(generatedPassword);
+        user.setPassword(encodedPassword);
 
         // 4. Lưu người dùng vào cơ sở dữ liệu
         User savedUser = userRepository.save(user);

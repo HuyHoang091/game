@@ -188,6 +188,7 @@ public class CharacterGalleryPanel extends JPanel {
                         java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
                         conn.setRequestMethod("POST");
                         conn.setRequestProperty("Content-Type", "application/json");
+                        conn.setRequestProperty("Authorization", "Bearer " + GameData.token);
                         conn.setDoOutput(true);
 
                         try (java.io.OutputStream os = conn.getOutputStream()) {
@@ -202,7 +203,11 @@ public class CharacterGalleryPanel extends JPanel {
                             HttpClient client = HttpClient.newHttpClient();
                             ObjectMapper mapper = new ObjectMapper();
                             String characterUrl = "http://localhost:8080/api/characters/" + currentPlayerId;
-                            HttpRequest request1 = HttpRequest.newBuilder().uri(URI.create(characterUrl)).GET().build();
+                            HttpRequest request1 = HttpRequest.newBuilder()
+                            .uri(URI.create(characterUrl))
+                            .header("Authorization", "Bearer " + GameData.token)
+                            .GET()
+                            .build();
                             HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
                             if (response1.body() != null && !response1.body().trim().isEmpty()
                                     && !response1.body().trim().equalsIgnoreCase("null")) {
@@ -246,7 +251,11 @@ public class CharacterGalleryPanel extends JPanel {
 
         // Lấy character skills
         String csUrl = "http://localhost:8080/api/character_skills/" + characterId;
-        HttpRequest request3 = HttpRequest.newBuilder().uri(URI.create(csUrl)).GET().build();
+        HttpRequest request3 = HttpRequest.newBuilder()
+        .uri(URI.create(csUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response3 = client.send(request3, HttpResponse.BodyHandlers.ofString());
         if (response3.body() != null && !response3.body().trim().isEmpty()
                 && !response3.body().trim().equalsIgnoreCase("null")) {
@@ -258,7 +267,11 @@ public class CharacterGalleryPanel extends JPanel {
 
         // Lấy inventory
         String invUrl = "http://localhost:8080/api/inventory/" + characterId;
-        HttpRequest request4 = HttpRequest.newBuilder().uri(URI.create(invUrl)).GET().build();
+        HttpRequest request4 = HttpRequest.newBuilder()
+        .uri(URI.create(invUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response4 = client.send(request4, HttpResponse.BodyHandlers.ofString());
         if (response4.body() != null && !response4.body().trim().isEmpty()
                 && !response4.body().trim().equalsIgnoreCase("null")) {
@@ -269,7 +282,11 @@ public class CharacterGalleryPanel extends JPanel {
 
         // Lấy item
         String itUrl = "http://localhost:8080/api/item/";
-        HttpRequest request5 = HttpRequest.newBuilder().uri(URI.create(itUrl)).GET().build();
+        HttpRequest request5 = HttpRequest.newBuilder()
+        .uri(URI.create(itUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response5 = client.send(request5, HttpResponse.BodyHandlers.ofString());
         if (response5.body() != null && !response5.body().trim().isEmpty()
                 && !response5.body().trim().equalsIgnoreCase("null")) {
@@ -280,7 +297,11 @@ public class CharacterGalleryPanel extends JPanel {
 
         // Lấy item instance
         String itiUrl = "http://localhost:8080/api/iteminstance/";
-        HttpRequest request6 = HttpRequest.newBuilder().uri(URI.create(itiUrl)).GET().build();
+        HttpRequest request6 = HttpRequest.newBuilder()
+        .uri(URI.create(itiUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response6 = client.send(request6, HttpResponse.BodyHandlers.ofString());
         if (response6.body() != null && !response6.body().trim().isEmpty()
                 && !response6.body().trim().equalsIgnoreCase("null")) {
@@ -292,37 +313,61 @@ public class CharacterGalleryPanel extends JPanel {
 
         // Lấy map
         String mapUrl = "http://localhost:8080/api/map/";
-        HttpRequest request7 = HttpRequest.newBuilder().uri(URI.create(mapUrl)).GET().build();
+        HttpRequest request7 = HttpRequest.newBuilder()
+        .uri(URI.create(mapUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response7 = client.send(request7, HttpResponse.BodyHandlers.ofString());
         GameData.map = Arrays.asList(mapper.readValue(response7.body(), GameMap[].class));
 
         // Lấy monster
         String msUrl = "http://localhost:8080/api/monster/";
-        HttpRequest request8 = HttpRequest.newBuilder().uri(URI.create(msUrl)).GET().build();
+        HttpRequest request8 = HttpRequest.newBuilder()
+        .uri(URI.create(msUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response8 = client.send(request8, HttpResponse.BodyHandlers.ofString());
         GameData.monster = Arrays.asList(mapper.readValue(response8.body(), GameMonster[].class));
 
         // Lấy monster drop
         String msdrUrl = "http://localhost:8080/api/monsterdrop/";
-        HttpRequest request9 = HttpRequest.newBuilder().uri(URI.create(msdrUrl)).GET().build();
+        HttpRequest request9 = HttpRequest.newBuilder()
+        .uri(URI.create(msdrUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response9 = client.send(request9, HttpResponse.BodyHandlers.ofString());
         GameData.monsterDrop = Arrays.asList(mapper.readValue(response9.body(), GameMonsterDrop[].class));
 
         // Lấy skills
         String skUrl = "http://localhost:8080/api/skill/";
-        HttpRequest request10 = HttpRequest.newBuilder().uri(URI.create(skUrl)).GET().build();
+        HttpRequest request10 = HttpRequest.newBuilder()
+        .uri(URI.create(skUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response10 = client.send(request10, HttpResponse.BodyHandlers.ofString());
         GameData.skills = Arrays.asList(mapper.readValue(response10.body(), GameSkill[].class));
 
         // Lấy skill update requirements
         String skuUrl = "http://localhost:8080/api/skillupdate/";
-        HttpRequest request11 = HttpRequest.newBuilder().uri(URI.create(skuUrl)).GET().build();
+        HttpRequest request11 = HttpRequest.newBuilder()
+        .uri(URI.create(skuUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response11 = client.send(request11, HttpResponse.BodyHandlers.ofString());
         GameData.skillUpdate = Arrays.asList(mapper.readValue(response11.body(), GameSkillUpdateRequirements[].class));
 
         // Lấy thuoctinh
         String ttUrl = "http://localhost:8080/api/thuoctinh/";
-        HttpRequest request12 = HttpRequest.newBuilder().uri(URI.create(ttUrl)).GET().build();
+        HttpRequest request12 = HttpRequest.newBuilder()
+        .uri(URI.create(ttUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response12 = client.send(request12, HttpResponse.BodyHandlers.ofString());
         GameData.thuoctinh = Arrays.asList(mapper.readValue(response12.body(), GameThuocTinh[].class));
     }

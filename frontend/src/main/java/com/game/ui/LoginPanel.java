@@ -262,11 +262,12 @@ public class LoginPanel extends JPanel {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
             if (response.statusCode() == 200) {
-                JSONObject jsonObject = new JSONObject(response.body());
-                String trangthai = jsonObject.getString("trangthai");
-                String admin = jsonObject.getString("username");
+                AuthResponse authResponse = mapper.readValue(response.body(), AuthResponse.class);
+                String trangthai = authResponse.getUser().getTrangthai();
+                String admin = authResponse.getUser().getUsername();
 
                 if (admin.equals("admin")) {
+                    GameData.token = authResponse.getToken();
                     AccessFrame.getInstance().dispose();
                     try {
                         UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatIntelliJLaf());
@@ -277,16 +278,16 @@ public class LoginPanel extends JPanel {
                     layout.setVisible(true);
                 } else if (trangthai.equals("Đã kích hoạt")) {
                     // ✅ Parse User
-                    GameUser user = mapper.readValue(response.body(), GameUser.class);
-                    GameData.user = user;
+                    GameData.user = authResponse.getUser();
+                    GameData.token = authResponse.getToken();
 
                     // ✅ Load dữ liệu của user
-                    loadUserData(user.getId());
+                    loadUserData(GameData.user.getId());
 
-                    accessFrame.showCharacter(user.getId());
+                    accessFrame.showCharacter(GameData.user.getId());
                 } else {
-                    GameUser user = mapper.readValue(response.body(), GameUser.class);
-                    GameData.user = user;
+                    GameData.user = authResponse.getUser();
+                    GameData.token = authResponse.getToken();
                     accessFrame.showRepass();
                 }
             } else {
@@ -310,7 +311,11 @@ public class LoginPanel extends JPanel {
 
         // Lấy character theo user_id
         String characterUrl = "http://localhost:8080/api/characters/" + userId;
-        HttpRequest request1 = HttpRequest.newBuilder().uri(URI.create(characterUrl)).GET().build();
+        HttpRequest request1 = HttpRequest.newBuilder()
+        .uri(URI.create(characterUrl))
+        .header("Authorization", "Bearer " + GameData.token)
+        .GET()
+        .build();
         HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
         if (response1.body() != null && !response1.body().trim().isEmpty() && !response1.body().trim().equalsIgnoreCase("null")) {
             List<GameCharacter> characters = Arrays.asList(mapper.readValue(response1.body(), GameCharacter[].class));

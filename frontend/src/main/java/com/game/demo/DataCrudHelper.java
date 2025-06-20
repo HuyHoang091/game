@@ -1,6 +1,7 @@
 package com.game.demo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.game.data.GameData;
 import com.game.demo.LayoutManager.TableTreeNode;
 
 import javax.swing.*;
@@ -37,6 +38,7 @@ public class DataCrudHelper {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + GameData.token)
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
@@ -96,6 +98,7 @@ public class DataCrudHelper {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + GameData.token)
                     .PUT(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
@@ -155,6 +158,7 @@ public class DataCrudHelper {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
+                    .header("Authorization", "Bearer " + GameData.token)
                     .DELETE()
                     .build();
 

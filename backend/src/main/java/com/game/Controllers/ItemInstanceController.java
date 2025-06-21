@@ -6,6 +6,7 @@ import com.game.Service.ItemInstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
@@ -65,6 +66,12 @@ public class ItemInstanceController {
 
     @PutMapping("/batch")
     public ResponseEntity<Void> updateItemInstances(@RequestBody List<ItemInstance> characters) {
+        for (ItemInstance item : characters) {
+            if (!characterService.isValidItemInstance(item)) {
+                System.out.println("Item bất thường ID: " + item.getId());
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+        }
         characterService.updateListItemInstance(characters);
         return ResponseEntity.ok().build();
     }

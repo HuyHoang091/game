@@ -51,4 +51,25 @@ public class ItemInstanceService {
         }
         return false;
     }
+
+    public boolean isValidItemInstance(ItemInstance item) {
+        Long id = item.getId();
+        if (id == null || id == 0) return true;
+
+        ItemInstance base = characterRepository.findById(id).orElse(null);
+        if (base == null) return true;
+
+        boolean valid = item.getAtk() == base.getAtk()
+            && item.getDef() == base.getDef()
+            && item.getHp() == base.getHp()
+            && item.getMp() == base.getMp()
+            && equalsDouble(item.getCritRate(), base.getCritRate())
+            && equalsDouble(item.getCritDmg(), base.getCritDmg());
+
+        return valid;
+    }
+
+    private boolean equalsDouble(double a, double b) {
+        return Math.abs(a - b) < 0.0001;
+    }
 }

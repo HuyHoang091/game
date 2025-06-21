@@ -24,9 +24,13 @@ import javax.swing.SwingUtilities;
 public class GameDataUploader {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public static void startAutoUpload() {
+        if (scheduler == null || scheduler.isShutdown() || scheduler.isTerminated()) {
+            scheduler = Executors.newSingleThreadScheduledExecutor();
+        }
+        
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 // 1. Gửi character
@@ -77,27 +81,38 @@ public class GameDataUploader {
 
             System.out.println("Sent to " + url + " | Status: " + statusCode);
 
-            if (statusCode == 401 || statusCode == 403) {
+            if (statusCode == 401) {
                 SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(GameWindow.getInstance(),
                         "Tài khoản đã bị đăng nhập ở nơi khác!",
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
 
-                    GameDataUploader.stopAutoUpload();
-                    GameWindow.getInstance().Logout();
-                    GameData.clear();
-                    MapPreviewManager.previewCache.clear();
-                    ResourceManager.clearAnimationCache();
-                    GamePanel.currentInstance = null;
-                    SettingsPanel.instance = null;
-                    System.gc();
-
-                    AccessFrame loginFrame = new AccessFrame();
-                    loginFrame.setVisible(true);
-                    GameWindow.getInstance().dispose();
+                EndGame();
                 });
+            } else if (statusCode == 409) {
+                JOptionPane.showMessageDialog(GameWindow.getInstance(),
+                        "Bạn đã bị nghi ngờ gian lận. Mời bạn ra khỏi game!!!",
+                        "Cảnh báo",
+                        JOptionPane.ERROR_MESSAGE);
+
+                EndGame();
             }
         }
+    }
+
+    private static void EndGame() {
+        GameDataUploader.stopAutoUpload();
+        GameWindow.getInstance().Logout();
+        GameData.clear();
+        MapPreviewManager.previewCache.clear();
+        ResourceManager.clearAnimationCache();
+        GamePanel.currentInstance = null;
+        SettingsPanel.instance = null;
+        System.gc();
+
+        AccessFrame loginFrame = new AccessFrame();
+        loginFrame.setVisible(true);
+        GameWindow.getInstance().dispose();
     }
 }

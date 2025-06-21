@@ -1,0 +1,4 @@
+Model: dùng thư viện Lombok tự sinh get set, Gắn với JPA bằng các annotation như @Entity, @Id, @Table, @Column,... Đại diện cho bảng dữ liệu trong cơ sở dữ liệu.    
+Repository: kế thừa JpaRepository sẽ tự sinh ra các truy vấn(các truy vấn có sẵn: findALL(in toàn bộ), findById(in theo id), save(insert và update), deleteById(xóa theo Id)) các truy vấn khác có thể tự định nghĩa. VD: findByUserId = Select * from ... where UserId = ?; findByUserNameAndPassWord = Select * from ... where UserName = ?, PassWord = ?;....v.v tương tự  
+Service: logic truy vấn: gọi các hàm truy vấn trong Repository thực hiện theo 1 quy tắc truy vấn(VD: thêm sửa, xóa) Là cầu nối giữa Repository và Controller  
+Controller: nơi viết các Api RESTful tương tác frontend gọi Service, xử lý logic trả về kết quả: dữ liệu, mã trạng thái(200 – OK, 404 – Không tìm thấy, 500 – Lỗi hệ thống,...)

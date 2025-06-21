@@ -11,4 +11,5 @@ public class GameUser {
     private String email;
     private int tiendo;
     private String trangthai;
+    private String sessionId;
 }

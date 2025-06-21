@@ -6,6 +6,7 @@ import com.game.Model.AuthResponse;
 import com.game.Service.UserService;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +34,10 @@ public class UserController {
         }
         User user = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
         if (user != null) {
-            String token = jwtUtil.generateToken(user.getUsername());
+            String sessionId = UUID.randomUUID().toString();
+            user.setSessionId(sessionId);
+            userService.updateUser(user.getId(), user);
+            String token = jwtUtil.generateToken(user.getUsername(), sessionId);
             return ResponseEntity.ok(new AuthResponse(user, token));
         }
         return ResponseEntity.badRequest().body("Invalid credentials");

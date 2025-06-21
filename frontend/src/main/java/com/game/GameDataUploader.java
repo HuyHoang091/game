@@ -2,6 +2,10 @@ package com.game;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.data.GameData;
+import com.game.resource.MapPreviewManager;
+import com.game.resource.ResourceManager;
+import com.game.ui.GamePanel;
+import com.game.ui.SettingsPanel;
 
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -13,6 +17,9 @@ import org.apache.http.HttpResponse;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class GameDataUploader {
 
@@ -35,7 +42,7 @@ public class GameDataUploader {
                     sendJson("http://localhost:8080/api/inventory/batch", GameData.inventory);
 
                 // 4. Gửi itemInstance
-                if (!GameData.itemInstance.isEmpty())
+                if (GameData.itemInstance != null && !GameData.itemInstance.isEmpty())
                     sendJson("http://localhost:8080/api/iteminstance/batch", GameData.itemInstance);
 
                 if (GameData.user != null)
@@ -69,6 +76,28 @@ public class GameDataUploader {
             int statusCode = response.getStatusLine().getStatusCode();
 
             System.out.println("Sent to " + url + " | Status: " + statusCode);
+
+            if (statusCode == 401 || statusCode == 403) {
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(GameWindow.getInstance(),
+                        "Tài khoản đã bị đăng nhập ở nơi khác!",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                    GameDataUploader.stopAutoUpload();
+                    GameWindow.getInstance().Logout();
+                    GameData.clear();
+                    MapPreviewManager.previewCache.clear();
+                    ResourceManager.clearAnimationCache();
+                    GamePanel.currentInstance = null;
+                    SettingsPanel.instance = null;
+                    System.gc();
+
+                    AccessFrame loginFrame = new AccessFrame();
+                    loginFrame.setVisible(true);
+                    GameWindow.getInstance().dispose();
+                });
+            }
         }
     }
 }

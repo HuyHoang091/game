@@ -14,7 +14,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.game.Model.User;
+import com.game.Repository.UserRepository;
 import com.game.Service.CustomUserDetails;
+import com.game.Service.UserService;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -23,6 +26,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -33,6 +39,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtUtil.validateToken(token)) {
             String username = jwtUtil.getUsernameFromToken(token);
+
+            String tokenSessionId = jwtUtil.getSessionIdFromToken(token);
+            User user = userRepository.findByUsername(username);
+            if (!tokenSessionId.equals(user.getSessionId())) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
 
             CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(

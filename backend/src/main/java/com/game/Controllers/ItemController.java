@@ -1,10 +1,13 @@
 package com.game.Controllers;
 
 import com.game.Model.Item;
+import com.game.Service.CustomUserDetails;
 import com.game.Service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -15,8 +18,20 @@ public class ItemController {
     @Autowired
     private ItemService characterService;
 
+    @Value("${admin.secret}")
+    private String SECRET_CODE;
+
     @GetMapping("/")
-    public ResponseEntity<List<Item>> getAllItem() {
+    public ResponseEntity<List<Item>> getAllItem(@RequestHeader(value = "Xac-thuc", required = false) String adminHeader, Authentication authentication) {
+        
+        if (adminHeader != null) {
+            CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
+            if (!adminHeader.equals(SECRET_CODE) || !currentUser.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+                return ResponseEntity.status(403).build();
+            }
+        }
+        
         List<Item> characters = characterService.getAllItem();
         return ResponseEntity.ok(characters);
     }

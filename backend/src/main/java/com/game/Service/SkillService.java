@@ -14,4 +14,20 @@ public class SkillService {
     public List<Skill> getAllSkill() {
         return characterRepository.findAll();
     }
+
+    public Skill createSkill(Skill Skill) {
+        return characterRepository.save(Skill);
+    }
+
+    public Skill updateSkill(Long id, Skill newChar) {
+        return characterRepository.save(newChar);
+    }
+
+    public boolean deleteSkill(Long id) {
+        if (characterRepository.existsById(id)) {
+            characterRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

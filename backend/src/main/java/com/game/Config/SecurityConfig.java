@@ -2,6 +2,8 @@ package com.game.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -25,7 +28,10 @@ public class SecurityConfig {
             .and()
             .authorizeRequests()
                 .antMatchers("/api/users/login", "/api/users/register").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/map/**", "/api/item/**", "/api/monster/**", "/api/monsterdrop/**", "/api/skill/**", "/api/skillupdate/**")
+                .hasAnyRole("USER", "ADMIN")
                 .antMatchers("/api/map/**").hasRole("ADMIN")
+                .antMatchers("/api/item/**").hasRole("ADMIN")
                 .antMatchers("/api/monster/**").hasRole("ADMIN")
                 .antMatchers("/api/monsterdrop/**").hasRole("ADMIN")
                 .antMatchers("/api/skill/**").hasRole("ADMIN")

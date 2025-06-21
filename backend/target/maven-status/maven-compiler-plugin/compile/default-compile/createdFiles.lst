@@ -20,6 +20,7 @@ com\game\Repository\CharacterRepository.class
 com\game\Controllers\UserController.class
 com\game\Service\ThuocTinhService.class
 com\game\GameApplication.class
+com\game\Service\CustomUserDetails.class
 com\game\Controllers\CharacterController.class
 com\game\Repository\UserRepository.class
 com\game\Repository\CharacterSkillRepository.class

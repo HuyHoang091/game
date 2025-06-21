@@ -14,4 +14,20 @@ public class MonsterDropService {
     public List<MonsterDrop> getAllMonsterDrop() {
         return characterRepository.findAll();
     }
+
+    public MonsterDrop createMonsterDrop(MonsterDrop MonsterDrop) {
+        return characterRepository.save(MonsterDrop);
+    }
+
+    public MonsterDrop updateMonsterDrop(Long id, MonsterDrop newChar) {
+        return characterRepository.save(newChar);
+    }
+
+    public boolean deleteMonsterDrop(Long id) {
+        if (characterRepository.existsById(id)) {
+            characterRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

@@ -25,7 +25,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsernameOptional(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        // Gán quyền: nếu tên là "admin" → ROLE_ADMIN, ngược lại ROLE_USER
         List<GrantedAuthority> authorities = new ArrayList<>();
         if ("admin".equalsIgnoreCase(username)) {
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
@@ -33,7 +32,8 @@ public class CustomUserDetailsService implements UserDetailsService {
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         }
         
-        return new org.springframework.security.core.userdetails.User(
+        return new CustomUserDetails(
+            user.getId(),
             user.getUsername(),
             user.getPassword(),
             authorities

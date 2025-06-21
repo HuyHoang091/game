@@ -14,4 +14,20 @@ public class SkillUpdateRequirementsService {
     public List<SkillUpdateRequirements> getAllSkillUpdateRequirements() {
         return characterRepository.findAll();
     }
+
+    public SkillUpdateRequirements createSkillUpdateRequirements(SkillUpdateRequirements SkillUpdateRequirements) {
+        return characterRepository.save(SkillUpdateRequirements);
+    }
+
+    public SkillUpdateRequirements updateSkillUpdateRequirements(Long id, SkillUpdateRequirements newChar) {
+        return characterRepository.save(newChar);
+    }
+
+    public boolean deleteSkillUpdateRequirements(Long id) {
+        if (characterRepository.existsById(id)) {
+            characterRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

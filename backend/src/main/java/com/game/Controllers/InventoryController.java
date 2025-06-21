@@ -5,6 +5,7 @@ import com.game.Service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class InventoryController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/")
     public ResponseEntity<List<Inventory>> getAllInventory() {
         List<Inventory> characters = characterService.getAllInventory();
@@ -33,12 +35,14 @@ public class InventoryController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/")
     public ResponseEntity<Inventory> createInventory(@RequestBody Inventory inventory) {
         Inventory create = characterService.createInventory(inventory);
         return ResponseEntity.ok(create);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Inventory> updateInventory(@PathVariable Long id, @RequestBody Inventory inventory) {
         Inventory update = characterService.updateInventory(id, inventory);
@@ -48,6 +52,7 @@ public class InventoryController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Inventory> deleteInventory(@PathVariable Long id) {
         boolean delete = characterService.deleteInventory(id);

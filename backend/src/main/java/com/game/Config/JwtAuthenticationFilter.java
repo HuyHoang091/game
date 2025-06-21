@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.game.Service.CustomUserDetails;
+
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -32,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtUtil.validateToken(token)) {
             String username = jwtUtil.getUsernameFromToken(token);
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities()
             );

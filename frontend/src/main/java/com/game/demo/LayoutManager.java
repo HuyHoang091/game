@@ -18,6 +18,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Properties;
 
 public class LayoutManager extends JFrame {
     private JTable table;
@@ -185,17 +186,23 @@ public class LayoutManager extends JFrame {
                     if (!tableName.equals("Player") && !tableName.equals("Monster") && !tableName.equals("GameData")
                             && !tableName.equals("Item") && !tableName.equals("Skill")) {
                         try {
+                            Properties props = new Properties();
+                            props.load(getClass().getResourceAsStream("/app.properties"));
+                            String secret = props.getProperty("admin.secret");
+
                             String url = "http://localhost:8080/api/" + tableName + "/";
                             HttpClient client = HttpClient.newHttpClient();
                             HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(url))
                             .header("Authorization", "Bearer " + GameData.token)
+                            .header("Xac-thuc", secret)
                             .GET()
                             .build();
                             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                             loadDataFromJson(response.body(), tableName);
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            JOptionPane.showMessageDialog(this, "Bạn không có quyền truy cập!!!",
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
                         }
                     }
                 }

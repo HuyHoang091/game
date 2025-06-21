@@ -8,8 +8,10 @@ import com.game.Service.UserService;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,8 +23,14 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Value("${app.code}")
+    private String APP_CODE;
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User loginRequest) {
+    public ResponseEntity<?> login(@RequestBody User loginRequest, @RequestHeader("App-Code") String appCode) {
+        if (!appCode.equals(APP_CODE)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid app code");
+        }
         User user = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
         if (user != null) {
             String token = jwtUtil.generateToken(user.getUsername());
@@ -45,7 +53,7 @@ public class UserController {
         }
     }
 
-    // Truy vấn người dùng theo id
+    @PreAuthorize("#id == principal.id or hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
@@ -55,6 +63,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/")
     public ResponseEntity<List<User>> getAllUser() {
         List<User> user = userService.getAllUser();
@@ -64,6 +73,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/")
     public ResponseEntity<?> createUser(@RequestBody User character) {
         User created = userService.createUser(character);
@@ -75,6 +85,7 @@ public class UserController {
             .body("Tài khoản hoặc email đã tồn tại, vui lòng chọn tên khác.");
     }
 
+    @PreAuthorize("#id == principal.id or hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User character) {
         User updated = userService.updateUser(id, character);
@@ -84,6 +95,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("#id == principal.id or hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         boolean deleted = userService.deleteUser(id);
@@ -93,6 +105,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("#id == principal.id or hasRole('ADMIN')")
     @PutMapping("/repass/{id}")
     public ResponseEntity<User> repassUser(@PathVariable Long id, @RequestBody User character) {
         User updated = userService.repassUser(id, character);

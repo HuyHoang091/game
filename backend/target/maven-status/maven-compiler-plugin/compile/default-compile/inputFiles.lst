@@ -34,6 +34,7 @@ C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\CharacterSk
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\ThuocTinhRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\MonsterRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\SkillService.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\CustomUserDetails.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\CharacterSkillController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\CharacterController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Model\Skill.java

@@ -72,6 +72,7 @@ public class MainMenu extends JPanel {
         });
         exitButton = createStyledButton("LOG OUT", buttonFont, buttonSize);
         exitButton.addActionListener(e -> {
+            GameDataUploader.stopAutoUpload();
             GameWindow.getInstance().Logout();
             GameData.clear();
             MapPreviewManager.previewCache.clear();

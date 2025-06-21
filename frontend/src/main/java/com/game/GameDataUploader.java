@@ -48,6 +48,13 @@ public class GameDataUploader {
         }, 0, 5, TimeUnit.SECONDS); // Gửi mỗi 5 giây
     }
 
+    public static void stopAutoUpload() {
+        if (!scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+            System.out.println("Auto upload stopped.");
+        }
+    }
+
     private static void sendJson(String url, Object data) throws Exception {
         String json = objectMapper.writeValueAsString(data);
 

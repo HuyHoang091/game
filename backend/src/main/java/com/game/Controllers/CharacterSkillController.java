@@ -5,6 +5,7 @@ import com.game.Service.CharacterSkillService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class CharacterSkillController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/")
     public ResponseEntity<List<CharacterSkill>> getAllCharacterSkill() {
         List<CharacterSkill> characters = characterService.getAllCharacterSkill();
@@ -33,12 +35,14 @@ public class CharacterSkillController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/")
     public ResponseEntity<CharacterSkill> createCharacterSkill(@RequestBody CharacterSkill characterSkill) {
         CharacterSkill create = characterService.createCharacterSkill(characterSkill);
         return ResponseEntity.ok(create);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<CharacterSkill> updateCharacterSkill(@PathVariable Long id, @RequestBody CharacterSkill characterSkill) {
         CharacterSkill update = characterService.updateCharacterSkill(id, characterSkill);
@@ -48,6 +52,7 @@ public class CharacterSkillController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<CharacterSkill> deleteCharacterSkill(@PathVariable Long id) {
         boolean delete = characterService.deleteCharacterSkill(id);

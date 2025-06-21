@@ -196,6 +196,10 @@ public class InputFormBuilder {
                     panel.add(preview, BorderLayout.SOUTH);
                     inputFields.put(column, pathField);
                     input = panel;
+                } else if (column.equalsIgnoreCase("type")) {
+                    JComboBox<String> combo = new JComboBox<>(new String[]{"Vũ khí", "Áo giáp", "Mũ giáp", "Giáp chân", "Vòng cổ", "Nhẫn"});
+                    combo.setPreferredSize(new Dimension(200, 25));
+                    input = combo;
                 }
             }
             // ITEMINSTANCE

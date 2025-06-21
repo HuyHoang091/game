@@ -1,10 +1,13 @@
 package com.game.Controllers;
 
 import com.game.Model.Map;
+import com.game.Service.CustomUserDetails;
 import com.game.Service.MapService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -15,8 +18,20 @@ public class MapController {
     @Autowired
     private MapService characterService;
 
+    @Value("${admin.secret}")
+    private String SECRET_CODE;
+
     @GetMapping("/")
-    public ResponseEntity<List<Map>> getAllMap() {
+    public ResponseEntity<List<Map>> getAllMap(@RequestHeader(value = "Xac-thuc", required = false) String adminHeader, Authentication authentication) {
+        
+        if (adminHeader != null) {
+            CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
+            if (!adminHeader.equals(SECRET_CODE) || !currentUser.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+                return ResponseEntity.status(403).build();
+            }
+        }
+
         List<Map> characters = characterService.getAllMap();
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);

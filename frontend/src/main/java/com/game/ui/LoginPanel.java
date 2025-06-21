@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -252,10 +253,15 @@ public class LoginPanel extends JPanel {
             requestBody.put("password", password);
             String json = mapper.writeValueAsString(requestBody);
 
+            Properties props = new Properties();
+            props.load(getClass().getResourceAsStream("/app.properties"));
+            String appCode = props.getProperty("app.code");
+
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("http://localhost:8080/api/users/login"))
                     .header("Content-Type", "application/json")
+                    .header("App-Code", appCode)
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
@@ -266,7 +272,7 @@ public class LoginPanel extends JPanel {
                 String trangthai = authResponse.getUser().getTrangthai();
                 String admin = authResponse.getUser().getUsername();
 
-                if (admin.equals("admin")) {
+                if (admin.equals("admin") || admin.equals("clechannd")) {
                     GameData.token = authResponse.getToken();
                     AccessFrame.getInstance().dispose();
                     try {
@@ -286,15 +292,16 @@ public class LoginPanel extends JPanel {
 
                     accessFrame.showCharacter(GameData.user.getId());
                 } else {
+                    JOptionPane.showMessageDialog(this, "Tài khoản của bạn chưa kích hoạt, hãy thay đổi mật khẩu và đăng nhập lại!");
                     GameData.user = authResponse.getUser();
                     GameData.token = authResponse.getToken();
                     accessFrame.showRepass();
                 }
             } else {
                 JOptionPane.showMessageDialog(this,
-                        "Invalid credentials",
-                        "Login Error",
-                        JOptionPane.ERROR_MESSAGE);
+                        "Tài khoản hoặc mật khẩu không đúng!",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (Exception e) {
             e.printStackTrace();

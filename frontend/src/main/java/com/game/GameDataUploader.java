@@ -2,6 +2,7 @@ package com.game;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.data.GameData;
+import com.game.model.GameItemInstance;
 import com.game.resource.MapPreviewManager;
 import com.game.resource.ResourceManager;
 import com.game.ui.GamePanel;

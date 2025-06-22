@@ -1,8 +1,8 @@
 package com.game.Controllers;
 
 import com.game.Model.Character;
+import com.game.Model.CustomUserDetails;
 import com.game.Service.CharacterService;
-import com.game.Service.CustomUserDetails;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

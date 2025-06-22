@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.game.Model.CustomUserDetails;
 import com.game.Model.User;
 import com.game.Repository.UserRepository;
 

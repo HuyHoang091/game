@@ -82,7 +82,7 @@ public class LoginPanel extends JPanel {
             }
         };
         mainPanel.setLayout(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(100, 200, 80, 200));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(100, 200, 50, 200));
 
         // Title Panel with gaming font
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -127,10 +127,35 @@ public class LoginPanel extends JPanel {
             }
         });
 
+        JPanel forgotPanel = new JPanel();
+        forgotPanel.setOpaque(false);
+        forgotPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+
+        JLabel forgotLabel = new JLabel("Quên mật khẩu?");
+        forgotLabel.setForeground(accentColor);
+        forgotLabel.setFont(inputFont);
+        forgotLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        forgotLabel.setToolTipText("Nhấn để lấy lại mật khẩu");
+
+        forgotLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                accessFrame.showForgotPass();
+            }
+        });
+
         registerPanel.add(registerLabel);
         registerPanel.add(signUpLabel);
 
-        mainPanel.add(registerPanel, BorderLayout.SOUTH);
+        // mainPanel.add(registerPanel, BorderLayout.SOUTH);
+
+        forgotPanel.add(forgotLabel);
+        // mainPanel.add(forgotPanel, BorderLayout.NORTH);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(registerPanel, BorderLayout.NORTH);
+        bottomPanel.add(forgotPanel, BorderLayout.SOUTH);
 
         formPanel.add(usernamePanel);
         formPanel.add(passwordPanel);
@@ -138,6 +163,7 @@ public class LoginPanel extends JPanel {
 
         mainPanel.add(titlePanel, BorderLayout.NORTH);
         mainPanel.add(formPanel, BorderLayout.CENTER);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
         
         add(mainPanel, BorderLayout.CENTER);
 

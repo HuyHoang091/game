@@ -20,7 +20,6 @@ com\game\Repository\CharacterRepository.class
 com\game\Controllers\UserController.class
 com\game\Service\ThuocTinhService.class
 com\game\GameApplication.class
-com\game\Service\CustomUserDetails.class
 com\game\Controllers\CharacterController.class
 com\game\Repository\UserRepository.class
 com\game\Repository\CharacterSkillRepository.class
@@ -30,9 +29,11 @@ com\game\Controllers\ItemController.class
 com\game\Repository\ItemRepository.class
 com\game\Controllers\MapController.class
 com\game\Controllers\SkillController.class
+com\game\Model\ResetToken.class
 com\game\Model\Item.class
 com\game\Service\InventoryService.class
 com\game\Controllers\ThuocTinhController.class
+com\game\Repository\ResetTokenRepository.class
 com\game\Service\CharacterSkillService.class
 com\game\Controllers\SkillUpdateRequirementsController.class
 com\game\Model\User.class
@@ -47,6 +48,7 @@ com\game\Service\SkillUpdateRequirementsService.class
 com\game\Service\UserService.class
 com\game\Service\ItemService.class
 com\game\Model\ItemInstance.class
+com\game\Model\CustomUserDetails.class
 com\game\Repository\MonsterRepository.class
 com\game\Service\MapService.class
 com\game\Repository\ItemInstanceRepository.class

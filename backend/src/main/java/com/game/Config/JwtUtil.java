@@ -5,7 +5,6 @@ import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.Date;
-import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -46,5 +45,14 @@ public class JwtUtil {
             .parseClaimsJws(token)
             .getBody();
         return claims.get("sessionId", String.class);
+    }
+
+    public String generateResetToken(String email) {
+        return Jwts.builder()
+            .setSubject(email)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000))
+            .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+            .compact();
     }
 }

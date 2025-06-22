@@ -10,6 +10,7 @@ public class AccessFrame extends JFrame {
     private JPanel contentPane;
     private LoginPanel loginFrame;
     private ResetPassPanel resetPassPanel;
+    private Password password;
     private SignUpPanel signUpPanel;
     private String previousScreen = "Menu";
     private static AccessFrame instance;
@@ -30,11 +31,13 @@ public class AccessFrame extends JFrame {
         loginFrame = new LoginPanel(this);
         signUpPanel = new SignUpPanel(this);
         resetPassPanel = new ResetPassPanel(this);
+        password = new Password(this);
         
         // Thêm các màn hình vào cardLayout
         contentPane.add(loginFrame, "Login");
         contentPane.add(signUpPanel, "SignUp");
         contentPane.add(resetPassPanel, "RessetPass");
+        contentPane.add(password, "Password");
         
         setContentPane(contentPane);
         showLogin();
@@ -63,6 +66,13 @@ public class AccessFrame extends JFrame {
         cardLayout.show(contentPane, "RessetPass");
         if (resetPassPanel.getLoginButton() != null) {
             this.getRootPane().setDefaultButton(resetPassPanel.getLoginButton());
+        }
+    }
+
+    public void showForgotPass() {
+        cardLayout.show(contentPane, "Password");
+        if (password.getLoginButton() != null) {
+            this.getRootPane().setDefaultButton(password.getLoginButton());
         }
     }
 

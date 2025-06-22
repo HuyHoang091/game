@@ -9,6 +9,7 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired // <--- Đảm bảo dòng này tồn tại
+    @Autowired
     private EmailService emailService;
 
     public User login(String username, String password) {
@@ -32,7 +33,7 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null); // Trả về user nếu tìm thấy, nếu không trả về null
+        return userRepository.findById(id).orElse(null);
     }
 
     public List<User> getAllUser() {
@@ -71,6 +72,43 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(newChar.getPassword());
         newChar.setPassword(encodedPassword);
         return userRepository.save(newChar);
+    }
+
+    @Transactional
+    public boolean repass(String email, String token) {
+        if (email == null && userRepository.findByEmail(email) == null) {
+             return false;
+        }
+
+        String resetLink = "http://localhost:8080/api/users/reset-password?token=" + token;
+
+        String subject = "Đổi mật khẩu tài khoản Game của bạn";
+        String body = "Đây là link đổi mật khẩu của bạn(Lưu ý không tiết lộ link này ra ngoài!)\n\n"
+                    + "" + resetLink + "\n\n"
+                    + "Vui lòng thực hiện đặt mật khẩu sau 5 phút sẽ hết hiệu lực.\n\n"
+                    + "Trân trọng,\n"
+                    + "Đội ngũ phát triển Game.";
+        try {
+            emailService.sendEmail(email, subject, body);
+        } catch (Exception e) {
+            System.err.println("Failed to send registration email to " + email + ": " + e.getMessage());
+            // Xử lý lỗi gửi email (ví dụ: log lại, rollback giao dịch nếu cần)
+        }
+
+        return true;
+    }
+
+    @Transactional
+    public User resetpass(String email, String newPassword) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            return null;
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        return user;
     }
 
     @Transactional

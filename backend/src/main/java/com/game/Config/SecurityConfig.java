@@ -27,7 +27,7 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-                .antMatchers("/api/users/login", "/api/users/register").permitAll()
+                .antMatchers("/api/users/login", "/api/users/register", "/api/users/repass", "/api/users/reset-password").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/map/**", "/api/item/**", "/api/monster/**", "/api/monsterdrop/**", "/api/skill/**", "/api/skillupdate/**")
                 .hasAnyRole("USER", "ADMIN")
                 .antMatchers("/api/map/**").hasRole("ADMIN")

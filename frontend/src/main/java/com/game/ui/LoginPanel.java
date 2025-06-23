@@ -332,9 +332,9 @@ public class LoginPanel extends JPanel {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                    "Connection error",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    "Không thể kết nối đến Server!",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
         }
     }
 

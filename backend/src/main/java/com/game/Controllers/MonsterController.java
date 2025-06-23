@@ -1,7 +1,7 @@
 package com.game.Controllers;
 
-import com.game.Model.CustomUserDetails;
 import com.game.Model.Monster;
+import com.game.Service.CustomUserDetails;
 import com.game.Service.MonsterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

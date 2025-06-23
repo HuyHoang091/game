@@ -14,9 +14,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.game.Model.CustomUserDetails;
 import com.game.Model.User;
 import com.game.Repository.UserRepository;
+import com.game.Service.CustomUserDetails;
 import com.game.Service.UserService;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

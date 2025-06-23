@@ -20,10 +20,27 @@ public class AccessFrame extends JFrame {
     public AccessFrame() {
         instance = this;
         setTitle("Game Access");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setSize(800, 600);
         setLocationRelativeTo(null);
         
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(
+                        AccessFrame.this,
+                        "Bạn có chắc muốn thoát?",
+                        "Xác nhận thoát",
+                        JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    if (data.token != null && !data.token.isEmpty()) {
+                        GameWindow.getInstance().Logout();
+                    }
+                    System.exit(0);
+                }
+            }
+        });
+
         cardLayout = new CardLayout();
         contentPane = new JPanel(cardLayout);
         
@@ -77,6 +94,7 @@ public class AccessFrame extends JFrame {
     }
 
     public void showCharacter(Long id) {
+        System.out.print(GameData.token);
         cPanel = new CharacterGalleryPanel(id);
         contentPane.add(cPanel, "Character");
         cardLayout.show(contentPane, "Character");

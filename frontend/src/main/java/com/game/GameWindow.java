@@ -2,8 +2,19 @@ package com.game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.MapData;
 import com.game.data.GameData;
+import com.game.model.AuthResponse;
 import com.game.ui.*;
 import com.game.resource.*;
 
@@ -28,10 +39,24 @@ public class GameWindow extends JFrame {
     public GameWindow() {
         instance = this;
         setTitle("Game Menu");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setSize(1200, 700);
         setLocationRelativeTo(null);
         
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(
+                        GameWindow.this,
+                        "Bạn có chắc muốn thoát game?",
+                        "Xác nhận thoát",
+                        JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    Logout();
+                    System.exit(0);
+                }
+            }
+        });
         cardLayout = new CardLayout();
         contentPane = new JPanel(cardLayout);
         
@@ -177,6 +202,42 @@ public class GameWindow extends JFrame {
     }
 
     public void Logout() {
+        String username = GameData.user.getUsername();
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("username", username);
+            String json = mapper.writeValueAsString(requestBody);
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/api/users/logout"))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + GameData.token)
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+            if (response.statusCode() == 200) {
+                JOptionPane.showMessageDialog(this,
+                        response.body(),
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        response.body(),
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Connection error",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
         mainMenu = null;
         mapSelectScreen = null;
         gamePanel = null;

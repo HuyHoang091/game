@@ -7,7 +7,6 @@ import com.game.Model.AuthResponse;
 import com.game.Model.ResetToken;
 import com.game.Service.UserService;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -113,6 +112,15 @@ public class UserController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestBody User user) {
+        boolean loggedOut = userService.logout(user.getUsername());
+        if (loggedOut) {
+            return ResponseEntity.ok("Đăng xuất thành công!");
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Đăng xuất không thành công! Người dùng không tồn tại hoặc đã đăng xuất trước đó.");
     }
 
     @PreAuthorize("#id == principal.id or hasRole('ADMIN')")

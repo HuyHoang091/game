@@ -68,6 +68,16 @@ public class UserService {
         return false;
     }
 
+    public boolean logout(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return false;
+        }
+        user.setSessionId("");
+        userRepository.save(user);
+        return true;
+    }
+
     public User repassUser(Long id, User newChar) {
         String encodedPassword = passwordEncoder.encode(newChar.getPassword());
         newChar.setPassword(encodedPassword);
@@ -83,7 +93,7 @@ public class UserService {
         String resetLink = "http://localhost:8080/api/users/reset-password?token=" + token;
 
         String subject = "Đổi mật khẩu tài khoản Game của bạn";
-        String body = "Đây là link đổi mật khẩu của bạn(Lưu ý không tiết lộ link này ra ngoài!)\n\n"
+        String body = "Đây là link đổi mật khẩu của bạn (Lưu ý không tiết lộ link này ra ngoài!)\n\n"
                     + "" + resetLink + "\n\n"
                     + "Vui lòng thực hiện đặt mật khẩu sau 5 phút sẽ hết hiệu lực.\n\n"
                     + "Trân trọng,\n"

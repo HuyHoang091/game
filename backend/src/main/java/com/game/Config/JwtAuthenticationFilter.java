@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String tokenSessionId = jwtUtil.getSessionIdFromToken(token);
             User user = userRepository.findByUsername(username);
-            if (!tokenSessionId.equals(user.getSessionId())) {
+            if (!tokenSessionId.equals(user.getSessionId()) && !tokenSessionId.equals("")) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }

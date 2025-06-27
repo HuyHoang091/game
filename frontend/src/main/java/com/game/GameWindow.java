@@ -10,6 +10,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.MapData;
@@ -52,7 +55,6 @@ public class GameWindow extends JFrame {
                         "Xác nhận thoát",
                         JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
-                    Logout();
                     System.exit(0);
                 }
             }

@@ -83,7 +83,6 @@ public class CharacterGalleryPanel extends JPanel {
         scrollPane.setBorder(null);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
-
     }
 
     private void loadOwnedCharacters() {

@@ -281,7 +281,7 @@ public class LoginPanel extends JPanel {
 
             Properties props = new Properties();
             props.load(getClass().getResourceAsStream("/app.properties"));
-            String appCode = props.getProperty("app.code");
+            String appCode = props.getProperty("app.part1");
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -298,7 +298,9 @@ public class LoginPanel extends JPanel {
                 String trangthai = authResponse.getUser().getTrangthai();
                 String admin = authResponse.getUser().getUsername();
 
-                if (admin.equals("admin") || admin.equals("clechannd")) {
+                accessFrame.LoginSecret();
+
+                if (admin.equals("admin")) {
                     GameData.token = authResponse.getToken();
                     AccessFrame.getInstance().dispose();
                     try {
@@ -308,6 +310,7 @@ public class LoginPanel extends JPanel {
                     }
                     com.game.demo.LayoutManager layout = new com.game.demo.LayoutManager();
                     layout.setVisible(true);
+                    accessFrame.downloadAppCodeFragment();
                 } else if (trangthai.equals("Đã kích hoạt")) {
                     // ✅ Parse User
                     GameData.user = authResponse.getUser();
@@ -317,15 +320,17 @@ public class LoginPanel extends JPanel {
                     loadUserData(GameData.user.getId());
 
                     accessFrame.showCharacter(GameData.user.getId());
+                    accessFrame.downloadAppCodeFragment();
                 } else {
                     JOptionPane.showMessageDialog(this, "Tài khoản của bạn chưa kích hoạt, hãy thay đổi mật khẩu và đăng nhập lại!");
                     GameData.user = authResponse.getUser();
                     GameData.token = authResponse.getToken();
                     accessFrame.showRepass();
+                    accessFrame.downloadAppCodeFragment();
                 }
             } else {
                 JOptionPane.showMessageDialog(this,
-                        "Tài khoản hoặc mật khẩu không đúng!",
+                        response.body(),
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
             }

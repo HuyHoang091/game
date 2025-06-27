@@ -3,25 +3,43 @@ package com.game.Controllers;
 import com.game.Config.JwtUtil;
 import com.game.Model.User;
 import com.game.Repository.ResetTokenRepository;
+import com.game.Model.AppCodeParts;
 import com.game.Model.AuthResponse;
 import com.game.Model.ResetToken;
+import com.game.Service.AppCodeService;
 import com.game.Service.UserService;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AppCodeService appCodeService;
 
     @Autowired
     private ResetTokenRepository resetTokenRepository;
@@ -32,10 +50,14 @@ public class UserController {
     @Value("${app.code}")
     private String APP_CODE;
 
+    @Value("${app.part1}")
+    private String PART1;
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User loginRequest, @RequestHeader("App-Code") String appCode) {
-        if (!appCode.equals(APP_CODE)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid app code");
+    public ResponseEntity<?> login(@RequestBody User loginRequest, @RequestHeader("App-Code") String part1) {
+        if (!part1.equals(PART1)) {
+            appCodeService.Fail(loginRequest.getUsername());
+            return ResponseEntity.status(408).body(null);
         }
         User user = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
         if (user != null) {
@@ -43,9 +65,11 @@ public class UserController {
             user.setSessionId(sessionId);
             userService.updateUser(user.getId(), user);
             String token = jwtUtil.generateToken(user.getUsername(), sessionId);
+            appCodeService.startAppCodeTimeout(loginRequest.getUsername());
+            appCodeService.initAppCode(loginRequest.getUsername(), part1);
             return ResponseEntity.ok(new AuthResponse(user, token));
         }
-        return ResponseEntity.badRequest().body("Invalid credentials");
+        return ResponseEntity.badRequest().body("Tài khoản hoặc mật khẩu không đúng!");
     }
 
     @PostMapping("/register")
@@ -223,5 +247,69 @@ public class UserController {
         resetTokenRepository.save(resetToken);
         
         return ResponseEntity.ok("Đổi mật khẩu thành công!");
+    }
+
+    @PostMapping("/app-code/part2")
+    public ResponseEntity<?> receivePart2(@RequestBody User user, @RequestHeader("App-Code") String part2) {
+        boolean no2 = appCodeService.AppCode2(user.getUsername(), part2);
+        if (!no2) {
+            appCodeService.Fail(user.getUsername());
+            return ResponseEntity.status(408).body(null);
+        }
+
+        return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/app-code/part3")
+    public ResponseEntity<?> receivePart3(@RequestBody User user, @RequestHeader("App-Code") String encoded) {
+        try {
+            String decoded = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
+
+            Properties props = new Properties();
+            props.load(new StringReader(decoded));
+
+            String part3 = props.getProperty("app.part3");
+            String username = props.getProperty("code.username");
+            long time = Long.parseLong(props.getProperty("code.time"));
+
+            if (!username.equals(user.getUsername())) {
+                return ResponseEntity.status(408).body(null);
+            }
+
+            long now = System.currentTimeMillis();
+            if (now - time > 30_000) {
+                appCodeService.Fail(user.getUsername());
+                return ResponseEntity.status(408).body(null);
+            }
+
+            boolean no3 = appCodeService.AppCode3(user.getUsername(), part3, APP_CODE);
+            if (!no3) {
+                appCodeService.Fail(user.getUsername());
+                return ResponseEntity.status(408).body(null);
+            }
+
+            return ResponseEntity.ok(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Lỗi giải mã app-code: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/app-code/download")
+    public ResponseEntity<Resource> downloadAppCode(@RequestBody User user) {
+        String part = appCodeService.generateOneTimeEncryptedPart(user.getUsername());
+
+        try {
+            Path path = Files.createTempFile("app_part_", ".dat");
+            Files.writeString(path, part, StandardCharsets.UTF_8);
+
+            Resource resource = new UrlResource(path.toUri());
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + path.getFileName().toString())
+                    .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 }

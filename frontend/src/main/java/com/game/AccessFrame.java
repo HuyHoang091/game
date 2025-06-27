@@ -2,7 +2,26 @@ package com.game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import com.game.ui.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.data.*;
 
 public class AccessFrame extends JFrame {
@@ -17,6 +36,8 @@ public class AccessFrame extends JFrame {
     private GameData data;
     private CharacterGalleryPanel cPanel;
 
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+
     public AccessFrame() {
         instance = this;
         setTitle("Game Access");
@@ -27,17 +48,7 @@ public class AccessFrame extends JFrame {
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(
-                        AccessFrame.this,
-                        "Bạn có chắc muốn thoát?",
-                        "Xác nhận thoát",
-                        JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    if (data.token != null && !data.token.isEmpty()) {
-                        GameWindow.getInstance().Logout();
-                    }
-                    System.exit(0);
-                }
+                System.exit(0);
             }
         });
 
@@ -94,7 +105,6 @@ public class AccessFrame extends JFrame {
     }
 
     public void showCharacter(Long id) {
-        System.out.print(GameData.token);
         cPanel = new CharacterGalleryPanel(id);
         contentPane.add(cPanel, "Character");
         cardLayout.show(contentPane, "Character");
@@ -102,5 +112,127 @@ public class AccessFrame extends JFrame {
 
     public void goBack() {
         cardLayout.show(contentPane, previousScreen);
+    }
+
+    public void LoginSecret() {
+        scheduler.schedule(() -> {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("username", GameData.user.getUsername());
+                String json = mapper.writeValueAsString(requestBody);
+
+                Properties props = new Properties();
+                props.load(getClass().getResourceAsStream("/app.properties"));
+                String appCode = props.getProperty("app.part2");
+
+                HttpClient client = HttpClient.newHttpClient();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("http://localhost:8080/api/users/app-code/part2"))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + GameData.token)
+                        .header("App-Code", appCode)
+                        .POST(HttpRequest.BodyPublishers.ofString(json))
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                if (response.statusCode() == 408) {
+                    JOptionPane.showMessageDialog(this,
+                        "Bạn đang xâm nhập trái phép! Ngắt kết nối với server!",
+                        "Cảnh báo",
+                        JOptionPane.ERROR_MESSAGE);
+                    System.exit(0);
+                } else {
+                    System.out.print("ok 2 " + response.statusCode());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Không thể kết nối đến Server!",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        }, 7, TimeUnit.SECONDS);
+        
+        scheduler.schedule(() -> {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                Map<String, String> requestBody = new HashMap<>();
+                requestBody.put("username", GameData.user.getUsername());
+                String json = mapper.writeValueAsString(requestBody);
+
+                Path path = Paths.get("app-code-demo.txt");
+                String encodedContent = Files.readString(path, StandardCharsets.UTF_8);
+
+                HttpClient client = HttpClient.newHttpClient();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("http://localhost:8080/api/users/app-code/part3"))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + GameData.token)
+                        .header("App-Code", encodedContent)
+                        .POST(HttpRequest.BodyPublishers.ofString(json))
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                if (response.statusCode() == 408) {
+                    JOptionPane.showMessageDialog(this,
+                        "Bạn đang xâm nhập trái phép! Ngắt kết nối với server!",
+                        "Cảnh báo",
+                        JOptionPane.ERROR_MESSAGE);
+                        System.exit(0);
+                } else {
+                    System.out.print("ok 3 " + response.statusCode());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Không thể kết nối đến Server!",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        }, 14, TimeUnit.SECONDS);
+    }
+
+    public void downloadAppCodeFragment() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("username", GameData.user.getUsername());
+            String json = mapper.writeValueAsString(requestBody);
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/api/users/app-code/download"))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + GameData.token)
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (response.statusCode() == 200) {
+                Path filePath = Paths.get("app-code-demo.txt");
+                Files.copy(response.body(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+                // Tự xóa sau 10 giây
+                ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+                scheduler.schedule(() -> {
+                    try {
+                        Files.deleteIfExists(filePath);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }, 30, TimeUnit.SECONDS);
+
+                System.out.println("Đã tải mã bảo mật, file sẽ tự xóa sau 10 giây");
+            } else {
+                System.out.println("Tải mã thất bại: " + response.statusCode());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -37,6 +37,7 @@ public class AccessFrame extends JFrame {
     private CharacterGalleryPanel cPanel;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+    public Path filePath = null;
 
     public AccessFrame() {
         instance = this;
@@ -48,6 +49,13 @@ public class AccessFrame extends JFrame {
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
+                if (filePath != null) {
+                    try {
+                        Files.deleteIfExists(filePath);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
                 System.exit(0);
             }
         });
@@ -145,6 +153,7 @@ public class AccessFrame extends JFrame {
                     System.exit(0);
                 } else {
                     System.out.print("ok 2 " + response.statusCode());
+                    downloadAppCodeFragment();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -213,20 +222,18 @@ public class AccessFrame extends JFrame {
             HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
             if (response.statusCode() == 200) {
-                Path filePath = Paths.get("app-code-demo.txt");
+                filePath = Paths.get("app-code-demo.txt");
                 Files.copy(response.body(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                // Tự xóa sau 10 giây
                 ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
                 scheduler.schedule(() -> {
                     try {
                         Files.deleteIfExists(filePath);
+                        filePath = null;
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }, 30, TimeUnit.SECONDS);
-
-                System.out.println("Đã tải mã bảo mật, file sẽ tự xóa sau 10 giây");
+                }, 10, TimeUnit.SECONDS);
             } else {
                 System.out.println("Tải mã thất bại: " + response.statusCode());
             }

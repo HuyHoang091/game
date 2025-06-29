@@ -2,11 +2,13 @@ package com.game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -55,6 +57,13 @@ public class GameWindow extends JFrame {
                         "Xác nhận thoát",
                         JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
+                    if (AccessFrame.getInstance().filePath != null) {
+                        try {
+                            Files.deleteIfExists(AccessFrame.getInstance().filePath);
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
                     System.exit(0);
                 }
             }

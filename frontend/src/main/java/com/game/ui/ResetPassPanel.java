@@ -251,7 +251,7 @@ public class ResetPassPanel extends JPanel {
 
                 if (response.statusCode() == 200) {
                     JOptionPane.showMessageDialog(this,
-                            "Thay đổi mật khẩu thành công, vui lòng đăng nhập lại.",
+                            response.body(),
                             "Thông báo",
                             JOptionPane.INFORMATION_MESSAGE);
                     gameWindow.showLogin();

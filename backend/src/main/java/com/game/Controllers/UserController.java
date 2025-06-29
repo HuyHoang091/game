@@ -53,6 +53,9 @@ public class UserController {
     @Value("${app.part1}")
     private String PART1;
 
+     @Value("${app.repass}")
+    private String REPASS;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginRequest, @RequestHeader("App-Code") String part1) {
         if (!part1.equals(PART1)) {
@@ -149,17 +152,25 @@ public class UserController {
 
     @PreAuthorize("#id == principal.id or hasRole('ADMIN')")
     @PutMapping("/repass/{id}")
-    public ResponseEntity<User> repassUser(@PathVariable Long id, @RequestBody User character) {
+    public ResponseEntity<String> repassUser(@PathVariable Long id, @RequestBody User character) {
+        String newPassword = character.getPassword();
+    
+        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
+        
+        if (!newPassword.matches(passwordPattern)) {
+            return ResponseEntity.badRequest().body("Mật khẩu quá yếu. Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số.");
+        }
+
         User updated = userService.repassUser(id, character);
         if (updated != null && (updated.getTrangthai().equals("Chưa kích hoạt"))) {
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok("Dổi mật khẩu thành công. Vui lòng đăng nhập lại!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @PostMapping("/repass")
     public ResponseEntity<?> repass(@RequestBody User user, @RequestHeader("App-Code") String appCode) {
-        if (!appCode.equals(APP_CODE)) {
+        if (!appCode.equals(REPASS)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid app code");
         }
         String token = jwtUtil.generateResetToken(user.getEmail());
@@ -238,6 +249,12 @@ public class UserController {
             return ResponseEntity.status(401).body("Token hết hạn");
         }
 
+        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
+        
+        if (!newPassword.matches(passwordPattern)) {
+            return ResponseEntity.badRequest().body("Mật khẩu quá yếu. Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường và số.");
+        }
+
         String email = jwtUtil.getUsernameFromToken(token);
         User user = userService.resetpass(email, newPassword);
         if (user == null) {
@@ -264,9 +281,10 @@ public class UserController {
     public ResponseEntity<?> receivePart3(@RequestBody User user, @RequestHeader("App-Code") String encoded) {
         try {
             String decoded = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
+            String textReal = appCodeService.decryptAppCodePart(decoded);
 
             Properties props = new Properties();
-            props.load(new StringReader(decoded));
+            props.load(new StringReader(textReal));
 
             String part3 = props.getProperty("app.part3");
             String username = props.getProperty("code.username");
@@ -296,9 +314,9 @@ public class UserController {
 
     @PostMapping("/app-code/download")
     public ResponseEntity<Resource> downloadAppCode(@RequestBody User user) {
-        String part = appCodeService.generateOneTimeEncryptedPart(user.getUsername());
-
         try {
+            String part = appCodeService.generateOneTimeEncryptedPart(user.getUsername());
+
             Path path = Files.createTempFile("app_part_", ".dat");
             Files.writeString(path, part, StandardCharsets.UTF_8);
 
@@ -308,7 +326,8 @@ public class UserController {
                     .header("Cache-Control", "no-cache, no-store, must-revalidate")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(resource);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).body(null);
         }
     }

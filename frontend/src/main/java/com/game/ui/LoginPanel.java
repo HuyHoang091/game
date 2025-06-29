@@ -310,7 +310,6 @@ public class LoginPanel extends JPanel {
                     }
                     com.game.demo.LayoutManager layout = new com.game.demo.LayoutManager();
                     layout.setVisible(true);
-                    accessFrame.downloadAppCodeFragment();
                 } else if (trangthai.equals("Đã kích hoạt")) {
                     // ✅ Parse User
                     GameData.user = authResponse.getUser();
@@ -320,13 +319,11 @@ public class LoginPanel extends JPanel {
                     loadUserData(GameData.user.getId());
 
                     accessFrame.showCharacter(GameData.user.getId());
-                    accessFrame.downloadAppCodeFragment();
                 } else {
                     JOptionPane.showMessageDialog(this, "Tài khoản của bạn chưa kích hoạt, hãy thay đổi mật khẩu và đăng nhập lại!");
                     GameData.user = authResponse.getUser();
                     GameData.token = authResponse.getToken();
                     accessFrame.showRepass();
-                    accessFrame.downloadAppCodeFragment();
                 }
             } else {
                 JOptionPane.showMessageDialog(this,

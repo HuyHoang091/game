@@ -9,7 +9,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +26,9 @@ public class AppCodeService {
 
     @Autowired
     private UserService userService;
+
+    @Value("${key.secret}")
+    private String KEY_SECRET;
 
     @Async("appTaskExecutor")
     public void startAppCodeTimeout(String username) {
@@ -93,7 +100,7 @@ public class AppCodeService {
         appCodeStorage.remove(username);
     }
 
-    public String generateOneTimeEncryptedPart(String username) {
+    public String generateOneTimeEncryptedPart(String username) throws Exception {
         String part3 = "Hoang";
         long timestamp = System.currentTimeMillis();
 
@@ -102,6 +109,24 @@ public class AppCodeService {
             part3, username, timestamp
         );
 
-        return Base64.getEncoder().encodeToString(content.getBytes(StandardCharsets.UTF_8));
+        String encrypted = encryptAppCodePart(content);
+
+        return Base64.getEncoder().encodeToString(encrypted.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String encryptAppCodePart(String content) throws Exception {
+        SecretKeySpec key = new SecretKeySpec(KEY_SECRET.getBytes(StandardCharsets.UTF_8), "AES");
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        byte[] encrypted = cipher.doFinal(content.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(encrypted);
+    }
+
+    public String decryptAppCodePart(String encryptedBase64) throws Exception {
+        SecretKeySpec key = new SecretKeySpec(KEY_SECRET.getBytes(StandardCharsets.UTF_8), "AES");
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedBase64));
+        return new String(decrypted, StandardCharsets.UTF_8);
     }
 }

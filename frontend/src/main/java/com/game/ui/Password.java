@@ -240,6 +240,7 @@ public class Password extends JPanel {
                         response.body(),
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
+                accessFrame.showLogin();
             } else {
                 JOptionPane.showMessageDialog(this,
                         response.body(),

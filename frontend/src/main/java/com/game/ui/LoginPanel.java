@@ -301,6 +301,7 @@ public class LoginPanel extends JPanel {
                 accessFrame.LoginSecret();
 
                 if (admin.equals("admin")) {
+                    GameData.user = authResponse.getUser();
                     GameData.token = authResponse.getToken();
                     AccessFrame.getInstance().dispose();
                     try {

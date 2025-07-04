@@ -64,6 +64,7 @@ public class GameWindow extends JFrame {
                             e1.printStackTrace();
                         }
                     }
+                    Logout();
                     System.exit(0);
                 }
             }
@@ -223,7 +224,7 @@ public class GameWindow extends JFrame {
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/users/logout"))
+                    .uri(URI.create("http://localhost:8080/api/auth/logout"))
                     .header("Content-Type", "application/json")
                     .header("Authorization", "Bearer " + GameData.token)
                     .POST(HttpRequest.BodyPublishers.ofString(json))
@@ -249,6 +250,7 @@ public class GameWindow extends JFrame {
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
         }
+        AccessFrame.getInstance().scheduler.shutdownNow();
         mainMenu = null;
         mapSelectScreen = null;
         gamePanel = null;

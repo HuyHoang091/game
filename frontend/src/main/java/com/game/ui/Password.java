@@ -227,7 +227,7 @@ public class Password extends JPanel {
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/users/repass"))
+                    .uri(URI.create("http://localhost:8080/api/auth/forgot-password"))
                     .header("Content-Type", "application/json")
                     .header("App-Code", appCode)
                     .POST(HttpRequest.BodyPublishers.ofString(json))

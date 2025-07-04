@@ -28,7 +28,7 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-                .antMatchers("/api/users/login", "/api/users/register", "/api/users/repass", "/api/users/reset-password").permitAll()
+                .antMatchers("/api/auth/login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/map/**", "/api/item/**", "/api/monster/**", "/api/monsterdrop/**", "/api/skill/**", "/api/skillupdate/**")
                 .hasAnyRole("USER", "ADMIN")
                 .antMatchers("/api/map/**").hasRole("ADMIN")
@@ -53,7 +53,7 @@ public class SecurityConfig {
     public FilterRegistrationBean<RateLimitFilter> usernameRateLimitFilter() {
         FilterRegistrationBean<RateLimitFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new RateLimitFilter());
-        registrationBean.addUrlPatterns("/api/users/login");
+        registrationBean.addUrlPatterns("/api/auth/login");
         return registrationBean;
     }
 }

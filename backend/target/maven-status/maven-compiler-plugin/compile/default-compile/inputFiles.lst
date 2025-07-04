@@ -32,6 +32,7 @@ C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\UserCon
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\CharacterSkillRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\SkillRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\CharacterSkillService.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\AuthController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\ThuocTinhRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\MonsterRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\SkillService.java
@@ -40,6 +41,7 @@ C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\AppCodeServ
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Service\CustomUserDetails.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Repository\ResetTokenRepository.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\CharacterSkillController.java
+C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\AppCodeController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Controllers\CharacterController.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Model\ResetToken.java
 C:\xampp\htdocs\hoanghuy\game\backend\src\main\java\com\game\Model\Skill.java

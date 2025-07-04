@@ -36,7 +36,7 @@ public class AccessFrame extends JFrame {
     private GameData data;
     private CharacterGalleryPanel cPanel;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+    public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     public Path filePath = null;
 
     public AccessFrame() {
@@ -55,6 +55,31 @@ public class AccessFrame extends JFrame {
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
+                }
+                if (GameData.token != null) {
+                    String username = GameData.user.getUsername();
+
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        Map<String, String> requestBody = new HashMap<>();
+                        requestBody.put("username", username);
+                        String json = mapper.writeValueAsString(requestBody);
+
+                        HttpClient client = HttpClient.newHttpClient();
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create("http://localhost:8080/api/auth/logout"))
+                                .header("Content-Type", "application/json")
+                                .header("Authorization", "Bearer " + GameData.token)
+                                .POST(HttpRequest.BodyPublishers.ofString(json))
+                                .build();
+
+                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+
+                    scheduler.shutdownNow();
                 }
                 System.exit(0);
             }
@@ -136,7 +161,7 @@ public class AccessFrame extends JFrame {
 
                 HttpClient client = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/users/app-code/part2"))
+                        .uri(URI.create("http://localhost:8080/api/appcode/part2"))
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + GameData.token)
                         .header("App-Code", appCode)
@@ -176,7 +201,7 @@ public class AccessFrame extends JFrame {
 
                 HttpClient client = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/users/app-code/part3"))
+                        .uri(URI.create("http://localhost:8080/api/appcode/part3"))
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + GameData.token)
                         .header("App-Code", encodedContent)
@@ -213,7 +238,7 @@ public class AccessFrame extends JFrame {
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/users/app-code/download"))
+                    .uri(URI.create("http://localhost:8080/api/appcode/download"))
                     .header("Content-Type", "application/json")
                     .header("Authorization", "Bearer " + GameData.token)
                     .POST(HttpRequest.BodyPublishers.ofString(json))

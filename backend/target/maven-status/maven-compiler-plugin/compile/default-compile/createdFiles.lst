@@ -2,6 +2,7 @@ com\game\Repository\SkillUpdateRequirementsRepository.class
 com\game\Model\Inventory.class
 com\game\Repository\MapRepository.class
 com\game\Service\SkillService.class
+com\game\Controllers\AppCodeController.class
 com\game\Controllers\ItemInstanceController.class
 com\game\Repository\SkillRepository.class
 com\game\Model\Map.class
@@ -20,6 +21,7 @@ com\game\Controllers\CharacterSkillController.class
 com\game\Service\MonsterDropService.class
 com\game\Model\SkillUpdateRequirements.class
 com\game\Repository\CharacterRepository.class
+com\game\Controllers\AuthController.class
 com\game\Controllers\UserController.class
 com\game\Service\ThuocTinhService.class
 com\game\GameApplication.class

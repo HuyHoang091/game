@@ -39,7 +39,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // bạn có thể tùy biến logic này
+        return true;
     }
 
     @Override

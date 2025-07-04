@@ -1,7 +1,8 @@
-package com.game.Model; // hoặc package phù hợp với bạn
+package com.game.Model;
 
-import com.game.Model.User;
+import lombok.Data;
 
+@Data
 public class AuthResponse {
     private String token;
     private User user;
@@ -9,22 +10,5 @@ public class AuthResponse {
     public AuthResponse(User user, String token) {
         this.user = user;
         this.token = token;
-    }
-
-    // Getters và setters
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }

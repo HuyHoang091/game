@@ -241,7 +241,7 @@ public class ResetPassPanel extends JPanel {
 
                 HttpClient client = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/users/repass/" + user.getId()))
+                        .uri(URI.create("http://localhost:8080/api/users/" + user.getId() + "/password"))
                         .header("Content-Type", "application/json")
                         .header("Authorization", "Bearer " + GameData.token)
                         .PUT(HttpRequest.BodyPublishers.ofString(json))

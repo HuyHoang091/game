@@ -45,6 +45,7 @@ com\game\model\GameSkill.class
 com\game\ui\SettingsPanel$1.class
 com\game\ui\SettingsPanel$2.class
 com\game\stats\PlayerStats.class
+com\game\demo\LayoutManager$2.class
 com\game\demo\LayoutManager$1.class
 com\game\model\GameItem.class
 com\game\Player.class

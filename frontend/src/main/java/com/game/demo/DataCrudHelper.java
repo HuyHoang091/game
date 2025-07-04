@@ -45,7 +45,7 @@ public class DataCrudHelper {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                JOptionPane.showMessageDialog(parent, "Thêm mới thành công!");
+                JOptionPane.showMessageDialog(parent, response.body());
                 if (selectedNode != null) {
                     TreePath path = new TreePath(selectedNode.getPath());
                     tree.setSelectionPath(null);
@@ -105,7 +105,7 @@ public class DataCrudHelper {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                JOptionPane.showMessageDialog(parent, "Cập nhật thành công!");
+                JOptionPane.showMessageDialog(parent, response.body());
                 if (selectedNode != null) {
                     TreePath path = new TreePath(selectedNode.getPath());
                     tree.setSelectionPath(null);
@@ -165,7 +165,7 @@ public class DataCrudHelper {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                JOptionPane.showMessageDialog(parent, "Xoá thành công!");
+                JOptionPane.showMessageDialog(parent, response.body());
                 if (selectedNode != null) {
                     TreePath path = new TreePath(selectedNode.getPath());
                     tree.setSelectionPath(null);

@@ -262,6 +262,7 @@ public class TableDisplayHelper {
             displayNames.put("email", "Email");
             displayNames.put("tiendo", "Tiến độ");
             displayNames.put("trangthai", "Trạng thái");
+            displayNames.put("sessionId", "UUID");
         } else if (tableName.equalsIgnoreCase("characters")) {
             displayNames.put("id", "Mã nhân vật");
             displayNames.put("userId", "Mã người dùng");

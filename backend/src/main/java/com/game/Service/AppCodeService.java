@@ -18,14 +18,19 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.game.Model.AppCodeParts;
+import com.game.Model.User;
+import com.game.Repository.UserRepository;
 
 @Service
 public class AppCodeService {
-    private final Map<String, AppCodeParts> appCodeStorage = new ConcurrentHashMap<>();
+    public final Map<String, AppCodeParts> appCodeStorage = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(200);
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Value("${key.secret}")
     private String KEY_SECRET;
@@ -34,7 +39,8 @@ public class AppCodeService {
     public void startAppCodeTimeout(String username) {
         scheduler.schedule(() -> {
             AppCodeParts parts = appCodeStorage.get(username);
-            if (parts != null && parts.getPart2() == null) {
+            User user = userRepository.findByUsername(username);
+            if (parts != null && parts.getPart2() == null && (user == null || "".equals(user.getSessionId()))) {
                 userService.logout(username);
                 appCodeStorage.remove(username);
             }
@@ -42,7 +48,8 @@ public class AppCodeService {
 
         scheduler.schedule(() -> {
             AppCodeParts parts = appCodeStorage.get(username);
-            if (parts != null && parts.getPart3() == null) {
+            User user = userRepository.findByUsername(username);
+            if (parts != null && parts.getPart2() == null && (user == null || "".equals(user.getSessionId()))) {
                 userService.logout(username);
                 appCodeStorage.remove(username);
             }
@@ -50,10 +57,11 @@ public class AppCodeService {
 
         scheduler.schedule(() -> {
             AppCodeParts parts = appCodeStorage.get(username);
+            User user = userRepository.findByUsername(username);
             if (parts != null) {
                 if (parts.isSecret()) {
                     appCodeStorage.remove(username);
-                } else {
+                } else if (user == null || "".equals(user.getSessionId())) {
                     userService.logout(username);
                     appCodeStorage.remove(username);
                 }

@@ -290,7 +290,7 @@ public class InputFormBuilder {
                 }
             }
 
-            if (column.equalsIgnoreCase("id") || column.equalsIgnoreCase("password")) {
+            if (column.equalsIgnoreCase("id") || column.equalsIgnoreCase("password") || column.equalsIgnoreCase("sessionId")) {
                 JTextField field = new JTextField();
                 field.setEditable(false);
                 field.setPreferredSize(new Dimension(200, 25));

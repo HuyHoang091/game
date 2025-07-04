@@ -9,6 +9,7 @@ import java.util.List;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,13 +55,21 @@ public class UserService {
     public User updateUser(Long id, User newChar) {
         User oldUser = userRepository.findById(id).orElse(null);
         if (oldUser == null) return null;
-
+        if (oldUser.getUsername().equals("admin")) {
+            if (!oldUser.getUsername().equals(newChar.getUsername())) {
+                return null;
+            }
+        }
         newChar.setPassword(oldUser.getPassword());
 
         return userRepository.save(newChar);
     }
     
     public boolean deleteUser(Long id) {
+        User oldUser = userRepository.findById(id).orElse(null);
+        if (oldUser.getUsername().equals("admin")) {
+            return false;
+        }
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
             return true;
@@ -79,6 +88,10 @@ public class UserService {
     }
 
     public User repassUser(Long id, User newChar) {
+        User existingUser = userRepository.findById(id).orElse(null);
+        if (existingUser == null || newChar.getPassword() == null) {
+            return null;
+        }
         String encodedPassword = passwordEncoder.encode(newChar.getPassword());
         newChar.setPassword(encodedPassword);
         return userRepository.save(newChar);
@@ -90,7 +103,7 @@ public class UserService {
              return false;
         }
 
-        String resetLink = "http://localhost:8080/api/users/reset-password?token=" + token;
+        String resetLink = "http://localhost:8080/api/auth/reset-password?token=" + token;
 
         String subject = "Đổi mật khẩu tài khoản Game của bạn";
         String body = "Đây là link đổi mật khẩu của bạn (Lưu ý không tiết lộ link này ra ngoài!)\n\n"
@@ -102,7 +115,6 @@ public class UserService {
             emailService.sendEmail(email, subject, body);
         } catch (Exception e) {
             System.err.println("Failed to send registration email to " + email + ": " + e.getMessage());
-            // Xử lý lỗi gửi email (ví dụ: log lại, rollback giao dịch nếu cần)
         }
 
         return true;
@@ -140,6 +152,7 @@ public class UserService {
         // 3. Mã hóa mật khẩu trước khi lưu
         String encodedPassword = passwordEncoder.encode(generatedPassword);
         user.setPassword(encodedPassword);
+        user.setSessionId("");
 
         // 4. Lưu người dùng vào cơ sở dữ liệu
         User savedUser = userRepository.save(user);

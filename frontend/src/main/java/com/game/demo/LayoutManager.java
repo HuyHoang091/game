@@ -5,6 +5,7 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.tree.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.game.AccessFrame;
 import com.game.data.GameData;
 
 import javax.swing.table.DefaultTableCellRenderer;
@@ -14,10 +15,15 @@ import javax.swing.table.TableRowSorter;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class LayoutManager extends JFrame {
@@ -29,7 +35,7 @@ public class LayoutManager extends JFrame {
     private JScrollPane tableScroll;
     private JSplitPane verticalSplit;
 
-    private JButton btnThem, btnSua, btnXoa;
+    private JButton btnThem, btnSua, btnXoa, btnClear;
     private JTextField searchField;
     private TableRowSorter<DefaultTableModel> rowSorter;
     private TableSearchHelper tableSearchHelper;
@@ -47,8 +53,47 @@ public class LayoutManager extends JFrame {
     public LayoutManager() {
         setTitle("Quản Lý Dữ Liệu");
         setSize(1000, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (AccessFrame.getInstance().filePath != null) {
+                    try {
+                        Files.deleteIfExists(AccessFrame.getInstance().filePath);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+                if (GameData.token != null) {
+                    String username = GameData.user.getUsername();
+
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        Map<String, String> requestBody = new HashMap<>();
+                        requestBody.put("username", username);
+                        String json = mapper.writeValueAsString(requestBody);
+
+                        HttpClient client = HttpClient.newHttpClient();
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create("http://localhost:8080/api/auth/logout"))
+                                .header("Content-Type", "application/json")
+                                .header("Authorization", "Bearer " + GameData.token)
+                                .POST(HttpRequest.BodyPublishers.ofString(json))
+                                .build();
+
+                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+
+                    AccessFrame.getInstance().scheduler.shutdownNow();
+                }
+                System.exit(0);
+            }
+        });
 
         JLabel titleLabel = new JLabel("QUẢN LÝ", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
@@ -145,12 +190,15 @@ public class LayoutManager extends JFrame {
         btnThem = new RoundedButton("Thêm", 15);
         btnSua = new RoundedButton("Sửa", 15);
         btnXoa = new RoundedButton("Xóa", 15);
+        btnClear = new RoundedButton("Clear", 15);
         btnThem.addActionListener(e -> DataCrudHelper.addData(inputFields, tree, this));
         btnSua.addActionListener(e -> DataCrudHelper.updateData(inputFields, tree, this));
         btnXoa.addActionListener(e -> DataCrudHelper.deleteData(inputFields, tree, this));
+        btnClear.addActionListener(e -> clearInputs(inputFields));
         buttonPanel.add(btnThem);
         buttonPanel.add(btnSua);
         buttonPanel.add(btnXoa);
+        buttonPanel.add(btnClear);
 
         JPanel formInput = new JPanel(new BorderLayout());
         formInput.add(inputScroll, BorderLayout.CENTER);
@@ -160,9 +208,15 @@ public class LayoutManager extends JFrame {
         btnThem.setBackground(new Color(76, 175, 80));
         btnSua.setBackground(new Color(255, 193, 7));
         btnXoa.setBackground(new Color(244, 67, 54));
+        btnClear.setBackground(new Color(138, 143, 255));
         btnThem.setForeground(Color.WHITE);
         btnSua.setForeground(Color.WHITE);
         btnXoa.setForeground(Color.WHITE);
+        btnClear.setForeground(Color.WHITE);
+        btnThem.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnSua.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnXoa.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnClear.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // Bottom Right: Table + Form
         verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tablePanel, formInput);
@@ -438,6 +492,16 @@ public class LayoutManager extends JFrame {
                 return "Tìm kiếm theo tên kỹ năng...";
             default:
                 return "Tìm kiếm...";
+        }
+    }
+
+    public void clearInputs(Map<String, JComponent> inputFields) {
+        for (JComponent component : inputFields.values()) {
+            if (component instanceof JTextField) {
+                ((JTextField) component).setText("");
+            } else if (component instanceof JComboBox) {
+                ((JComboBox<?>) component).setSelectedIndex(0);
+            }
         }
     }
 

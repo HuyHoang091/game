@@ -285,7 +285,7 @@ public class LoginPanel extends JPanel {
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/users/login"))
+                    .uri(URI.create("http://localhost:8080/api/auth/login"))
                     .header("Content-Type", "application/json")
                     .header("App-Code", appCode)
                     .POST(HttpRequest.BodyPublishers.ofString(json))

@@ -44,18 +44,25 @@ public class CharacterController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<Character> createCharacter(@RequestBody Character character, Authentication authentication) {
+    public ResponseEntity<?> createCharacter(@RequestBody Character character, Authentication authentication) {
         CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
         if (!currentUser.getId().equals(character.getUserId()) && !currentUser.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
             return ResponseEntity.status(403).build();
         }
+        if (character.getUserId() == null || character.getName() == null || character.getName().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Không được để trống Mã người dùng và Tên nhân vật!");
+        }
+
         Character created = characterService.createCharacter(character);
-        return ResponseEntity.ok(created);
+        if (created != null) {
+            return ResponseEntity.ok("Thêm mới thành công!");
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Character> updateCharacter(@PathVariable Long id, @RequestBody Character character, Authentication authentication) {
+    public ResponseEntity<?> updateCharacter(@PathVariable Long id, @RequestBody Character character, Authentication authentication) {
         CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
         if (!currentUser.getId().equals(character.getUserId()) && !currentUser.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
@@ -63,17 +70,17 @@ public class CharacterController {
         }
         Character updated = characterService.updateCharacter(id, character);
         if (updated != null) {
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok("Cập nhật thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCharacter(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCharacter(@PathVariable Long id) {
         boolean deleted = characterService.deleteCharacter(id);
         if (deleted) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Xóa thành công!");
         }
         return ResponseEntity.notFound().build();
     }

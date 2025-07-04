@@ -37,28 +37,28 @@ public class ItemController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<Item> createItem(@RequestBody Item item) {
+    public ResponseEntity<?> createItem(@RequestBody Item item) {
         Item create = characterService.createItem(item);
         if (create != null) {
-            return ResponseEntity.ok(create);
+            return ResponseEntity.ok("Thêm mới thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Item> updateItem(@PathVariable Long id, @RequestBody Item item) {
+    public ResponseEntity<?> updateItem(@PathVariable Long id, @RequestBody Item item) {
         Item update = characterService.updateItem(id, item);
         if (update != null) {
-            return ResponseEntity.ok(update);
+            return ResponseEntity.ok("Cập nhật thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Item> deleteItem(@PathVariable Long id) {
+    public ResponseEntity<?> deleteItem(@PathVariable Long id) {
         boolean delete = characterService.deleteItem(id);
         if (delete) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Xóa thành công!");
         }
         return ResponseEntity.notFound().build();
     }

@@ -41,25 +41,28 @@ public class ItemInstanceController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<ItemInstance> createItemInstance(@RequestBody ItemInstance iteminstance) {
+    public ResponseEntity<?> createItemInstance(@RequestBody ItemInstance iteminstance) {
         ItemInstance create = characterService.createItemInstance(iteminstance);
-        return ResponseEntity.ok(create);
+        if (create != null) {
+            return ResponseEntity.ok("Thêm mới thành công!");
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ItemInstance> updateItemInstance(@PathVariable Long id, @RequestBody ItemInstance iteminstance) {
+    public ResponseEntity<?> updateItemInstance(@PathVariable Long id, @RequestBody ItemInstance iteminstance) {
         ItemInstance update = characterService.updateItemInstance(id, iteminstance);
         if (update != null) {
-            return ResponseEntity.ok(update);
+            return ResponseEntity.ok("Cập nhật thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ItemInstance> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         boolean delete = characterService.deleteItemInstance(id);
         if (delete) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Xóa thành công!");
         }
         return ResponseEntity.notFound().build();
     }

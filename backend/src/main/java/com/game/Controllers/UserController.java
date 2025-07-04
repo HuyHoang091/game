@@ -49,13 +49,9 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/")
     public ResponseEntity<?> createUser(@RequestBody User character) {
-        if (character == null) {
-            return ResponseEntity.badRequest().body("Dữ liệu người dùng không được để trống!");
-        }
-
         if (character.getUsername() == null || character.getUsername().trim().isEmpty()
             || character.getEmail() == null || character.getEmail().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Username và Email là bắt buộc!");
+            return ResponseEntity.badRequest().body("Không được để trống Username và Email!");
         }
         User created = userService.createUser(character);
         if (created != null) {

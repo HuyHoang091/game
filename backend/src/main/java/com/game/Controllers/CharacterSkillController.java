@@ -37,27 +37,30 @@ public class CharacterSkillController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/")
-    public ResponseEntity<CharacterSkill> createCharacterSkill(@RequestBody CharacterSkill characterSkill) {
+    public ResponseEntity<?> createCharacterSkill(@RequestBody CharacterSkill characterSkill) {
         CharacterSkill create = characterService.createCharacterSkill(characterSkill);
-        return ResponseEntity.ok(create);
+        if (create != null) {
+            return ResponseEntity.ok("Thêm mới thành công!");
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<CharacterSkill> updateCharacterSkill(@PathVariable Long id, @RequestBody CharacterSkill characterSkill) {
+    public ResponseEntity<?> updateCharacterSkill(@PathVariable Long id, @RequestBody CharacterSkill characterSkill) {
         CharacterSkill update = characterService.updateCharacterSkill(id, characterSkill);
         if(update != null){
-            return ResponseEntity.ok(update);
+            return ResponseEntity.ok("Cập nhật thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<CharacterSkill> deleteCharacterSkill(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCharacterSkill(@PathVariable Long id) {
         boolean delete = characterService.deleteCharacterSkill(id);
         if(delete){
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Xóa thành công!");
         }
         return ResponseEntity.notFound().build();
     }

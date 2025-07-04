@@ -40,28 +40,28 @@ public class SkillController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<Skill> createSkill(@RequestBody Skill Skill) {
+    public ResponseEntity<?> createSkill(@RequestBody Skill Skill) {
         Skill create = characterService.createSkill(Skill);
         if (create != null) {
-            return ResponseEntity.ok(create);
+            return ResponseEntity.ok("Thêm mới thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Skill> updateSkill(@PathVariable Long id, @RequestBody Skill Skill) {
+    public ResponseEntity<?> updateSkill(@PathVariable Long id, @RequestBody Skill Skill) {
         Skill update = characterService.updateSkill(id, Skill);
         if (update != null) {
-            return ResponseEntity.ok(update);
+            return ResponseEntity.ok("Cập nhật thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Skill> deleteSkill(@PathVariable Long id) {
+    public ResponseEntity<?> deleteSkill(@PathVariable Long id) {
         boolean delete = characterService.deleteSkill(id);
         if (delete) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Xóa thành công!");
         }
         return ResponseEntity.notFound().build();
     }

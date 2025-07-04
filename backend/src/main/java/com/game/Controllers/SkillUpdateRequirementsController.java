@@ -40,28 +40,28 @@ public class SkillUpdateRequirementsController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<SkillUpdateRequirements> createSkillUpdateRequirements(@RequestBody SkillUpdateRequirements SkillUpdateRequirements) {
+    public ResponseEntity<?> createSkillUpdateRequirements(@RequestBody SkillUpdateRequirements SkillUpdateRequirements) {
         SkillUpdateRequirements create = characterService.createSkillUpdateRequirements(SkillUpdateRequirements);
         if (create != null) {
-            return ResponseEntity.ok(create);
+            return ResponseEntity.ok("Thêm mới thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SkillUpdateRequirements> updateSkillUpdateRequirements(@PathVariable Long id, @RequestBody SkillUpdateRequirements SkillUpdateRequirements) {
+    public ResponseEntity<?> updateSkillUpdateRequirements(@PathVariable Long id, @RequestBody SkillUpdateRequirements SkillUpdateRequirements) {
         SkillUpdateRequirements update = characterService.updateSkillUpdateRequirements(id, SkillUpdateRequirements);
         if (update != null) {
-            return ResponseEntity.ok(update);
+            return ResponseEntity.ok("Cập nhật thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<SkillUpdateRequirements> deleteSkillUpdateRequirements(@PathVariable Long id) {
+    public ResponseEntity<?> deleteSkillUpdateRequirements(@PathVariable Long id) {
         boolean delete = characterService.deleteSkillUpdateRequirements(id);
         if (delete) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Xóa thành công!");
         }
         return ResponseEntity.notFound().build();
     }

@@ -40,28 +40,28 @@ public class MapController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<Map> createMap(@RequestBody Map Map) {
+    public ResponseEntity<?> createMap(@RequestBody Map Map) {
         Map create = characterService.createMap(Map);
         if (create != null) {
-            return ResponseEntity.ok(create);
+            return ResponseEntity.ok("Thêm mới thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Map> updateMap(@PathVariable Long id, @RequestBody Map Map) {
+    public ResponseEntity<?> updateMap(@PathVariable Long id, @RequestBody Map Map) {
         Map update = characterService.updateMap(id, Map);
         if (update != null) {
-            return ResponseEntity.ok(update);
+            return ResponseEntity.ok("Cập nhật thành công!");
         }
         return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map> deleteMap(@PathVariable Long id) {
+    public ResponseEntity<?> deleteMap(@PathVariable Long id) {
         boolean delete = characterService.deleteMap(id);
         if (delete) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Xóa thành công!");
         }
         return ResponseEntity.notFound().build();
     }

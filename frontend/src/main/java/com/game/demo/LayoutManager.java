@@ -1,20 +1,17 @@
 package com.game.demo;
 
 import javax.swing.*;
-import javax.swing.border.AbstractBorder;
 import javax.swing.tree.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.AccessFrame;
 import com.game.data.GameData;
 
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableRowSorter;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;

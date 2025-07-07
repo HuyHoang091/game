@@ -12,7 +12,7 @@ public class InventoryService {
     @Autowired
     private InventoryRepository inventoryRepository;
 
-    public List<Inventory> getAllCharactersSkill(Long character_id) {
+    public List<Inventory> getAllInventoryCharacter(Long character_id) {
         return inventoryRepository.findByCharacterId(character_id);
     }
 

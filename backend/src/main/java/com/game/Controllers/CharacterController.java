@@ -22,8 +22,7 @@ public class CharacterController {
     @GetMapping("/{user_id}")
     public ResponseEntity<List<Character>> getUserById(@PathVariable Long user_id, Authentication authentication) {
         CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
-        if (!currentUser.getId().equals(user_id) && !currentUser.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+        if (!isOwnerOrAdmin(user_id, currentUser)) {
             return ResponseEntity.status(403).build();
         }
         List<Character> characters = characterService.getCharacters(user_id);
@@ -46,8 +45,7 @@ public class CharacterController {
     @PostMapping("/")
     public ResponseEntity<?> createCharacter(@RequestBody Character character, Authentication authentication) {
         CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
-        if (!currentUser.getId().equals(character.getUserId()) && !currentUser.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+        if (!isOwnerOrAdmin(character.getUserId(), currentUser)) {
             return ResponseEntity.status(403).build();
         }
         if (character.getUserId() == null || character.getName() == null || character.getName().trim().isEmpty()) {
@@ -61,13 +59,9 @@ public class CharacterController {
         return ResponseEntity.badRequest().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCharacter(@PathVariable Long id, @RequestBody Character character, Authentication authentication) {
-        CustomUserDetails currentUser = (CustomUserDetails) authentication.getPrincipal();
-        if (!currentUser.getId().equals(character.getUserId()) && !currentUser.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            return ResponseEntity.status(403).build();
-        }
+    public ResponseEntity<?> updateCharacter(@PathVariable Long id, @RequestBody Character character) {
         Character updated = characterService.updateCharacter(id, character);
         if (updated != null) {
             return ResponseEntity.ok("Cập nhật thành công!");
@@ -101,5 +95,11 @@ public class CharacterController {
 
         characterService.updateListCharacters(characters);
         return ResponseEntity.ok().build();
+    }
+
+    private boolean isOwnerOrAdmin(Long userId, CustomUserDetails currentUser) {
+        return currentUser.getId().equals(userId) ||
+            currentUser.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
     }
 }

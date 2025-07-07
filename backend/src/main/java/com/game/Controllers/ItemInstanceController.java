@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -40,6 +41,7 @@ public class ItemInstanceController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/")
     public ResponseEntity<?> createItemInstance(@RequestBody ItemInstance iteminstance) {
         ItemInstance create = instanceService.createItemInstance(iteminstance);
@@ -49,6 +51,7 @@ public class ItemInstanceController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateItemInstance(@PathVariable Long id, @RequestBody ItemInstance iteminstance) {
         ItemInstance update = instanceService.updateItemInstance(id, iteminstance);
@@ -58,6 +61,7 @@ public class ItemInstanceController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         boolean delete = instanceService.deleteItemInstance(id);

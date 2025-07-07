@@ -247,7 +247,6 @@ public class TableDisplayHelper {
             try {
                 table.removeColumn(table.getColumn("password"));
             } catch (IllegalArgumentException ignored) {
-                // Không có cột password thì bỏ qua
             }
         }
     }

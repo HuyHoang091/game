@@ -16,8 +16,9 @@ public class CharacterSkillController {
     @Autowired
     private CharacterSkillService characterSkillService;
 
-    @GetMapping("/{character_id}")
-    public ResponseEntity<List<CharacterSkill>> getAllCharactersSkill(@PathVariable Long character_id) {
+    @PreAuthorize("#user_id == principal.id or hasRole('ADMIN')")
+    @GetMapping("/{user_id}/{character_id}")
+    public ResponseEntity<List<CharacterSkill>> getAllCharactersSkill(@PathVariable Long user_id, @PathVariable Long character_id) {
         List<CharacterSkill> characters = characterSkillService.getAllCharactersSkill(character_id);
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);

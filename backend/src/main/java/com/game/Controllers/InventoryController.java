@@ -16,9 +16,10 @@ public class InventoryController {
     @Autowired
     private InventoryService inventoryService;
 
-    @GetMapping("/{character_id}")
-    public ResponseEntity<List<Inventory>> getAllCharactersSkill(@PathVariable Long character_id) {
-        List<Inventory> characters = inventoryService.getAllCharactersSkill(character_id);
+    @PreAuthorize("#user_id == principal.id or hasRole('ADMIN')")
+    @GetMapping("/{user_id}/{character_id}")
+    public ResponseEntity<List<Inventory>> getAllInventoryCharacter(@PathVariable Long user_id, @PathVariable Long character_id) {
+        List<Inventory> characters = inventoryService.getAllInventoryCharacter(character_id);
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }

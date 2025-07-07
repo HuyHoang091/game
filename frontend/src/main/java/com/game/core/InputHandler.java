@@ -9,7 +9,6 @@ import com.game.SkillEffect;
 import com.game.ui.GamePanel;
 import com.game.model.GameCharacterSkill;
 import com.game.data.GameData;
-import com.game.rendering.*;
 
 public class InputHandler extends MouseAdapter implements KeyListener {
     private GamePanel gamePanel;

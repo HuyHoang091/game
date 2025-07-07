@@ -249,7 +249,7 @@ public class CharacterGalleryPanel extends JPanel {
         Long characterId = GameData.character.get(0).getId();
 
         // Lấy character skills
-        String csUrl = "http://localhost:8080/api/character_skills/" + characterId;
+        String csUrl = "http://localhost:8080/api/character_skills/" + GameData.user.getId() + "/" + characterId;
         HttpRequest request3 = HttpRequest.newBuilder()
         .uri(URI.create(csUrl))
         .header("Authorization", "Bearer " + GameData.token)
@@ -265,7 +265,7 @@ public class CharacterGalleryPanel extends JPanel {
         }
 
         // Lấy inventory
-        String invUrl = "http://localhost:8080/api/inventory/" + characterId;
+        String invUrl = "http://localhost:8080/api/inventory/" + GameData.user.getId() + "/" + characterId;
         HttpRequest request4 = HttpRequest.newBuilder()
         .uri(URI.create(invUrl))
         .header("Authorization", "Bearer " + GameData.token)

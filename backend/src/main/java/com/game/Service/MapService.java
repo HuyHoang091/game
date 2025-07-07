@@ -9,18 +9,18 @@ import java.util.List;
 @Service
 public class MapService {
     @Autowired
-    private MapRepository characterRepository;
+    private MapRepository mapRepository;
 
     public List<Map> getAllMap() {
-        return characterRepository.findAll();
+        return mapRepository.findAll();
     }
 
     public Map createMap(Map Map) {
-        return characterRepository.save(Map);
+        return mapRepository.save(Map);
     }
 
     public Map updateMap(Long id, Map newChar) {
-        return characterRepository.findById(id).map(existing -> {
+        return mapRepository.findById(id).map(existing -> {
             existing.setName(newChar.getName());
             existing.setLevel(newChar.getLevel());
             existing.setBackground(newChar.getBackground());
@@ -28,13 +28,13 @@ public class MapService {
             existing.setPreview(newChar.getPreview());
             existing.setEnemyId(newChar.getEnemyId());
             existing.setBossId(newChar.getBossId());
-            return characterRepository.save(existing);
+            return mapRepository.save(existing);
         }).orElse(null);
     }
 
     public boolean deleteMap(Long id) {
-        if (characterRepository.existsById(id)) {
-            characterRepository.deleteById(id);
+        if (mapRepository.existsById(id)) {
+            mapRepository.deleteById(id);
             return true;
         }
         return false;

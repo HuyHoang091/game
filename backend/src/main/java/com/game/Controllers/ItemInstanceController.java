@@ -17,7 +17,7 @@ import java.util.List;
 public class ItemInstanceController {
 
     @Autowired
-    private ItemInstanceService characterService;
+    private ItemInstanceService instanceService;
 
     @Value("${admin.secret}")
     private String SECRET_CODE;
@@ -33,7 +33,7 @@ public class ItemInstanceController {
             }
         }
         
-        List<ItemInstance> characters = characterService.getAllItemInstance();
+        List<ItemInstance> characters = instanceService.getAllItemInstance();
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }
@@ -42,7 +42,7 @@ public class ItemInstanceController {
 
     @PostMapping("/")
     public ResponseEntity<?> createItemInstance(@RequestBody ItemInstance iteminstance) {
-        ItemInstance create = characterService.createItemInstance(iteminstance);
+        ItemInstance create = instanceService.createItemInstance(iteminstance);
         if (create != null) {
             return ResponseEntity.ok("Thêm mới thành công!");
         }
@@ -51,7 +51,7 @@ public class ItemInstanceController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateItemInstance(@PathVariable Long id, @RequestBody ItemInstance iteminstance) {
-        ItemInstance update = characterService.updateItemInstance(id, iteminstance);
+        ItemInstance update = instanceService.updateItemInstance(id, iteminstance);
         if (update != null) {
             return ResponseEntity.ok("Cập nhật thành công!");
         }
@@ -60,7 +60,7 @@ public class ItemInstanceController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        boolean delete = characterService.deleteItemInstance(id);
+        boolean delete = instanceService.deleteItemInstance(id);
         if (delete) {
             return ResponseEntity.ok("Xóa thành công!");
         }
@@ -70,12 +70,12 @@ public class ItemInstanceController {
     @PutMapping("/batch")
     public ResponseEntity<Void> updateItemInstances(@RequestBody List<ItemInstance> characters) {
         for (ItemInstance item : characters) {
-            if (!characterService.isValidItemInstance(item)) {
+            if (!instanceService.isValidItemInstance(item)) {
                 System.out.println("Item bất thường ID: " + item.getId());
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }
-        characterService.updateListItemInstance(characters);
+        instanceService.updateListItemInstance(characters);
         return ResponseEntity.ok().build();
     }
 }

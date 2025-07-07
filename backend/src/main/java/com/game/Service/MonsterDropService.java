@@ -9,23 +9,23 @@ import java.util.List;
 @Service
 public class MonsterDropService {
     @Autowired
-    private MonsterDropRepository characterRepository;
+    private MonsterDropRepository monsterDropRepository;
 
     public List<MonsterDrop> getAllMonsterDrop() {
-        return characterRepository.findAll();
+        return monsterDropRepository.findAll();
     }
 
     public MonsterDrop createMonsterDrop(MonsterDrop MonsterDrop) {
-        return characterRepository.save(MonsterDrop);
+        return monsterDropRepository.save(MonsterDrop);
     }
 
     public MonsterDrop updateMonsterDrop(Long id, MonsterDrop newChar) {
-        return characterRepository.save(newChar);
+        return monsterDropRepository.save(newChar);
     }
 
     public boolean deleteMonsterDrop(Long id) {
-        if (characterRepository.existsById(id)) {
-            characterRepository.deleteById(id);
+        if (monsterDropRepository.existsById(id)) {
+            monsterDropRepository.deleteById(id);
             return true;
         }
         return false;

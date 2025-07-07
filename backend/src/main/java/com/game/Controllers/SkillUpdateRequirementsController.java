@@ -16,7 +16,7 @@ import java.util.List;
 public class SkillUpdateRequirementsController {
 
     @Autowired
-    private SkillUpdateRequirementsService characterService;
+    private SkillUpdateRequirementsService skillUpdateRequirementsService;
 
     @Value("${admin.secret}")
     private String SECRET_CODE;
@@ -32,7 +32,7 @@ public class SkillUpdateRequirementsController {
             }
         }
         
-        List<SkillUpdateRequirements> characters = characterService.getAllSkillUpdateRequirements();
+        List<SkillUpdateRequirements> characters = skillUpdateRequirementsService.getAllSkillUpdateRequirements();
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }
@@ -41,7 +41,7 @@ public class SkillUpdateRequirementsController {
 
     @PostMapping("/")
     public ResponseEntity<?> createSkillUpdateRequirements(@RequestBody SkillUpdateRequirements SkillUpdateRequirements) {
-        SkillUpdateRequirements create = characterService.createSkillUpdateRequirements(SkillUpdateRequirements);
+        SkillUpdateRequirements create = skillUpdateRequirementsService.createSkillUpdateRequirements(SkillUpdateRequirements);
         if (create != null) {
             return ResponseEntity.ok("Thêm mới thành công!");
         }
@@ -50,7 +50,7 @@ public class SkillUpdateRequirementsController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateSkillUpdateRequirements(@PathVariable Long id, @RequestBody SkillUpdateRequirements SkillUpdateRequirements) {
-        SkillUpdateRequirements update = characterService.updateSkillUpdateRequirements(id, SkillUpdateRequirements);
+        SkillUpdateRequirements update = skillUpdateRequirementsService.updateSkillUpdateRequirements(id, SkillUpdateRequirements);
         if (update != null) {
             return ResponseEntity.ok("Cập nhật thành công!");
         }
@@ -59,7 +59,7 @@ public class SkillUpdateRequirementsController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteSkillUpdateRequirements(@PathVariable Long id) {
-        boolean delete = characterService.deleteSkillUpdateRequirements(id);
+        boolean delete = skillUpdateRequirementsService.deleteSkillUpdateRequirements(id);
         if (delete) {
             return ResponseEntity.ok("Xóa thành công!");
         }

@@ -9,23 +9,23 @@ import java.util.List;
 @Service
 public class SkillService {
     @Autowired
-    private SkillRepository characterRepository;
+    private SkillRepository skillRepository;
 
     public List<Skill> getAllSkill() {
-        return characterRepository.findAll();
+        return skillRepository.findAll();
     }
 
     public Skill createSkill(Skill Skill) {
-        return characterRepository.save(Skill);
+        return skillRepository.save(Skill);
     }
 
     public Skill updateSkill(Long id, Skill newChar) {
-        return characterRepository.save(newChar);
+        return skillRepository.save(newChar);
     }
 
     public boolean deleteSkill(Long id) {
-        if (characterRepository.existsById(id)) {
-            characterRepository.deleteById(id);
+        if (skillRepository.existsById(id)) {
+            skillRepository.deleteById(id);
             return true;
         }
         return false;

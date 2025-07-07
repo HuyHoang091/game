@@ -16,7 +16,7 @@ import java.util.List;
 public class ItemController {
 
     @Autowired
-    private ItemService characterService;
+    private ItemService itemService;
 
     @Value("${admin.secret}")
     private String SECRET_CODE;
@@ -32,13 +32,13 @@ public class ItemController {
             }
         }
         
-        List<Item> characters = characterService.getAllItem();
+        List<Item> characters = itemService.getAllItem();
         return ResponseEntity.ok(characters);
     }
 
     @PostMapping("/")
     public ResponseEntity<?> createItem(@RequestBody Item item) {
-        Item create = characterService.createItem(item);
+        Item create = itemService.createItem(item);
         if (create != null) {
             return ResponseEntity.ok("Thêm mới thành công!");
         }
@@ -47,7 +47,7 @@ public class ItemController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateItem(@PathVariable Long id, @RequestBody Item item) {
-        Item update = characterService.updateItem(id, item);
+        Item update = itemService.updateItem(id, item);
         if (update != null) {
             return ResponseEntity.ok("Cập nhật thành công!");
         }
@@ -56,7 +56,7 @@ public class ItemController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteItem(@PathVariable Long id) {
-        boolean delete = characterService.deleteItem(id);
+        boolean delete = itemService.deleteItem(id);
         if (delete) {
             return ResponseEntity.ok("Xóa thành công!");
         }

@@ -13,11 +13,11 @@ import java.util.List;
 public class ThuocTinhController {
 
     @Autowired
-    private ThuocTinhService characterService;
+    private ThuocTinhService thuocTinhService;
 
     @GetMapping("/")
     public ResponseEntity<List<ThuocTinh>> getAllThuocTinh() {
-        List<ThuocTinh> characters = characterService.getAllThuocTinh();
+        List<ThuocTinh> characters = thuocTinhService.getAllThuocTinh();
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }

@@ -9,9 +9,9 @@ import java.util.List;
 @Service
 public class ThuocTinhService {
     @Autowired
-    private ThuocTinhRepository characterRepository;
+    private ThuocTinhRepository thuocTinhRepository;
 
     public List<ThuocTinh> getAllThuocTinh() {
-        return characterRepository.findAll();
+        return thuocTinhRepository.findAll();
     }
 }

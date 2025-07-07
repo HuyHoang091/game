@@ -9,23 +9,23 @@ import java.util.List;
 @Service
 public class SkillUpdateRequirementsService {
     @Autowired
-    private SkillUpdateRequirementsRepository characterRepository;
+    private SkillUpdateRequirementsRepository skillUpdateRequirementsRepository;
 
     public List<SkillUpdateRequirements> getAllSkillUpdateRequirements() {
-        return characterRepository.findAll();
+        return skillUpdateRequirementsRepository.findAll();
     }
 
     public SkillUpdateRequirements createSkillUpdateRequirements(SkillUpdateRequirements SkillUpdateRequirements) {
-        return characterRepository.save(SkillUpdateRequirements);
+        return skillUpdateRequirementsRepository.save(SkillUpdateRequirements);
     }
 
     public SkillUpdateRequirements updateSkillUpdateRequirements(Long id, SkillUpdateRequirements newChar) {
-        return characterRepository.save(newChar);
+        return skillUpdateRequirementsRepository.save(newChar);
     }
 
     public boolean deleteSkillUpdateRequirements(Long id) {
-        if (characterRepository.existsById(id)) {
-            characterRepository.deleteById(id);
+        if (skillUpdateRequirementsRepository.existsById(id)) {
+            skillUpdateRequirementsRepository.deleteById(id);
             return true;
         }
         return false;

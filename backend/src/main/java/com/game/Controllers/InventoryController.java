@@ -14,11 +14,11 @@ import java.util.List;
 public class InventoryController {
 
     @Autowired
-    private InventoryService characterService;
+    private InventoryService inventoryService;
 
     @GetMapping("/{character_id}")
     public ResponseEntity<List<Inventory>> getAllCharactersSkill(@PathVariable Long character_id) {
-        List<Inventory> characters = characterService.getAllCharactersSkill(character_id);
+        List<Inventory> characters = inventoryService.getAllCharactersSkill(character_id);
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }
@@ -28,7 +28,7 @@ public class InventoryController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/")
     public ResponseEntity<List<Inventory>> getAllInventory() {
-        List<Inventory> characters = characterService.getAllInventory();
+        List<Inventory> characters = inventoryService.getAllInventory();
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }
@@ -38,7 +38,7 @@ public class InventoryController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/")
     public ResponseEntity<?> createInventory(@RequestBody Inventory inventory) {
-        Inventory create = characterService.createInventory(inventory);
+        Inventory create = inventoryService.createInventory(inventory);
         if (create != null) {
             return ResponseEntity.ok("Thêm mới thành công!");
         }
@@ -48,7 +48,7 @@ public class InventoryController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateInventory(@PathVariable Long id, @RequestBody Inventory inventory) {
-        Inventory update = characterService.updateInventory(id, inventory);
+        Inventory update = inventoryService.updateInventory(id, inventory);
         if (update != null) {
             return ResponseEntity.ok("Cập nhật thành công!");
         }
@@ -58,7 +58,7 @@ public class InventoryController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteInventory(@PathVariable Long id) {
-        boolean delete = characterService.deleteInventory(id);
+        boolean delete = inventoryService.deleteInventory(id);
         if (delete) {
             return ResponseEntity.ok("Xóa thành công!");
         }
@@ -67,7 +67,7 @@ public class InventoryController {
 
     @PutMapping("/batch")
     public ResponseEntity<Void> updateInventorys(@RequestBody List<Inventory> characters) {
-        characterService.updateListInventory(characters);
+        inventoryService.updateListInventory(characters);
         return ResponseEntity.ok().build();
     }
 }

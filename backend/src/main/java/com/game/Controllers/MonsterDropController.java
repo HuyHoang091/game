@@ -16,7 +16,7 @@ import java.util.List;
 public class MonsterDropController {
 
     @Autowired
-    private MonsterDropService characterService;
+    private MonsterDropService monsterDropService;
 
     @Value("${admin.secret}")
     private String SECRET_CODE;
@@ -32,7 +32,7 @@ public class MonsterDropController {
             }
         }
         
-        List<MonsterDrop> characters = characterService.getAllMonsterDrop();
+        List<MonsterDrop> characters = monsterDropService.getAllMonsterDrop();
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }
@@ -41,7 +41,7 @@ public class MonsterDropController {
 
     @PostMapping("/")
     public ResponseEntity<?> createMonsterDrop(@RequestBody MonsterDrop MonsterDrop) {
-        MonsterDrop create = characterService.createMonsterDrop(MonsterDrop);
+        MonsterDrop create = monsterDropService.createMonsterDrop(MonsterDrop);
         if (create != null) {
             return ResponseEntity.ok("Thêm mới thành công!");
         }
@@ -50,7 +50,7 @@ public class MonsterDropController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMonsterDrop(@PathVariable Long id, @RequestBody MonsterDrop MonsterDrop) {
-        MonsterDrop update = characterService.updateMonsterDrop(id, MonsterDrop);
+        MonsterDrop update = monsterDropService.updateMonsterDrop(id, MonsterDrop);
         if (update != null) {
             return ResponseEntity.ok("Cập nhật thành công!");
         }
@@ -59,7 +59,7 @@ public class MonsterDropController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMonsterDrop(@PathVariable Long id) {
-        boolean delete = characterService.deleteMonsterDrop(id);
+        boolean delete = monsterDropService.deleteMonsterDrop(id);
         if (delete) {
             return ResponseEntity.ok("Xóa thành công!");
         }

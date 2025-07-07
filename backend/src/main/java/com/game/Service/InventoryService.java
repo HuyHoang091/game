@@ -10,45 +10,45 @@ import java.util.Optional;
 @Service
 public class InventoryService {
     @Autowired
-    private InventoryRepository characterRepository;
+    private InventoryRepository inventoryRepository;
 
     public List<Inventory> getAllCharactersSkill(Long character_id) {
-        return characterRepository.findByCharacterId(character_id);
+        return inventoryRepository.findByCharacterId(character_id);
     }
 
     public List<Inventory> getAllInventory() {
-        return characterRepository.findAll();
+        return inventoryRepository.findAll();
     }
 
     public Inventory createInventory(Inventory inventory) {
-        return characterRepository.save(inventory);
+        return inventoryRepository.save(inventory);
     }
 
     public Inventory updateInventory(Long id, Inventory newChar) {
-        return characterRepository.findById(id).map(existing -> {
+        return inventoryRepository.findById(id).map(existing -> {
             existing.setCharacterId(newChar.getCharacterId());
             existing.setItemId(newChar.getItemId());
             existing.setItemInstanceId(newChar.getItemInstanceId());
             existing.setQuantity(newChar.getQuantity());
             existing.setEquipped(newChar.isEquipped());
-            return characterRepository.save(existing);
+            return inventoryRepository.save(existing);
         }).orElse(null);
     }
 
     public void updateListInventory(List<Inventory> characters) {
         for (Inventory character : characters) {
-            Optional<Inventory> existing = characterRepository.findById(character.getId());
+            Optional<Inventory> existing = inventoryRepository.findById(character.getId());
             if (existing.isPresent()) {
-                characterRepository.save(character); // update
+                inventoryRepository.save(character); // update
             } else {
-                characterRepository.insert(character.getId(), character.getCharacterId(), character.getItemId(), character.getItemInstanceId(), character.getQuantity(), character.isEquipped()); // insert
+                inventoryRepository.insert(character.getId(), character.getCharacterId(), character.getItemId(), character.getItemInstanceId(), character.getQuantity(), character.isEquipped()); // insert
             }
         }
     }
 
     public boolean deleteInventory(Long id) {
-        if (characterRepository.existsById(id)) {
-            characterRepository.deleteById(id);
+        if (inventoryRepository.existsById(id)) {
+            inventoryRepository.deleteById(id);
             return true;
         }
         return false;

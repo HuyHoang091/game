@@ -10,46 +10,46 @@ import java.util.Optional;
 @Service
 public class CharacterSkillService {
     @Autowired
-    private CharacterSkillRepository characterRepository;
+    private CharacterSkillRepository characterSkillRepository;
 
     public List<CharacterSkill> getAllCharactersSkill(Long character_id) {
-        return characterRepository.findByCharacterId(character_id);
+        return characterSkillRepository.findByCharacterId(character_id);
     }
 
     public List<CharacterSkill> getAllCharacterSkill() {
-        return characterRepository.findAll();
+        return characterSkillRepository.findAll();
     }
 
     public CharacterSkill createCharacterSkill(CharacterSkill characterSkill) {
-        return characterRepository.save(characterSkill);
+        return characterSkillRepository.save(characterSkill);
     }
 
     public CharacterSkill updateCharacterSkill(Long id, CharacterSkill newChar) {
-        return characterRepository.findById(id).map(existing -> {
+        return characterSkillRepository.findById(id).map(existing -> {
             existing.setCharacterId(newChar.getCharacterId());
             existing.setSkillId(newChar.getSkillId());
             existing.setLevel(newChar.getLevel());
             existing.setSlot(newChar.getSlot());
-            return characterRepository.save(existing);
+            return characterSkillRepository.save(existing);
         }).orElse(null);
     }
 
     public void updateListCharacterSkill(List<CharacterSkill> characters) {
         for (CharacterSkill character : characters) {
-            Optional<CharacterSkill> existing = characterRepository
+            Optional<CharacterSkill> existing = characterSkillRepository
                     .findByCharacterIdAndSkillId(character.getCharacterId(), character.getSkillId());
             if (existing.isPresent()) {
-                characterRepository.save(character); // update
+                characterSkillRepository.save(character); // update
             } else {
-                characterRepository.insert(character.getId(), character.getCharacterId(), character.getSkillId(),
+                characterSkillRepository.insert(character.getId(), character.getCharacterId(), character.getSkillId(),
                         character.getLevel(), character.getSlot()); // insert
             }
         }
     }
 
     public boolean deleteCharacterSkill(Long id) {
-        if (characterRepository.existsById(id)) {
-            characterRepository.deleteById(id);
+        if (characterSkillRepository.existsById(id)) {
+            characterSkillRepository.deleteById(id);
             return true;
         }
         return false;

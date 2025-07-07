@@ -10,18 +10,18 @@ import java.util.Optional;
 @Service
 public class ItemInstanceService {
     @Autowired
-    private ItemInstanceRepository characterRepository;
+    private ItemInstanceRepository itemInstanceRepository;
 
     public List<ItemInstance> getAllItemInstance() {
-        return characterRepository.findAll();
+        return itemInstanceRepository.findAll();
     }
 
     public ItemInstance createItemInstance(ItemInstance iteminstance) {
-        return characterRepository.save(iteminstance);
+        return itemInstanceRepository.save(iteminstance);
     }
 
     public ItemInstance updateItemInstance(Long id, ItemInstance newChar) {
-        return characterRepository.findById(id).map(existing -> {
+        return itemInstanceRepository.findById(id).map(existing -> {
             existing.setItemId(newChar.getItemId());
             existing.setAtk(newChar.getAtk());
             existing.setDef(newChar.getDef());
@@ -29,24 +29,24 @@ public class ItemInstanceService {
             existing.setMp(newChar.getMp());
             existing.setCritRate(newChar.getCritRate());
             existing.setCritDmg(newChar.getCritDmg());
-            return characterRepository.save(existing);
+            return itemInstanceRepository.save(existing);
         }).orElse(null);
     }
 
     public void updateListItemInstance(List<ItemInstance> characters) {
         for (ItemInstance character : characters) {
-            Optional<ItemInstance> existing = characterRepository.findById(character.getId());
+            Optional<ItemInstance> existing = itemInstanceRepository.findById(character.getId());
             if (existing.isPresent()) {
-                characterRepository.save(character); // update
+                itemInstanceRepository.save(character); // update
             } else {
-                characterRepository.insert(character.getId(), character.getItemId(), character.getAtk(), character.getDef(), character.getHp(), character.getMp(), character.getCritRate(), character.getCritDmg()); // insert
+                itemInstanceRepository.insert(character.getId(), character.getItemId(), character.getAtk(), character.getDef(), character.getHp(), character.getMp(), character.getCritRate(), character.getCritDmg()); // insert
             }
         }
     }
 
     public boolean deleteItemInstance(Long id) {
-        if (characterRepository.existsById(id)) {
-            characterRepository.deleteById(id);
+        if (itemInstanceRepository.existsById(id)) {
+            itemInstanceRepository.deleteById(id);
             return true;
         }
         return false;
@@ -56,7 +56,7 @@ public class ItemInstanceService {
         Long id = item.getId();
         if (id == null || id == 0) return true;
 
-        ItemInstance base = characterRepository.findById(id).orElse(null);
+        ItemInstance base = itemInstanceRepository.findById(id).orElse(null);
         if (base == null) return true;
 
         boolean valid = item.getAtk() == base.getAtk()

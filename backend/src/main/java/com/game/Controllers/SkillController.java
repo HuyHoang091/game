@@ -16,7 +16,7 @@ import java.util.List;
 public class SkillController {
 
     @Autowired
-    private SkillService characterService;
+    private SkillService skillService;
 
     @Value("${admin.secret}")
     private String SECRET_CODE;
@@ -32,7 +32,7 @@ public class SkillController {
             }
         }
         
-        List<Skill> characters = characterService.getAllSkill();
+        List<Skill> characters = skillService.getAllSkill();
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }
@@ -41,7 +41,7 @@ public class SkillController {
 
     @PostMapping("/")
     public ResponseEntity<?> createSkill(@RequestBody Skill Skill) {
-        Skill create = characterService.createSkill(Skill);
+        Skill create = skillService.createSkill(Skill);
         if (create != null) {
             return ResponseEntity.ok("Thêm mới thành công!");
         }
@@ -50,7 +50,7 @@ public class SkillController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateSkill(@PathVariable Long id, @RequestBody Skill Skill) {
-        Skill update = characterService.updateSkill(id, Skill);
+        Skill update = skillService.updateSkill(id, Skill);
         if (update != null) {
             return ResponseEntity.ok("Cập nhật thành công!");
         }
@@ -59,7 +59,7 @@ public class SkillController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteSkill(@PathVariable Long id) {
-        boolean delete = characterService.deleteSkill(id);
+        boolean delete = skillService.deleteSkill(id);
         if (delete) {
             return ResponseEntity.ok("Xóa thành công!");
         }

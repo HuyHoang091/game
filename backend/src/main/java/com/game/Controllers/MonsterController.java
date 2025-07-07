@@ -16,7 +16,7 @@ import java.util.List;
 public class MonsterController {
 
     @Autowired
-    private MonsterService characterService;
+    private MonsterService monsterService;
 
     @Value("${admin.secret}")
     private String SECRET_CODE;
@@ -32,7 +32,7 @@ public class MonsterController {
             }
         }
         
-        List<Monster> characters = characterService.getAllMonster();
+        List<Monster> characters = monsterService.getAllMonster();
         if (characters != null && !characters.isEmpty()) {
             return ResponseEntity.ok(characters);
         }
@@ -41,7 +41,7 @@ public class MonsterController {
 
     @PostMapping("/")
     public ResponseEntity<?> createMonster(@RequestBody Monster Monster) {
-        Monster create = characterService.createMonster(Monster);
+        Monster create = monsterService.createMonster(Monster);
         if (create != null) {
             return ResponseEntity.ok("Thêm mới thành công!");
         }
@@ -50,7 +50,7 @@ public class MonsterController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMonster(@PathVariable Long id, @RequestBody Monster Monster) {
-        Monster update = characterService.updateMonster(id, Monster);
+        Monster update = monsterService.updateMonster(id, Monster);
         if (update != null) {
             return ResponseEntity.ok("Cập nhật thành công!");
         }
@@ -59,7 +59,7 @@ public class MonsterController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMonster(@PathVariable Long id) {
-        boolean delete = characterService.deleteMonster(id);
+        boolean delete = monsterService.deleteMonster(id);
         if (delete) {
             return ResponseEntity.ok("Xóa thành công!");
         }

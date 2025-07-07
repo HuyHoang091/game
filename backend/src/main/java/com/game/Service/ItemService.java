@@ -9,30 +9,30 @@ import java.util.List;
 @Service
 public class ItemService {
     @Autowired
-    private ItemRepository characterRepository;
+    private ItemRepository itemRepository;
 
     public List<Item> getAllItem() {
-        return characterRepository.findAll();
+        return itemRepository.findAll();
     }
 
     public Item createItem(Item item) {
-        return characterRepository.save(item);
+        return itemRepository.save(item);
     }
 
     public Item updateItem(Long id, Item newChar) {
-        return characterRepository.findById(id).map(existing -> {
+        return itemRepository.findById(id).map(existing -> {
             existing.setName(newChar.getName());
             existing.setType(newChar.getType());
             existing.setMota(newChar.getMota());
             existing.setThuoctinh(newChar.getThuoctinh());
             existing.setIcon(newChar.getIcon());
-            return characterRepository.save(existing);
+            return itemRepository.save(existing);
         }).orElse(null);
     }
 
     public boolean deleteItem(Long id) {
-        if (characterRepository.existsById(id)) {
-            characterRepository.deleteById(id);
+        if (itemRepository.existsById(id)) {
+            itemRepository.deleteById(id);
             return true;
         }
         return false;

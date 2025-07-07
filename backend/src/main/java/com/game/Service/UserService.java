@@ -135,29 +135,23 @@ public class UserService {
 
     @Transactional
     public User registerUser(User user) {
-        // 1. Kiểm tra xem username hoặc email đã tồn tại chưa
         if (userRepository.findByUsername(user.getUsername()) != null) {
             System.err.println("Registration failed: Username '" + user.getUsername() + "' already exists.");
-            return null; // Hoặc throw một ngoại lệ tùy chỉnh
+            return null;
         }
         if (user.getEmail() != null && userRepository.findByEmail(user.getEmail()) != null) {
              System.err.println("Registration failed: Email '" + user.getEmail() + "' already exists.");
-             return null; // Hoặc throw một ngoại lệ tùy chỉnh
+             return null;
         }
 
-        // 2. Tự động tạo mật khẩu ngẫu nhiên
-        String generatedPassword = generateRandomPassword(10); // Tạo mật khẩu 10 ký tự
-        System.out.println("Generated password for " + user.getUsername() + ": " + generatedPassword); // CHỈ ĐỂ DEBUG, KHÔNG IN RA LOG THẬT!
+        String generatedPassword = generateRandomPassword(10);
 
-        // 3. Mã hóa mật khẩu trước khi lưu
         String encodedPassword = passwordEncoder.encode(generatedPassword);
         user.setPassword(encodedPassword);
         user.setSessionId("");
 
-        // 4. Lưu người dùng vào cơ sở dữ liệu
         User savedUser = userRepository.save(user);
 
-        // 5. Gửi mật khẩu đã tạo đến email của người dùng
         if (user.getEmail() != null && !user.getEmail().isEmpty()) {
             String subject = "Mật khẩu đăng ký tài khoản Game của bạn";
             String body = "Chào mừng bạn đến với Game của chúng tôi, " + user.getUsername() + "!\n\n"
@@ -169,7 +163,6 @@ public class UserService {
                 emailService.sendEmail(user.getEmail(), subject, body);
             } catch (Exception e) {
                 System.err.println("Failed to send registration email to " + user.getEmail() + ": " + e.getMessage());
-                // Xử lý lỗi gửi email (ví dụ: log lại, rollback giao dịch nếu cần)
             }
         } else {
             System.err.println("User " + user.getUsername() + " does not have an email address to send password to.");

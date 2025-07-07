@@ -12,10 +12,16 @@ import com.game.GameDataUploader;
 import com.game.GameWindow;
 import com.game.core.KeyBindingConfig;
 import com.game.data.GameData;
+import com.game.rendering.GlobalLoadingManager;
 import com.game.resource.MapPreviewManager;
 import com.game.resource.ResourceManager;
 
 import java.lang.reflect.Field;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 public class MainMenu extends JPanel {
@@ -80,9 +86,38 @@ public class MainMenu extends JPanel {
             GamePanel.currentInstance = null;
             SettingsPanel.instance = null;
             System.gc();
-            AccessFrame loginFrame = new AccessFrame();
-            loginFrame.setVisible(true);
-            GameWindow.getInstance().dispose();
+            GlobalLoadingManager loadingManager = new GlobalLoadingManager(gameWindow);
+            loadingManager.startLoading(() -> {
+                
+            });
+
+            new Thread(() -> {
+                try {
+                    String hash = AccessFrame.hashDirectory(new File("target/classes"));
+                    System.out.print(hash);
+
+                    HttpClient client1 = HttpClient.newHttpClient();
+                    HttpRequest request1 = HttpRequest.newBuilder()
+                            .uri(URI.create("http://localhost:8080/api/appcode/verify"))
+                            .header("App-Hash", hash)
+                            .GET()
+                            .build();
+
+                    HttpResponse<String> response1 = client1.send(request1, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                    if(response1.statusCode() == 200) {
+                        AccessFrame.getInstance().frontendSecret = response1.body();
+                    } else {
+                        System.exit(0);
+                    }
+                } catch (Exception e1) {}
+                
+                loadingManager.setLoading(false);
+                AccessFrame loginFrame = AccessFrame.getInstance();
+                loginFrame.setVisible(true);
+                loginFrame.showLogin();
+                GameWindow.getInstance().dispose();
+            }).start();
         });
         
         // Center buttons horizontally

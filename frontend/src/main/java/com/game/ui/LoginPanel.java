@@ -12,6 +12,7 @@ import com.game.AccessFrame;
 import com.game.GameWindow;
 import com.game.data.GameData;
 import com.game.model.*;
+import com.game.rendering.GlobalLoadingManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
@@ -288,6 +289,7 @@ public class LoginPanel extends JPanel {
                     .uri(URI.create("http://localhost:8080/api/auth/login"))
                     .header("Content-Type", "application/json")
                     .header("App-Code", appCode)
+                    .header("Session-Hash", AccessFrame.getInstance().frontendSecret)
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
@@ -299,6 +301,7 @@ public class LoginPanel extends JPanel {
                 String admin = authResponse.getUser().getUsername();
 
                 accessFrame.LoginSecret();
+                accessFrame.frontendSecret = "";
 
                 if (admin.equals("admin")) {
                     GameData.user = authResponse.getUser();
@@ -326,11 +329,44 @@ public class LoginPanel extends JPanel {
                     GameData.token = authResponse.getToken();
                     accessFrame.showRepass();
                 }
-            } else {
+            } else if (response.statusCode() == 408) {
+                JOptionPane.showMessageDialog(this,
+                        response.body(),
+                        "Cảnh báo",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else if (response.statusCode() == 419) {
                 JOptionPane.showMessageDialog(this,
                         response.body(),
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
+                GlobalLoadingManager loadingManager = new GlobalLoadingManager(accessFrame);
+                loadingManager.startLoading(() -> {
+                    
+                });
+
+                new Thread(() -> {
+                    try {
+                        String hash = accessFrame.hashDirectory(new File("target/classes"));
+                        System.out.print(hash);
+
+                        HttpClient client1 = HttpClient.newHttpClient();
+                        HttpRequest request1 = HttpRequest.newBuilder()
+                                .uri(URI.create("http://localhost:8080/api/appcode/verify"))
+                                .header("App-Hash", hash)
+                                .GET()
+                                .build();
+
+                        HttpResponse<String> response1 = client1.send(request1, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                        if(response1.statusCode() == 200) {
+                            accessFrame.frontendSecret = response1.body();
+                        } else {
+                            System.exit(0);
+                        }
+                    } catch (Exception e) {}
+                    
+                    loadingManager.setLoading(false);
+                }).start();
             }
         } catch (Exception e) {
             e.printStackTrace();

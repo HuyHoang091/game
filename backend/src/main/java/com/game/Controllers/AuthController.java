@@ -7,9 +7,14 @@ import com.game.Model.AuthResponse;
 import com.game.Model.ResetToken;
 import com.game.Service.AppCodeService;
 import com.game.Service.UserService;
+import com.game.Utils.IpUtils;
 
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -19,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired
     private UserService userService;
 
@@ -41,10 +48,14 @@ public class AuthController {
     private String REPASS;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User loginRequest, @RequestHeader("App-Code") String part1) {
+    public ResponseEntity<?> login(@RequestBody User loginRequest, @RequestHeader("App-Code") String part1, @RequestHeader("Session-Hash") String SessionHash, HttpServletRequest request) {
         if (!part1.equals(PART1)) {
             appCodeService.Fail(loginRequest.getUsername());
-            return ResponseEntity.status(408).body(null);
+            logger.warn("Cảnh báo người dùng (" + loginRequest.getUsername() + ") đã sử dụng ứng dụng giả mạo! IP: " + IpUtils.getClientIp(request));
+            return ResponseEntity.status(408).body("Bạn đang dùng ứng dụng không hợp lệ nếu còn vi phạm chúng tôi sẽ khóa tài khoản này vĩnh viễn!");
+        }
+        if (!appCodeService.validateSessionCode(SessionHash)) {
+            return ResponseEntity.status(419).body("Hết phiên đăng nhập!");
         }
         User user = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
         if (user != null) {
@@ -54,6 +65,7 @@ public class AuthController {
             String token = jwtUtil.generateToken(user.getUsername(), sessionId);
             appCodeService.startAppCodeTimeout(loginRequest.getUsername());
             appCodeService.initAppCode(loginRequest.getUsername(), part1);
+            appCodeService.invalidateSessionCode(SessionHash);
             return ResponseEntity.ok(new AuthResponse(user, token));
         }
         return ResponseEntity.badRequest().body("Tài khoản hoặc mật khẩu không đúng!");

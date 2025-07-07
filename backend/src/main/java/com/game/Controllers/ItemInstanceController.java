@@ -1,6 +1,7 @@
 package com.game.Controllers;
 
 import com.game.Model.ItemInstance;
+import com.game.Service.AppCodeService;
 import com.game.Service.CustomUserDetails;
 import com.game.Service.ItemInstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +11,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/iteminstance")
 public class ItemInstanceController {
+    private static final Logger logger = LoggerFactory.getLogger(ItemInstanceController.class);
 
     @Autowired
     private ItemInstanceService instanceService;
@@ -71,11 +75,11 @@ public class ItemInstanceController {
         return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/batch")
-    public ResponseEntity<Void> updateItemInstances(@RequestBody List<ItemInstance> characters) {
+    @PutMapping("{username}/batch")
+    public ResponseEntity<Void> updateItemInstances(@PathVariable String username, @RequestBody List<ItemInstance> characters) {
         for (ItemInstance item : characters) {
             if (!instanceService.isValidItemInstance(item)) {
-                System.out.println("Item bất thường ID: " + item.getId());
+                logger.warn("Cảnh báo người chơi (" + username + ") có hành vi gian lận chỉ số!!! ID: " + item.getId());
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }

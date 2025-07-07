@@ -48,7 +48,7 @@ public class GameDataUploader {
 
                 // 4. Gửi itemInstance
                 if (GameData.itemInstance != null && !GameData.itemInstance.isEmpty())
-                    sendJson("http://localhost:8080/api/iteminstance/batch", GameData.itemInstance);
+                    sendJson("http://localhost:8080/api/iteminstance/" + GameData.user.getUsername() + "/batch", GameData.itemInstance);
 
                 if (GameData.user != null)
                     sendJson("http://localhost:8080/api/users/" + GameData.user.getId(), GameData.user);

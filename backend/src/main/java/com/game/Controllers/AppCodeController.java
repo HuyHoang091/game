@@ -2,6 +2,7 @@ package com.game.Controllers;
 
 import com.game.Model.User;
 import com.game.Service.AppCodeService;
+import com.game.Utils.IpUtils;
 
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +11,10 @@ import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -22,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/appcode")
 public class AppCodeController {
+    private static final Logger logger = LoggerFactory.getLogger(AppCodeController.class);
+
     @Autowired
     private AppCodeService appCodeService;
 
@@ -92,5 +99,16 @@ public class AppCodeController {
             e.printStackTrace();
             return ResponseEntity.status(500).body(null);
         }
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verify(@RequestHeader("App-Hash") String hash, HttpServletRequest request) {
+        String sessionCode = appCodeService.verifyAppHash(hash);
+        String ipAddress = IpUtils.getClientIp(request);
+        if (sessionCode != null) {
+            return ResponseEntity.ok(sessionCode);
+        }
+        logger.warn("Ứng dụng không hợp lệ từ IP: " + ipAddress);
+        return ResponseEntity.status(403).body("Ứng dụng không hợp lệ!");
     }
 }

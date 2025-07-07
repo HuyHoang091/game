@@ -2,6 +2,7 @@ package com.game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.MapData;
 import com.game.data.GameData;
 import com.game.model.AuthResponse;
+import com.game.rendering.GlobalLoadingManager;
 import com.game.ui.*;
 import com.game.resource.*;
 
@@ -90,6 +92,9 @@ public class GameWindow extends JFrame {
     }
 
     public static GameWindow getInstance() {
+        if (instance == null) {
+            instance = new GameWindow();
+        }
         return instance;
     }
 
@@ -233,10 +238,6 @@ public class GameWindow extends JFrame {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
             if (response.statusCode() == 200) {
-                JOptionPane.showMessageDialog(this,
-                        response.body(),
-                        "Thông báo",
-                        JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this,
                         response.body(),

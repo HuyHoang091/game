@@ -56,6 +56,7 @@ com\game\Model\Monster.class
 com\game\Service\SkillUpdateRequirementsService.class
 com\game\Service\UserService.class
 com\game\Service\ItemService.class
+com\game\Utils\IpUtils.class
 com\game\Model\ItemInstance.class
 com\game\Repository\MonsterRepository.class
 com\game\Service\MapService.class

@@ -1,13 +1,16 @@
 package com.game.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -25,6 +28,12 @@ import com.game.Repository.UserRepository;
 public class AppCodeService {
     public final Map<String, AppCodeParts> appCodeStorage = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(200);
+    private static final Logger logger = LoggerFactory.getLogger(AppCodeService.class);
+
+    @Value("${hash.code}")
+    private String validHashes;
+
+    private final Map<String, Long> sessionStore = new ConcurrentHashMap<>();
 
     @Autowired
     private UserService userService;
@@ -106,6 +115,7 @@ public class AppCodeService {
     public void Fail(String username) {
         userService.logout(username);
         appCodeStorage.remove(username);
+        logger.warn(username + " có hành vi bất thường (Không xác thực được frontend!)");
     }
 
     public String generateOneTimeEncryptedPart(String username) throws Exception {
@@ -136,5 +146,26 @@ public class AppCodeService {
         cipher.init(Cipher.DECRYPT_MODE, key);
         byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedBase64));
         return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    public String verifyAppHash(String hash) {
+        if (validHashes.contains(hash)) {
+            String sessionCode = UUID.randomUUID().toString();
+            sessionStore.put(sessionCode, System.currentTimeMillis());
+            return sessionCode;
+        }
+        return null;
+    }
+
+    public boolean validateSessionCode(String sessionCode) {
+        Long timestamp = sessionStore.get(sessionCode);
+        if (timestamp == null || System.currentTimeMillis() - timestamp > 60_000) {
+            return false;
+        }
+        return true;
+    }
+
+    public void invalidateSessionCode(String sessionCode) {
+        sessionStore.remove(sessionCode);
     }
 }

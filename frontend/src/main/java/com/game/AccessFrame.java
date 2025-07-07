@@ -2,6 +2,8 @@ package com.game;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -13,16 +15,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.game.ui.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.data.*;
+import com.game.rendering.GlobalLoadingManager;
 
 public class AccessFrame extends JFrame {
     private CardLayout cardLayout;
@@ -36,8 +42,10 @@ public class AccessFrame extends JFrame {
     private GameData data;
     private CharacterGalleryPanel cPanel;
 
-    public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+    public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     public Path filePath = null;
+
+    public String frontendSecret;
 
     public AccessFrame() {
         instance = this;
@@ -102,6 +110,35 @@ public class AccessFrame extends JFrame {
         
         setContentPane(contentPane);
         showLogin();
+
+        GlobalLoadingManager loadingManager = new GlobalLoadingManager(this);
+        loadingManager.startLoading(() -> {
+            
+        });
+
+        new Thread(() -> {
+            try {
+                String hash = hashDirectory(new File("target/classes"));
+                System.out.print(hash);
+
+                HttpClient client = HttpClient.newHttpClient();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("http://localhost:8080/api/appcode/verify"))
+                        .header("App-Hash", hash)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                if(response.statusCode() == 200) {
+                    frontendSecret = response.body();
+                } else {
+                    System.exit(0);
+                }
+            } catch (Exception e) {}
+            
+            loadingManager.setLoading(false);
+        }).start();
     }
 
     public static AccessFrame getInstance() {
@@ -148,6 +185,9 @@ public class AccessFrame extends JFrame {
     }
 
     public void LoginSecret() {
+        if (scheduler.isShutdown() || scheduler.isTerminated()) {
+            scheduler = Executors.newScheduledThreadPool(2);
+        }
         scheduler.schedule(() -> {
             try {
                 ObjectMapper mapper = new ObjectMapper();
@@ -266,5 +306,22 @@ public class AccessFrame extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String hashDirectory(File directory) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        java.util.List<File> files = Files.walk(directory.toPath())
+            .filter(Files::isRegularFile)
+            .sorted()
+            .map(Path::toFile)
+            .collect(Collectors.toList());
+
+        for (File file : files) {
+            byte[] bytes = Files.readAllBytes(file.toPath());
+            digest.update(bytes);
+        }
+
+        byte[] hash = digest.digest();
+        return Base64.getEncoder().encodeToString(hash);
     }
 }

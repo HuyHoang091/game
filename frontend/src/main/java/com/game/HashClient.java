@@ -69,7 +69,7 @@ public class HashClient {
                     isVerified.set(true);
                 } else {
                     String response = result.substring(7);
-                    JOptionPane.showMessageDialog(null, response);
+                    JOptionPane.showMessageDialog(null, response, "Cảnh báo", JOptionPane.ERROR_MESSAGE);
                     socket.disconnect();
                     System.exit(0);
                 }

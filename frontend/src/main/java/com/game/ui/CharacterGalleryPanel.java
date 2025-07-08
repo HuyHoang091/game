@@ -165,7 +165,8 @@ public class CharacterGalleryPanel extends JPanel {
 
                 // ✅ Mở giao diện chính
                 AccessFrame.getInstance().dispose();
-                GameWindow.getInstance().setVisible(true);
+                GameWindow gameWindow = new GameWindow();
+                gameWindow.setVisible(true);
             } else {
                 String name = JOptionPane.showInputDialog(this, "Nhập tên cho nhân vật mới:");
                 if (name != null && !name.trim().isEmpty()) {

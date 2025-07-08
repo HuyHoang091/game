@@ -4,6 +4,7 @@ C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\stats\PlayerStats.
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\core\KeyBindingConfig.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\ui\MainMenu.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\demo\TableDisplayHelper.java
+C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\HashClient.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\resource\AnimationManager.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\model\GameCharacterSkill.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\movement\PlayerMovement.java
@@ -23,7 +24,6 @@ C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\model\GameMonster.
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\audio\SoundEffectPlayer.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\demo\DataCrudHelper.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\Item.java
-C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\state\BossRoomState.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\model\GameSkill.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\model\GameMap.java
 C:\xampp\htdocs\hoanghuy\game\frontend\src\main\java\com\game\model\GameCharacter.java

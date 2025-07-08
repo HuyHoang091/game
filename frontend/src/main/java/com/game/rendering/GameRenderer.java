@@ -36,7 +36,7 @@ public class GameRenderer {
         }
         g2d.setFont(new Font("Arial", Font.BOLD, 16));
         g2d.setColor(Color.YELLOW);
-        String fpsText = "FPS: " + gamePanel.getInstance().getGameLoop().getFps();
+        String fpsText = "FPS: " + GamePanel.getInstance().getGameLoop().getFps();
         FontMetrics fm = g2d.getFontMetrics();
         int x = gamePanel.getWidth() - fm.stringWidth(fpsText) - 16;
         int y = 22;

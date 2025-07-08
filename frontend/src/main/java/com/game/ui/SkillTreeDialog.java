@@ -9,12 +9,6 @@ import com.game.model.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import org.json.JSONObject;
-import org.w3c.dom.events.MouseEvent;
 
 import java.util.ArrayList;
 import javax.swing.border.EmptyBorder;
@@ -31,7 +25,6 @@ public class SkillTreeDialog extends JDialog {
     private JLabel goldLabel;
     private Long characterId;
     private Map<Long, GameCharacterSkill> characterSkills = new HashMap<>();
-    private Map<Long, BufferedImage> skillIcons = new HashMap<>();
 
     public SkillTreeDialog(JFrame parent, Long characterId) {
         super(parent, "Cây Kỹ Năng", true);

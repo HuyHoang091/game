@@ -446,15 +446,6 @@ public class MapSelectScreen extends JPanel {
         repaint();
     }
 
-    private void styleButton(JButton button) {
-        button.setFont(new Font("Arial", Font.BOLD, 20));
-        button.setPreferredSize(new Dimension(150, 40));
-        button.setBackground(new Color(70, 130, 180));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-    }
-
     private JButton createGamingButton(String text, ActionListener action) {
         JButton button = new JButton(text) {
             private float hoverIntensity = 0.0f;

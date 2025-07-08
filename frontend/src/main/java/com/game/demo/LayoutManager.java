@@ -81,7 +81,7 @@ public class LayoutManager extends JFrame {
                                 .build();
 
                         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
+                        if (response.statusCode() == 200) {}
                     } catch (Exception e1) {
                         e1.printStackTrace();
                     }

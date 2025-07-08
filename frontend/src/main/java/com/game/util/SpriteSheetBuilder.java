@@ -16,7 +16,6 @@ public class SpriteSheetBuilder {
     private int spriteWidth;
     private int spriteHeight;
     private int columns;
-    private String outputPath;
 
     public SpriteSheetBuilder(int spriteWidth, int spriteHeight) {
         this.spriteWidth = spriteWidth;

@@ -26,6 +26,7 @@ com\game\Controllers\UserController.class
 com\game\Service\ThuocTinhService.class
 com\game\GameApplication.class
 com\game\Service\CustomUserDetails.class
+com\game\Config\SilentExceptionListener.class
 com\game\Controllers\CharacterController.class
 com\game\Repository\UserRepository.class
 com\game\Repository\CharacterSkillRepository.class
@@ -51,6 +52,7 @@ com\game\Service\EmailService.class
 com\game\Controllers\MonsterDropController.class
 com\game\Model\Skill.class
 com\game\Model\CharacterSkill.class
+com\game\Config\SocketServerConfig.class
 com\game\Config\BufferedRequestWrapper.class
 com\game\Model\Monster.class
 com\game\Service\SkillUpdateRequirementsService.class

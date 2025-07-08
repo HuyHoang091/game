@@ -2,8 +2,8 @@ package com.game;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.FileInputStream;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -15,15 +15,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.security.MessageDigest;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import com.game.ui.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,13 +36,14 @@ public class AccessFrame extends JFrame {
     private SignUpPanel signUpPanel;
     private String previousScreen = "Menu";
     private static AccessFrame instance;
-    private GameData data;
     private CharacterGalleryPanel cPanel;
 
     public ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     public Path filePath = null;
 
-    public String frontendSecret;
+    public String frontendSecret = "";
+    private int currentPingMs = 999;
+    private JPanel overlay;
 
     public AccessFrame() {
         instance = this;
@@ -82,7 +80,7 @@ public class AccessFrame extends JFrame {
                                 .build();
 
                         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
+                        if (response.statusCode() == 200){}
                     } catch (Exception e1) {
                         e1.printStackTrace();
                     }
@@ -118,30 +116,68 @@ public class AccessFrame extends JFrame {
 
         new Thread(() -> {
             try {
-                String hash = hashDirectory(new File("target/classes"));
-                System.out.print(hash);
-
-                HttpClient client = HttpClient.newHttpClient();
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/appcode/verify"))
-                        .header("App-Hash", hash)
-                        .GET()
-                        .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                if(response.statusCode() == 200) {
-                    frontendSecret = response.body();
-                } else {
-                    System.exit(0);
-                }
+                HashClient.main(null);
             } catch (Exception e) {}
             
             loadingManager.setLoading(false);
         }).start();
+
+        overlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                int ping = currentPingMs;
+
+                int iconX = getWidth() - 85;
+                int iconY = 20;
+
+                String emoji;
+                Color pingColor;
+                if (ping < 80) {
+                    emoji = "●●●";
+                    pingColor = Color.GREEN;
+                }
+                else if (ping < 150){
+                    emoji = "●●○";
+                    pingColor = Color.YELLOW;
+                }
+                else if (ping < 300){
+                    emoji = "●○○";
+                    pingColor = Color.ORANGE;
+                }  
+                else {
+                    emoji = "○○○";
+                    pingColor = Color.RED;
+                }
+                    
+                g.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
+                g.setColor(pingColor);
+                g.drawString(emoji, iconX, iconY);
+
+                g.setFont(new Font("Arial", Font.PLAIN, 11));
+                g.drawString(ping + "ms", iconX + 30, iconY);
+            }
+        };
+
+        overlay.setOpaque(false);
+        overlay.setLayout(null);
+        getLayeredPane().setLayout(null);
+        overlay.setBounds(0, 0, getWidth(), getHeight());
+        getLayeredPane().add(overlay, JLayeredPane.POPUP_LAYER);
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                overlay.setBounds(0, 0, getWidth(), getHeight());
+            }
+        });
     }
 
     public static AccessFrame getInstance() {
+        if (instance == null) {
+            instance = new AccessFrame();
+        }
         return instance;
     }
 
@@ -212,7 +248,7 @@ public class AccessFrame extends JFrame {
 
                 if (response.statusCode() == 408) {
                     JOptionPane.showMessageDialog(this,
-                        "Bạn đang xâm nhập trái phép! Ngắt kết nối với server!",
+                        response.body(),
                         "Cảnh báo",
                         JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
@@ -308,20 +344,15 @@ public class AccessFrame extends JFrame {
         }
     }
 
-    public static String hashDirectory(File directory) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        java.util.List<File> files = Files.walk(directory.toPath())
-            .filter(Files::isRegularFile)
-            .sorted()
-            .map(Path::toFile)
-            .collect(Collectors.toList());
+    public int getMs() {
+        return currentPingMs;
+    }
 
-        for (File file : files) {
-            byte[] bytes = Files.readAllBytes(file.toPath());
-            digest.update(bytes);
+    public void setMs(int ms) {
+        currentPingMs = ms;
+        overlay.repaint();
+        if (GameWindow.getInstance() != null) {
+            GameWindow.getInstance().overlay.repaint();
         }
-
-        byte[] hash = digest.digest();
-        return Base64.getEncoder().encodeToString(hash);
     }
 }

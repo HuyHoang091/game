@@ -7,7 +7,6 @@ import java.awt.Color;
 import java.awt.AlphaComposite;
 import javax.swing.ImageIcon;
 import com.game.data.GameData;
-import com.game.model.GameItem;
 import java.net.URL;
 
 public class DroppedItem {

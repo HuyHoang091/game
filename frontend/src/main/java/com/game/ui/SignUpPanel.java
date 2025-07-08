@@ -9,17 +9,11 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
 import com.game.AccessFrame;
-import com.game.GameWindow;
-import com.game.data.GameData;
-import com.game.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-import java.io.File;
 import java.io.IOException;
 import javax.swing.border.Border;
 
@@ -27,10 +21,7 @@ public class SignUpPanel extends JPanel {
     private JTextField usernameField;
     private JTextField emailField;
     private AccessFrame gameWindow;
-    private Color primaryColor = new Color(48, 63, 159);  // Material Blue
     private Color accentColor = new Color(255, 64, 129);  // Material Pink
-    private Color backgroundColor = new Color(37, 37, 37); // Dark background
-    private Font labelFont = new Font("Segoe UI", Font.BOLD, 14);
     private Font inputFont = new Font("Segoe UI", Font.PLAIN, 14);
     private Color glowColor = new Color(0, 255, 255, 50); // Cyan glow
     private Timer glowTimer;

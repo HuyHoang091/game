@@ -9,7 +9,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
 import com.game.AccessFrame;
-import com.game.GameWindow;
+import com.game.HashClient;
 import com.game.data.GameData;
 import com.game.model.*;
 import com.game.rendering.GlobalLoadingManager;
@@ -23,27 +23,21 @@ import java.util.Map;
 import java.util.Properties;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-import java.io.File;
 import java.io.IOException;
 import javax.swing.border.Border;
-
-import org.json.JSONObject;
 
 public class LoginPanel extends JPanel {
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private GameWindow gameWindow;
     private AccessFrame accessFrame;
-    private Color primaryColor = new Color(48, 63, 159);  // Material Blue
     private Color accentColor = new Color(255, 64, 129);  // Material Pink
-    private Color backgroundColor = new Color(37, 37, 37); // Dark background
-    private Font labelFont = new Font("Segoe UI", Font.BOLD, 14);
     private Font inputFont = new Font("Segoe UI", Font.PLAIN, 14);
     private Color glowColor = new Color(0, 255, 255, 50); // Cyan glow
     private Timer glowTimer;
     private float glowIntensity = 0.0f;
     private BufferedImage backgroundImage;
     private JButton loginButton;
+    public JPanel mainPanel;
 
     public LoginPanel(AccessFrame accessFrame) {
         this.accessFrame = accessFrame;
@@ -56,7 +50,7 @@ public class LoginPanel extends JPanel {
         }
         
         // Main panel with gaming background
-        JPanel mainPanel = new JPanel() {
+        mainPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -346,23 +340,7 @@ public class LoginPanel extends JPanel {
 
                 new Thread(() -> {
                     try {
-                        String hash = accessFrame.hashDirectory(new File("target/classes"));
-                        System.out.print(hash);
-
-                        HttpClient client1 = HttpClient.newHttpClient();
-                        HttpRequest request1 = HttpRequest.newBuilder()
-                                .uri(URI.create("http://localhost:8080/api/appcode/verify"))
-                                .header("App-Hash", hash)
-                                .GET()
-                                .build();
-
-                        HttpResponse<String> response1 = client1.send(request1, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                        if(response1.statusCode() == 200) {
-                            accessFrame.frontendSecret = response1.body();
-                        } else {
-                            System.exit(0);
-                        }
+                        HashClient.main(null);
                     } catch (Exception e) {}
                     
                     loadingManager.setLoading(false);

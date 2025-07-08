@@ -2,12 +2,8 @@ package com.game.ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.*;
-import javax.imageio.ImageIO;
 import com.game.model.*;
 import com.game.data.GameData;
-import java.util.List;
-import java.io.IOException;
 import com.game.GameWindow;
 import com.game.Player;
 

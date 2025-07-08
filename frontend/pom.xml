@@ -67,6 +67,11 @@
             <artifactId>flatlaf</artifactId>
             <version>3.2</version> <!-- Bạn có thể dùng bản mới hơn nếu cần -->
         </dependency>
+        <dependency>
+            <groupId>io.socket</groupId>
+            <artifactId>socket.io-client</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

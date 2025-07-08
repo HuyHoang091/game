@@ -2,7 +2,8 @@ package com.game;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,16 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.game.MapData;
 import com.game.data.GameData;
-import com.game.model.AuthResponse;
-import com.game.rendering.GlobalLoadingManager;
 import com.game.ui.*;
 import com.game.resource.*;
 
@@ -35,13 +29,12 @@ public class GameWindow extends JFrame {
     private InventoryPanel inventoryPanel;
     private String previousScreen = "Menu";
     private static GameWindow instance;
-    private ResourceManager resourceManager;
 
     private boolean isFullScreen = false;
-    private GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     private Rectangle windowedBounds;  // Lưu vị trí + kích thước cửa sổ trước fullscreen
 
     public int level = 1;
+    public JPanel overlay;
 
     public GameWindow() {
         instance = this;
@@ -89,12 +82,60 @@ public class GameWindow extends JFrame {
         contentPane.add(inventoryPanel, "Inventory");
         
         setContentPane(contentPane);
+
+        overlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                int ping = AccessFrame.getInstance().getMs();
+
+                int iconX = 15;
+                int iconY = getHeight() - 55;
+
+                String emoji;
+                Color pingColor;
+                if (ping < 80) {
+                    emoji = "●●●";
+                    pingColor = Color.GREEN;
+                }
+                else if (ping < 150){
+                    emoji = "●●○";
+                    pingColor = Color.YELLOW;
+                }
+                else if (ping < 300){
+                    emoji = "●○○";
+                    pingColor = Color.ORANGE;
+                }  
+                else {
+                    emoji = "○○○";
+                    pingColor = Color.RED;
+                }
+                    
+                g.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
+                g.setColor(pingColor);
+                g.drawString(emoji, iconX, iconY);
+
+                g.setFont(new Font("Arial", Font.PLAIN, 11));
+                g.drawString(ping + "ms", iconX + 30, iconY);
+            }
+        };
+
+        overlay.setOpaque(false);
+        overlay.setLayout(null);
+        getLayeredPane().setLayout(null);
+        overlay.setBounds(0, 0, getWidth(), getHeight());
+        getLayeredPane().add(overlay, JLayeredPane.POPUP_LAYER);
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                overlay.setBounds(0, 0, getWidth(), getHeight());
+            }
+        });
     }
 
     public static GameWindow getInstance() {
-        if (instance == null) {
-            instance = new GameWindow();
-        }
         return instance;
     }
 
@@ -168,9 +209,9 @@ public class GameWindow extends JFrame {
         contentPane.remove(gamePanel);
 
         // Null để GC dễ dọn dẹp
-        gamePanel.currentInstance = null;
+        GamePanel.currentInstance = null;
         gamePanel = null;
-        resourceManager.clearAnimationCache();
+        ResourceManager.clearAnimationCache();
         MapPreviewManager.previewCache.clear();
 
         // Tạo lại nếu cần chơi lại
@@ -183,11 +224,12 @@ public class GameWindow extends JFrame {
 
         System.gc(); // Gợi ý GC
         settingsPanel.removeEscAction();
-        GameData.droppedItems.clear(); // Xóa danh sách item rơi
+        if (GameData.droppedItems != null) {
+            GameData.droppedItems.clear(); // Xóa danh sách item rơi
+        }
     }
 
     public void toggleFullScreen() {
-        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
         if (isFullScreen) {

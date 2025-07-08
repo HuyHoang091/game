@@ -4,7 +4,6 @@ import javax.sound.sampled.*;
 
 import com.game.ui.SettingsPanel;
 
-import java.io.IOException;
 import java.net.URL;
 
 public class SoundEffectPlayer {

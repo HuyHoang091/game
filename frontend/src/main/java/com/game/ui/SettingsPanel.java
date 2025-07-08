@@ -10,11 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Map;
 
-// Import thêm thư viện Icon nếu có
-// import com.game.resources.GameIcons; // Ví dụ: Lớp chứa các biểu tượng game
-
 import com.game.GameWindow;
-import com.game.audio.SoundEffectPlayer;
 import com.game.core.GameLoop;
 import com.game.core.KeyBindingConfig;
 
@@ -31,7 +27,6 @@ public class SettingsPanel extends JPanel {
     private static final Color BG_VERY_DARK = new Color(15, 15, 20); // Nền cực tối
     private static final Color PANEL_BG_DEEP = new Color(25, 25, 30); // Nền panel sâu hơn
     private static final Color ACCENT_GOLD = new Color(255, 190, 0); // Vàng gold rực rỡ hơn
-    private static final Color ACCENT_TEAL = new Color(0, 160, 140); // Xanh teal đậm và rõ nét
     private static final Color TEXT_PRIMARY = new Color(220, 220, 220); // Chữ chính sáng hơn một chút
     private static final Color TEXT_SECONDARY = new Color(150, 150, 150); // Chữ phụ
     private static final Color BORDER_COLOR_LIGHT = new Color(60, 60, 70); // Màu viền nhẹ

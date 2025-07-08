@@ -1,7 +1,6 @@
 package com.game.Controllers;
 
 import com.game.Model.ItemInstance;
-import com.game.Service.AppCodeService;
 import com.game.Service.CustomUserDetails;
 import com.game.Service.ItemInstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +78,7 @@ public class ItemInstanceController {
     public ResponseEntity<Void> updateItemInstances(@PathVariable String username, @RequestBody List<ItemInstance> characters) {
         for (ItemInstance item : characters) {
             if (!instanceService.isValidItemInstance(item)) {
-                logger.warn("Cảnh báo người chơi (" + username + ") có hành vi gian lận chỉ số!!! ID: " + item.getId());
+                logger.error("Cảnh báo người chơi [{}] có hành vi gian lận chỉ số!!! ID: [{}]", username, item.getId());
                 return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }

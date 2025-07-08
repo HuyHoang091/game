@@ -2,13 +2,11 @@ package com.game;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.data.GameData;
-import com.game.model.GameItemInstance;
 import com.game.resource.MapPreviewManager;
 import com.game.resource.ResourceManager;
 import com.game.ui.GamePanel;
 import com.game.ui.SettingsPanel;
 
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;

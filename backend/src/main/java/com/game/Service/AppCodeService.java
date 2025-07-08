@@ -3,7 +3,6 @@ package com.game.Service;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -115,7 +114,7 @@ public class AppCodeService {
     public void Fail(String username) {
         userService.logout(username);
         appCodeStorage.remove(username);
-        logger.warn(username + " có hành vi bất thường (Không xác thực được frontend!)");
+        logger.error("Người dùng [{}] có hành vi bất thường (Không xác thực được frontend!)", username);
     }
 
     public String generateOneTimeEncryptedPart(String username) throws Exception {

@@ -2,7 +2,6 @@ package com.game;
 
 import java.awt.Graphics;
 import java.awt.Color;
-import com.game.*;
 import com.game.audio.SoundEffectPlayer;
 import com.game.data.GameData;
 import com.game.model.*;
@@ -44,7 +43,6 @@ public class Enemy {
     private boolean isAttacking = false;
     private boolean isAttackAnimationComplete = false;
     private boolean hasDealDamage = false; // Thêm biến để kiểm tra đã gây damage chưa
-    private int attackAnimationDuration = 30;
     private Rectangle attackArea;
 
     private ArrayList<DamageEffect> damageEffects = new ArrayList<>();
@@ -52,7 +50,6 @@ public class Enemy {
     private Random random = new Random();
 
     private BufferedImage[] idleFrames;
-    private boolean isIdle = false;
     private int idleFrameCount = 9;
 
     private BufferedImage[] buffSkill;
@@ -90,7 +87,6 @@ public class Enemy {
     private String name, type;
     private boolean SkillTH = false;
 
-    GamePanel gamePanel;
     private boolean trieuhoi;
 
     private boolean ismusicAttack = false;
@@ -281,7 +277,7 @@ public class Enemy {
             else if (level <= 90) sl = 4;
             else sl = 5;
             for (int i = 0; i < sl; i++) {
-                Enemy newEnemy = gamePanel.getInstance().createEnemy(
+                Enemy newEnemy = GamePanel.getInstance().createEnemy(
                     x,
                     y,
                     70, 70, 10L, monsterId, name, true
@@ -432,10 +428,7 @@ public class Enemy {
 
         if (!isAttacking && !isUsingBuffSkill && !isUsingTargetSkill 
             && Math.abs(x - newX) < 0.1 && Math.abs(y - newY) < 0.1) {
-            isIdle = true;
             animate(idleFrames);
-        } else {
-            isIdle = false;
         }
     }
 
@@ -526,7 +519,7 @@ public class Enemy {
 
         if (health <= 0) {
             health = 0L;
-            Player player = gamePanel.getInstance().getPlayer();
+            Player player = GamePanel.getInstance().getPlayer();
             if (player != null) {
                 player.gainExp(monsterId);
             }

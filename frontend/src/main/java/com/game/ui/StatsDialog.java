@@ -214,7 +214,7 @@ public class StatsDialog extends JDialog {
             unequipItem();
         }
         // Tính lại chỉ số
-        Player player = gamePanel.getInstance().getPlayer();
+        Player player = GamePanel.getInstance().getPlayer();
         if (player != null) {
             player.stats.ChiSoGocGL();    // Tính lại chỉ số gốc
             player.stats.ChiSoTB();     // Tính lại chỉ số từ trang bị

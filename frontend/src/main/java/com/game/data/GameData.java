@@ -155,7 +155,9 @@ public class GameData {
         skills = null;
         skillUpdate = null;
         thuoctinh = null;
-        droppedItems = null;
+        if (droppedItems != null) {
+            droppedItems = null;
+        }
         token = null;
     }
 }

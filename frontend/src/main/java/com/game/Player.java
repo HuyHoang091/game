@@ -1,14 +1,11 @@
 package com.game;
 
 import java.awt.Graphics;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.awt.geom.AffineTransform;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import com.game.*;
 import com.game.audio.SoundEffectPlayer;
 import com.game.core.KeyBindingConfig;
 import com.game.data.GameData;
@@ -45,7 +42,6 @@ public class Player extends JComponent {
     int skillEffectFrameTick = 0; // Bộ đếm thời gian cho khung hình
     int skillEffectDuration = 0; // Thời gian tồn tại của hiệu ứng kỹ năng
     boolean isUsingSkill = false; // Trạng thái sử dụng kỹ năng
-    private boolean isIdle = false;
     boolean isDying = false, isReadyToDie = false, isDieAnimationComplete = false;
     private ArrayList<SkillData> skillList = new ArrayList<>();
     // endregion
@@ -63,7 +59,6 @@ public class Player extends JComponent {
 
     // region Khác
     ArrayList<Enemy> enemies = new ArrayList<>();
-    GameWindow gameWindow;
     public PlayerStats stats;
     public PlayerMovement movement;
     Long characterId;
@@ -208,7 +203,6 @@ public class Player extends JComponent {
             } else if (movement.getDirection().equals("down")) {
                 animate(downFrames);
             }
-            isIdle = false;
         }
 
         // Kiểm tra và nhặt đồ
@@ -239,10 +233,7 @@ public class Player extends JComponent {
 
         // Kiểm tra chạy hoạt ảnh đứng yên
         if (!movement.isMoving() && !isUsingSkill) {
-            isIdle = true;
             animate(idleFrames);
-        } else {
-            isIdle = false;
         }
 
         // wasMoving = moving;
@@ -282,13 +273,6 @@ public class Player extends JComponent {
             GameData.inventory = currentInventory;
 
             GameData.droppedItems.remove(item);
-                
-            // Print item stats when picked up
-            GameItemInstance instance = GameData.itemInstance.stream()
-                .filter(i -> i.getId().equals(item.getItemInstanceId()))
-                .findFirst()
-                .orElse(null);
-
         } catch (Exception e) {
             System.err.println("Error adding item to inventory: " + e.getMessage());
             e.printStackTrace();
@@ -372,11 +356,11 @@ public class Player extends JComponent {
         }
         if (keyCode == KeyBindingConfig.getKey("Open Setting")) {
             GamePanel.getInstance().setPaused(true);
-            gameWindow.getInstance().showSettings("Game");  
+            GameWindow.getInstance().showSettings("Game");  
         }
         if (keyCode == KeyBindingConfig.getKey("Open Inventory")) {
             GamePanel.getInstance().setPaused(true);
-            gameWindow.getInstance().showInventory("Game");  
+            GameWindow.getInstance().showInventory("Game");  
         }
         if (keyCode == KeyBindingConfig.getKey("Open Skill Tree")) {
             GamePanel.getInstance().setPaused(true);

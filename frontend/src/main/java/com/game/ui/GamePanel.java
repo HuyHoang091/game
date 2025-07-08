@@ -1,9 +1,7 @@
 package com.game.ui;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.image.*;
-import java.awt.geom.Arc2D;
 import java.io.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -11,19 +9,16 @@ import java.util.*;
 import java.util.List;
 
 import com.game.*;
-import java.net.*;
 import com.game.data.GameData;
 import com.game.model.*;
 import com.game.core.*;
 import com.game.rendering.*;
 import com.game.resource.*;
-import com.game.state.*;
 
 public class GamePanel extends JPanel {
     private GameLoop gameLoop;
     private InputHandler inputHandler;
     private GameRenderer renderer;
-    private BossRoomState bossRoomState;
     // Các hằng số cấu hình chung
     private static final int WIDTH = 1200;
     private static final int HEIGHT = 700;
@@ -92,7 +87,6 @@ public class GamePanel extends JPanel {
         this.addMouseListener(inputHandler);
 
         renderer = new GameRenderer(this);
-        bossRoomState = new BossRoomState(this);
 
         skillButtonBounds = new Rectangle[4];
         skillIcons = new BufferedImage[4];
@@ -370,8 +364,8 @@ public class GamePanel extends JPanel {
             if (gameEnding) {
                 if (System.currentTimeMillis() - gameEndTime >= END_GAME_DELAY) {
                     SwingUtilities.invokeLater(() -> {
-                        if (GameData.user.getTiendo() < gameWindow.getInstance().getLevel()) {
-                            GameData.user.setTiendo(gameWindow.getInstance().getLevel());
+                        if (GameData.user.getTiendo() < GameWindow.getInstance().getLevel()) {
+                            GameData.user.setTiendo(GameWindow.getInstance().getLevel());
                         }
                         gameWindow.BackToMenu();
                     });
@@ -482,7 +476,9 @@ public class GamePanel extends JPanel {
     // endregion
 
     // region Các getter/setter cho Player và trạng thái game
-    public static GamePanel getInstance() { return currentInstance; }
+    public static GamePanel getInstance() {
+        return currentInstance;
+    }
     public Player getPlayer() { return player; }
     public Long getPlayerId() { return playerId; }
     public GameLoop getGameLoop() { return gameLoop; }

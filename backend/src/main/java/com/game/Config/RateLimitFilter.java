@@ -1,10 +1,15 @@
 package com.game.Config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.game.Service.AppCodeService;
+
 import io.github.bucket4j.*;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -15,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class RateLimitFilter implements Filter {
-
+    private static final Logger logger = LoggerFactory.getLogger(RateLimitFilter.class);
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -43,7 +48,7 @@ public class RateLimitFilter implements Filter {
         res.setCharacterEncoding("UTF-8");
         res.setContentType("text/plain; charset=UTF-8");
 
-        if (req.getRequestURI().equals("/api/users/login") && req.getMethod().equalsIgnoreCase("POST")) {
+        if (req.getRequestURI().equals("/api/auth/login") && req.getMethod().equalsIgnoreCase("POST")) {
             BufferedRequestWrapper bufferedRequest = new BufferedRequestWrapper(req);
             LoginRequest loginRequest = objectMapper.readValue(bufferedRequest.getReader(), LoginRequest.class);
 
@@ -66,6 +71,7 @@ public class RateLimitFilter implements Filter {
             } else {
                 res.setStatus(429);
                 res.getWriter().write("Quá nhiều lần đăng nhập user: '" + loginRequest.username + "'. Vui lòng thử lại sau ít phút.");
+                logger.warn("User [{}] nhập sai mật khẩu quá 5 lần", loginRequest.username);
             }
 
         } else {

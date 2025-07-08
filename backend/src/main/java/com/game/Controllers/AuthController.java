@@ -51,7 +51,7 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody User loginRequest, @RequestHeader("App-Code") String part1, @RequestHeader("Session-Hash") String SessionHash, HttpServletRequest request) {
         if (!part1.equals(PART1)) {
             appCodeService.Fail(loginRequest.getUsername());
-            logger.warn("Cảnh báo người dùng (" + loginRequest.getUsername() + ") đã sử dụng ứng dụng giả mạo! IP: " + IpUtils.getClientIp(request));
+            logger.warn("Cảnh báo người dùng [{}] đã sử dụng ứng dụng giả mạo! IP: [{}]", loginRequest.getUsername(), IpUtils.getClientIp(request));
             return ResponseEntity.status(408).body("Bạn đang dùng ứng dụng không hợp lệ nếu còn vi phạm chúng tôi sẽ khóa tài khoản này vĩnh viễn!");
         }
         if (!appCodeService.validateSessionCode(SessionHash)) {

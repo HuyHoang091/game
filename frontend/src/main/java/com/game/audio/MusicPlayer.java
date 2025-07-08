@@ -2,7 +2,6 @@ package com.game.audio;
 
 import java.net.URL;
 import javax.sound.sampled.*;
-import java.io.IOException;
 import com.game.ui.*;
 
 public class MusicPlayer {

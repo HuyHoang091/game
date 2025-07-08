@@ -1,7 +1,6 @@
 package com.game;
 
 import java.util.ArrayList;
-import java.awt.Point;
 
 public class MapData {
     public String mapBackground;    // đường dẫn đến ảnh nền

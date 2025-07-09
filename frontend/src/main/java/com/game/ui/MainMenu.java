@@ -82,7 +82,7 @@ public class MainMenu extends JPanel {
 
             new Thread(() -> {
                 try {
-                    HashClient.main(null);
+                    HashClient.checkHash();
                 } catch (Exception e1) {}
                 
                 loadingManager.setLoading(false);

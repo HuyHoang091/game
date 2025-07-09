@@ -340,7 +340,7 @@ public class LoginPanel extends JPanel {
 
                 new Thread(() -> {
                     try {
-                        HashClient.main(null);
+                        HashClient.checkHash();
                     } catch (Exception e) {}
                     
                     loadingManager.setLoading(false);

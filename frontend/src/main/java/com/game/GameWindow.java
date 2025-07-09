@@ -119,6 +119,10 @@ public class GameWindow extends JFrame {
                 g.setFont(new Font("Arial", Font.PLAIN, 11));
                 g.drawString(ping + "ms", iconX + 30, iconY);
             }
+            @Override
+            public boolean contains(int x, int y) {
+                return false;
+            }
         };
 
         overlay.setOpaque(false);

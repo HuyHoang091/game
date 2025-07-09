@@ -19,13 +19,14 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 public class HashClient {
+    public static Socket socket;
 
     public static void main(String[] args) throws Exception {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         AtomicBoolean isVerified = new AtomicBoolean(false);
 
         IO.Options opts = new IO.Options();
-        Socket socket = IO.socket("http://localhost:9092", opts);
+        socket = IO.socket("http://localhost:9092", opts);
 
         socket.on(Socket.EVENT_CONNECT_ERROR, args1 -> {
             JOptionPane.showMessageDialog(null,
@@ -95,9 +96,19 @@ public class HashClient {
         scheduler.scheduleAtFixedRate(() -> {
             if (!isVerified.get()) return;
             socket.emit("ping_custom", "check"); 
-        }, 0, 5, TimeUnit.SECONDS);
+        }, 0, 1, TimeUnit.SECONDS);
 
         socket.connect();
+    }
+
+    public static void checkHash() {
+        try {
+            File directory = new File("target/classes");
+            String hash = hashDirectory(directory);
+            socket.emit("send_hash", hash);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static String hashDirectory(File directory) throws Exception {

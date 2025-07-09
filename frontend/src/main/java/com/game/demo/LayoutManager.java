@@ -5,6 +5,8 @@ import javax.swing.tree.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.game.AccessFrame;
+import com.game.GameWindow;
+import com.game.HashClient;
 import com.game.data.GameData;
 
 import javax.swing.table.DefaultTableModel;
@@ -85,8 +87,6 @@ public class LayoutManager extends JFrame {
                     } catch (Exception e1) {
                         e1.printStackTrace();
                     }
-
-                    AccessFrame.getInstance().scheduler.shutdownNow();
                 }
                 System.exit(0);
             }
@@ -94,7 +94,65 @@ public class LayoutManager extends JFrame {
 
         JLabel titleLabel = new JLabel("QUẢN LÝ", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        add(titleLabel, BorderLayout.NORTH);
+        // add(titleLabel, BorderLayout.NORTH);
+
+        JButton btnLogout = new RoundedButton("Đăng xuất", 15);
+        btnLogout.setFocusPainted(false);
+        btnLogout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnLogout.setBackground(new Color(244, 67, 54));
+        btnLogout.setForeground(Color.WHITE);
+        btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnLogout.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        btnLogout.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn đăng xuất?", "Xác nhận", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.YES_OPTION) {
+                try {
+                    String username = GameData.user.getUsername();
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, String> requestBody = new HashMap<>();
+                    requestBody.put("username", username);
+                    String json = mapper.writeValueAsString(requestBody);
+
+                    HttpClient client = HttpClient.newHttpClient();
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create("http://localhost:8080/api/auth/logout"))
+                            .header("Content-Type", "application/json")
+                            .header("Authorization", "Bearer " + GameData.token)
+                            .POST(HttpRequest.BodyPublishers.ofString(json))
+                            .build();
+
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    if (response.statusCode() == 200) {}
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                if (AccessFrame.getInstance().scheduler != null) {
+                    AccessFrame.getInstance().scheduler.shutdownNow();
+                }
+
+                new Thread(() -> {
+                    try {
+                        HashClient.checkHash();
+                        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+                        for (Window window : Window.getWindows()) {
+                            SwingUtilities.updateComponentTreeUI(window);
+                        }
+                    } catch (Exception e1) {}
+                    this.dispose();
+                    AccessFrame loginFrame = AccessFrame.getInstance();
+                    loginFrame.setVisible(true);
+                    loginFrame.showLogin();
+                }).start();
+            }
+        });
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        topPanel.add(titleLabel, BorderLayout.WEST);
+        topPanel.add(btnLogout, BorderLayout.EAST);
+
+        add(topPanel, BorderLayout.NORTH);
 
         // JTree
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("ROOT");

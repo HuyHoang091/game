@@ -48,7 +48,7 @@ public class AppCodeService {
         scheduler.schedule(() -> {
             AppCodeParts parts = appCodeStorage.get(username);
             User user = userRepository.findByUsername(username);
-            if (parts != null && parts.getPart2() == null && (user == null || "".equals(user.getSessionId()))) {
+            if (parts == null || parts.getPart2() == null || parts.getPart2().isEmpty() || (user == null || "".equals(user.getSessionId()))) {
                 userService.logout(username);
                 appCodeStorage.remove(username);
             }
@@ -57,7 +57,7 @@ public class AppCodeService {
         scheduler.schedule(() -> {
             AppCodeParts parts = appCodeStorage.get(username);
             User user = userRepository.findByUsername(username);
-            if (parts != null && parts.getPart2() == null && (user == null || "".equals(user.getSessionId()))) {
+            if (parts == null || parts.getPart3() == null || parts.getPart3().isEmpty() || (user == null || "".equals(user.getSessionId()))) {
                 userService.logout(username);
                 appCodeStorage.remove(username);
             }
@@ -87,7 +87,7 @@ public class AppCodeService {
 
     public boolean AppCode2(String username, String part2) {
         AppCodeParts parts = appCodeStorage.get(username);
-        if ((System.currentTimeMillis() - parts.getTimestamp()) >= 5+000 && (System.currentTimeMillis() - parts.getTimestamp()) <= 10_000) {
+        if ((System.currentTimeMillis() - parts.getTimestamp()) >= 5_000 && (System.currentTimeMillis() - parts.getTimestamp()) <= 10_000) {
             parts.setPart2(part2);
             parts.setTimestamp(System.currentTimeMillis());
             return true;

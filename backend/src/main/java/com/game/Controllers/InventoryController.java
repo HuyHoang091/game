@@ -4,6 +4,7 @@ import com.game.Model.Inventory;
 import com.game.Service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -41,7 +42,7 @@ public class InventoryController {
     public ResponseEntity<?> createInventory(@RequestBody Inventory inventory) {
         Inventory create = inventoryService.createInventory(inventory);
         if (create != null) {
-            return ResponseEntity.ok("Thêm mới thành công!");
+            return ResponseEntity.status(HttpStatus.CREATED).body("Thêm mới thành công!");
         }
         return ResponseEntity.notFound().build();
     }

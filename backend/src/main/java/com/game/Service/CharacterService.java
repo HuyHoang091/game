@@ -25,14 +25,7 @@ public class CharacterService {
     }
 
     public Character updateCharacter(Long id, Character newChar) {
-        return characterRepository.findById(id).map(existing -> {
-            existing.setName(newChar.getName());
-            existing.setLevel(newChar.getLevel());
-            existing.setSkillPoint(newChar.getSkillPoint());
-            existing.setGold(newChar.getGold());
-            existing.setExp(newChar.getExp());
-            return characterRepository.save(existing);
-        }).orElse(null);
+        return characterRepository.save(newChar);
     }
 
     public void updateListCharacters(List<Character> characters) {

@@ -184,6 +184,7 @@ public class GameWindow extends JFrame {
             settingsPanel.registerEscAction();
             ((javax.swing.Timer) e.getSource()).stop();
         }).start();
+        System.out.print(GameData.token);
     }
 
     public void showInventory(String fromScreen) {

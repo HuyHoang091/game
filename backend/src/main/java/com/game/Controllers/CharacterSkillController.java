@@ -4,6 +4,7 @@ import com.game.Model.CharacterSkill;
 import com.game.Service.CharacterSkillService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -41,7 +42,7 @@ public class CharacterSkillController {
     public ResponseEntity<?> createCharacterSkill(@RequestBody CharacterSkill characterSkill) {
         CharacterSkill create = characterSkillService.createCharacterSkill(characterSkill);
         if (create != null) {
-            return ResponseEntity.ok("Thêm mới thành công!");
+            return ResponseEntity.status(HttpStatus.CREATED).body("Thêm mới thành công!");
         }
         return ResponseEntity.notFound().build();
     }

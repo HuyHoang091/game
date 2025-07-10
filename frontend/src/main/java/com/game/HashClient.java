@@ -64,7 +64,7 @@ public class HashClient {
                 System.out.println("Server verify result: " + result);
                 AccessFrame.getInstance().setMs(16);
                 if (result.startsWith("OK|")) {
-                    String sessionCode = result.substring(3); // sau "OK|"
+                    String sessionCode = result.substring(3);
                     
                     AccessFrame.getInstance().frontendSecret = sessionCode;
                     isVerified.set(true);

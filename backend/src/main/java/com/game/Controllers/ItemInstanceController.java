@@ -49,7 +49,7 @@ public class ItemInstanceController {
     public ResponseEntity<?> createItemInstance(@RequestBody ItemInstance iteminstance) {
         ItemInstance create = instanceService.createItemInstance(iteminstance);
         if (create != null) {
-            return ResponseEntity.ok("Thêm mới thành công!");
+            return ResponseEntity.status(HttpStatus.CREATED).body("Thêm mới thành công!");
         }
         return ResponseEntity.notFound().build();
     }

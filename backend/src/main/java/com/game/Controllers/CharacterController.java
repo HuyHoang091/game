@@ -6,6 +6,7 @@ import com.game.Service.CustomUserDetails;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -54,7 +55,7 @@ public class CharacterController {
 
         Character created = characterService.createCharacter(character);
         if (created != null) {
-            return ResponseEntity.ok("Thêm mới thành công!");
+            return ResponseEntity.status(HttpStatus.CREATED).body("Thêm mới thành công!");
         }
         return ResponseEntity.badRequest().build();
     }

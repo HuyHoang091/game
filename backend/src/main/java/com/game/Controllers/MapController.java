@@ -6,6 +6,7 @@ import com.game.Service.MapService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
@@ -43,7 +44,7 @@ public class MapController {
     public ResponseEntity<?> createMap(@RequestBody Map Map) {
         Map create = mapService.createMap(Map);
         if (create != null) {
-            return ResponseEntity.ok("Thêm mới thành công!");
+            return ResponseEntity.status(HttpStatus.CREATED).body("Thêm mới thành công!");
         }
         return ResponseEntity.notFound().build();
     }

@@ -88,7 +88,7 @@ public class SignUpPanel extends JPanel {
         
         // Login button with gaming style
         loginButton = createGamingButton("SIGN UP");
-        loginButton.addActionListener(e -> login());
+        loginButton.addActionListener(e -> sigup());
 
         JPanel registerPanel = new JPanel();
         registerPanel.setOpaque(false);
@@ -215,10 +215,9 @@ public class SignUpPanel extends JPanel {
         glowTimer.start();
     }
 
-    private void login() {
+    private void sigup() {
         String username = usernameField.getText();
         String email = emailField.getText();
-        String trangthai = "Chưa kích hoạt";
 
         try {
             // Tạo JSON body
@@ -226,7 +225,6 @@ public class SignUpPanel extends JPanel {
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("username", username);
             requestBody.put("email", email);
-            requestBody.put("trangthai", trangthai);
             String json = mapper.writeValueAsString(requestBody);
 
             HttpClient client = HttpClient.newHttpClient();
@@ -238,9 +236,9 @@ public class SignUpPanel extends JPanel {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == 201) {
                 JOptionPane.showMessageDialog(this,
-                        "Mật khẩu đã được gửi về email của bạn!!!(Lưu ý: hãy xác nhận tài khoản trong 24h tới!!!)",
+                        response.body(),
                         "Thông báo",
                         JOptionPane.INFORMATION_MESSAGE);
                 gameWindow.showLogin();

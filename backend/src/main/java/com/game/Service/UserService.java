@@ -146,6 +146,7 @@ public class UserService {
 
         String encodedPassword = passwordEncoder.encode(generatedPassword);
         user.setPassword(encodedPassword);
+        user.setTrangthai("Chưa kích hoạt");
         user.setSessionId("");
 
         User savedUser = userRepository.save(user);

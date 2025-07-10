@@ -44,7 +44,7 @@ public class DataCrudHelper {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
                 JOptionPane.showMessageDialog(parent, response.body());
                 if (selectedNode != null) {
                     TreePath path = new TreePath(selectedNode.getPath());

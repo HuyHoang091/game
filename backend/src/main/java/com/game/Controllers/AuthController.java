@@ -79,7 +79,7 @@ public class AuthController {
 
         User registeredUser = userService.registerUser(user);
         if (registeredUser != null) {
-            return new ResponseEntity<>("User registered successfully. Password sent to your email.", HttpStatus.OK);
+            return new ResponseEntity<>("Mật khẩu đã được gửi về email của bạn!!!(Lưu ý: hãy xác nhận tài khoản trong 24h tới!!!)", HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>("Đăng ký không thành công. Tên người dùng hoặc email có thể đã tồn tại.", HttpStatus.CONFLICT);
         }

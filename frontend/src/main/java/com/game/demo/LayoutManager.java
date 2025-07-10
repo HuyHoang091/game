@@ -8,6 +8,7 @@ import com.game.AccessFrame;
 import com.game.GameWindow;
 import com.game.HashClient;
 import com.game.data.GameData;
+import com.game.rendering.GlobalLoadingManager;
 
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -132,19 +133,27 @@ public class LayoutManager extends JFrame {
                     AccessFrame.getInstance().scheduler.shutdownNow();
                 }
 
-                new Thread(() -> {
+                GlobalLoadingManager loadingManager = new GlobalLoadingManager(this);
+                loadingManager.startLoading(() -> {
+                    
+                });
+
+                SwingUtilities.invokeLater(() -> {
                     try {
                         HashClient.checkHash();
                         UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
                         for (Window window : Window.getWindows()) {
-                            SwingUtilities.updateComponentTreeUI(window);
+                            if (window.isDisplayable()) {
+                                SwingUtilities.updateComponentTreeUI(window);
+                            }
                         }
                     } catch (Exception e1) {}
                     this.dispose();
                     AccessFrame loginFrame = AccessFrame.getInstance();
                     loginFrame.setVisible(true);
                     loginFrame.showLogin();
-                }).start();
+                    loadingManager.setLoading(false);
+                });
             }
         });
         JPanel topPanel = new JPanel(new BorderLayout());

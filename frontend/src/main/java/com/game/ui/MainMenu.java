@@ -85,11 +85,11 @@ public class MainMenu extends JPanel {
                     HashClient.checkHash();
                 } catch (Exception e1) {}
                 
-                loadingManager.setLoading(false);
                 AccessFrame loginFrame = AccessFrame.getInstance();
                 loginFrame.setVisible(true);
                 loginFrame.showLogin();
                 GameWindow.getInstance().dispose();
+                loadingManager.setLoading(false);
             }).start();
         });
         

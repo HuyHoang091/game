@@ -89,6 +89,7 @@ public class AuthController {
     public ResponseEntity<String> logout(@RequestBody User user) {
         boolean loggedOut = userService.logout(user.getUsername());
         if (loggedOut) {
+            appCodeService.cancelTasksForUser(user.getUsername());
             return ResponseEntity.ok("Đăng xuất thành công!");
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Đăng xuất không thành công! Người dùng không tồn tại hoặc đã đăng xuất trước đó.");

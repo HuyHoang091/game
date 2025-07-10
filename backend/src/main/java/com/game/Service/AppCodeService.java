@@ -1,12 +1,15 @@
 package com.game.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +29,7 @@ import com.game.Repository.UserRepository;
 @Service
 public class AppCodeService {
     public final Map<String, AppCodeParts> appCodeStorage = new ConcurrentHashMap<>();
+    private final Map<String, List<ScheduledFuture<?>>> userTasks = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(200);
     private static final Logger logger = LoggerFactory.getLogger(AppCodeService.class);
 
@@ -45,25 +49,27 @@ public class AppCodeService {
 
     @Async("appTaskExecutor")
     public void startAppCodeTimeout(String username) {
-        scheduler.schedule(() -> {
+        List<ScheduledFuture<?>> futures = new ArrayList<>();
+
+        futures.add(scheduler.schedule(() -> {
             AppCodeParts parts = appCodeStorage.get(username);
             User user = userRepository.findByUsername(username);
             if (parts == null || parts.getPart2() == null || parts.getPart2().isEmpty() || (user == null || "".equals(user.getSessionId()))) {
                 userService.logout(username);
                 appCodeStorage.remove(username);
             }
-        }, 12, TimeUnit.SECONDS);
+        }, 12, TimeUnit.SECONDS));
 
-        scheduler.schedule(() -> {
+        futures.add(scheduler.schedule(() -> {
             AppCodeParts parts = appCodeStorage.get(username);
             User user = userRepository.findByUsername(username);
             if (parts == null || parts.getPart3() == null || parts.getPart3().isEmpty() || (user == null || "".equals(user.getSessionId()))) {
                 userService.logout(username);
                 appCodeStorage.remove(username);
             }
-        }, 24, TimeUnit.SECONDS);
+        }, 24, TimeUnit.SECONDS));
 
-        scheduler.schedule(() -> {
+        futures.add(scheduler.schedule(() -> {
             AppCodeParts parts = appCodeStorage.get(username);
             User user = userRepository.findByUsername(username);
             if (parts != null) {
@@ -74,7 +80,9 @@ public class AppCodeService {
                     appCodeStorage.remove(username);
                 }
             }
-        }, 30, TimeUnit.SECONDS);
+        }, 30, TimeUnit.SECONDS));
+
+        userTasks.put(username, futures);
     }
 
     public void initAppCode(String username, String part1) {
@@ -166,5 +174,14 @@ public class AppCodeService {
 
     public void invalidateSessionCode(String sessionCode) {
         sessionStore.remove(sessionCode);
+    }
+
+    public void cancelTasksForUser(String username) {
+        List<ScheduledFuture<?>> tasks = userTasks.remove(username);
+        if (tasks != null) {
+            for (ScheduledFuture<?> task : tasks) {
+                task.cancel(true);
+            }
+        }
     }
 }
